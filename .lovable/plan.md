@@ -1,53 +1,77 @@
-# Stage 2B — Remove contributor-based deletion, repoint remaining live reads
+# Legacy Admin ↔ delegate_user_id Mirror Integrity
 
-Scope: the frontend/edge reads of the legacy `contributors` table that affect live behavior, plus removal of the contributor-initiated account-deletion path. Out of scope: Stage 3 (invite pipeline: `invite-contributor`, `accept-contributor-invitation`, `complete-contributor-signup`, `SignupLegacy`, `CreatePassword` prefill), Stage 4 (drop `has_contributor_access`, the table, the enum). The `legacy_locker.delegate_user_id` mirror gap stays untouched. No database migration in this stage.
+## Root cause (verified before any change)
 
-## Pre-check result — Full Access AU has no Secure Vault access (verified, read-only)
+Live state, single active Legacy Admin account `35f0a6a4…`:
 
-Ran before proposing implementation, as required.
+- owner `2e62a796…`, Legacy Admin `4df74d1f…`, assigned `2026-05-24 16:09`
+- `legacy_locker` row for that owner: **does not exist at all** (no row, not a NULL column on an existing row)
 
-- **Every vault query in `SecureVault.tsx` is self-scoped.** `fetchVaultStatus` reads `legacy_locker` with `.eq('user_id', user.id)` and, separately, `.eq('delegate_user_id', user.id)`. Nothing queries by the *owner's* id or the active `account_id`, so a Full Access AU can only ever load their own vault row or a row where they are the designated Legacy Admin.
-- **RLS confirms it at the database layer.** `legacy_locker`, `legacy_locker_files`, `legacy_locker_folders`, `legacy_locker_voice_notes`, `voice_note_attachments`, and `trust_information` now have exactly one SELECT policy each: `auth.uid() = user_id`. The only extras are the admin-role policy on `legacy_locker` (`has_app_role(admin) AND allow_admin_access = true`) and `vault_delegate_grants`, scoped to `owner_user_id` / `delegate_user_id`. No membership- or role-based path exists.
-- **`canAccessEncryptedVault = isOwner || isFullAccess` is a UI gate on the user's *own* vault, not an authorization grant.** It only decides whether the "cannot access encrypted vaults" block screen renders; the data it would reveal is already restricted to `user_id = auth.uid()`. A Read Only AU gets the block screen; a Full Access AU does not — but with no owner-scoped query and no permissive RLS, there is nothing to retrieve or decrypt.
-- **Decryption is key-bound, not role-bound.** Unlock uses the owner's passphrase-derived key / `encryption_key_encrypted_for_user` wrapped for a specific user. AU role grants no key material.
-- **Recovery initiation stays Legacy Admin-only.** The recovery panel requires `isDelegate`, set solely by a `legacy_locker` row whose `delegate_user_id` is the current user; `submit-recovery-request` additionally cross-checks the `legacy_admins` mirror.
-- **No contradicting path found.** Two cosmetic defects noted, both no-ops today: line 44 destructures `isViewer`, `isContributorRole`, `contributorRole`, `isAdministrator` from `useAccount()`, none of which the context provides — so `isAdminBlockedFromVault` (line 446) is permanently `false` and the "viewer/limited" copy at line 494 reads from `undefined`. Stage 2B will clean these up as presentation-only fixes; `canAccessEncryptedVault` itself is left byte-identical so no gate widens or narrows.
+So the mismatch is not stale data and not a pre-RPC assignment. `assign_legacy_admin` does write the mirror
+(`UPDATE public.legacy_locker SET delegate_user_id = _user_id WHERE user_id = v_owner`), but that owner has never
+created a Secure Vault / Legacy Locker row, so the update matched zero rows and silently no-opped.
 
+Enforcement that already exists and was confirmed:
 
-## Explicit mapping decision per check (no blanket administrator → full_access)
+| Guarantee | Status |
+|---|---|
+| assign sets mirror (when locker row exists) | present in `assign_legacy_admin` |
+| clear nulls mirror | present in `clear_legacy_admin` |
+| reassign revokes prior grants/requests before new admin activates | present via `revoke_legacy_admin_recovery_artifacts` |
+| AU downgrade/revoke clears designation + mirror + artifacts | present in `enforce_legacy_admin_eligibility` trigger |
+| locker row created later seeds current Legacy Admin | present: `BEFORE INSERT trg_seed_legacy_locker_legacy_admin` |
+| direct client writes to `delegate_user_id` blocked | present: `trg_validate_legacy_locker_delegate` (trusted only via `app.legacy_admin_sync` or service role) |
+| mismatch fails closed | present: `submit-recovery-request` requires active `legacy_admins` row **and** `delegate_user_id = caller` |
 
-| # | Location | Current contributor check | Replacement mapping |
-|---|---|---|---|
-| 1 | `ManageTab.tsx` `checkIfContributor` | accepted `contributors` row → `isContributor`; `role === 'administrator'` unlocks "Delete Managed Account" + deletion-request card | AU identity comes from `useAccount()` (`isFullAccess`/`isReadOnly`, already `account_memberships`-derived). Deletion of another person's account maps to **nobody** — card, `handleAdminDeleteAccount`, `submit-deletion-request` call, and `pendingDeletionRequest` state removed. Owner-only delete stays exactly as is. |
-| 2 | `delete-account` edge, `isAdminDeletion` branch | administrator contributor may delete the owner's account | **Nobody.** Branch removed; the function keeps self-deletion and the `isScheduledClosureDeletion` service path unchanged. Contributor-row cleanup at the end (lines ~843-848) is **kept** so residual rows still get wiped. |
-| 3 | `submit-deletion-request` edge | administrator contributor creates a deletion request | **Nobody.** Function's authorization branch becomes a hard 403 (function left deployed but inert) — no caller remains after (1). |
-| 4 | `check-subscription` edge | accepted contributor inherits the owner's entitlement | **Full Access AU and Read Only AU**, via active `account_memberships` → `accounts.owner_user_id` → owner `entitlements`. Same inheritance outcome, current source of truth. This is the one place where read-only AUs must keep inheriting the plan. |
-| 5 | `request-account-closure` / `reverse-account-closure` edges | email accepted contributors about scheduled/reversed closure | **All active non-owner AUs** on the account, addressed via the AU's `profiles`/membership email. Notification-only; recipient set is the same people. |
-| 6 | `ExportService.ts` owner export | lists accepted contributors in the export PDF | **Active `account_memberships` non-owner rows** (name from `profiles`, role label Full Access / Read Only). Section heading becomes "Authorized Users". |
-| 7 | `ProtectionScore.tsx` realtime channel on `contributors` | refresh metrics on contributor change | **`account_memberships`** filtered by the owner's `account_id`. Purely a refresh trigger. |
-| 8 | `AdminContributorPlanInfo.tsx` (rendered for Full Access AU in Settings → Profile) | lists accepted contributors of the owner's account | **Active `account_memberships`** for the same account, Full Access / Read Only labels. Subscription block unchanged. |
-| 9 | `AccountHeader.tsx` | reads contributors to set owner name/badge | Component renders an empty `<div>` and is imported nowhere. **Delete the file.** |
-| 10 | `AdminDatabase.tsx` table-stats list | read-only `contributors` row count | **Unchanged**, per your instruction. |
-| 11 | `SecureVault.tsx` copy line ("Viewers and limited-access contributors never have access…") | wording only | Reworded to Read Only / Authorized User vocabulary. No logic. |
-| 12 | `AccountSettings.tsx`, `ActivityLog.tsx`, `subscriptionFeatures.ts`, admin flowcharts | the word "contributor" in labels/copy | Left alone in this stage except where it appears in a section I already touch; copy sweep belongs with Stage 3/4. |
+## Defect found in the seeding path (the one real fix)
 
-## Non-regression requirements
+Triggers fire in name order: `trg_seed_…` runs before `trg_validate_…`.
+The seed trigger sets `NEW.delegate_user_id` from the active Legacy Admin, then the validate trigger sees
+`TG_OP = 'INSERT'` with a non-NULL `delegate_user_id` and no trust flag and raises
+`Secure Vault recovery participant is system-maintained`.
 
-- Owner: every tab, action, delete-own-account flow, and entitlement identical.
-- Full Access AU: same tabs/actions, still inherits the owner's plan, still **no** Secure Vault access, still not able to delete the owner's account (it never could via `account_memberships`; the contributor path that could is being removed).
-- Read Only AU: same restricted view, still inherits the owner's plan.
-- Legacy Admin: row, eligibility, recovery-request flow untouched.
-- `account_memberships` rows, roles, statuses, invite acceptance untouched. No renaming of `full_access` / `read_only`.
-- Admin CRM (Stage 2A result) untouched.
+Consequence: for exactly this account's situation — active Legacy Admin, no locker row yet — the owner's first
+client-side Secure Vault creation **fails hard**, and the mirror can never be seeded. This is the reason the gap is
+not self-healing.
 
-## Verification
+Smallest fix: make the validate trigger treat a value that equals the account's current active Legacy Admin as
+system-maintained (allowed) on INSERT, and on UPDATE keep rejecting any client-driven change. No relaxation of the
+general rule: arbitrary client values, self-assignment, and client-driven UPDATEs still fail closed.
 
-1. SQL: for the active AU `4df74d1f…` and read-only AU `119929b9…`, confirm the new membership→owner→entitlement join returns the same owner plan the contributor path would have (contributors has 0 rows, so today it returns nothing — the new path is strictly a fix, and this is the one intended behavior delta: AUs now correctly inherit).
-2. SQL: closure-notification recipient set (active non-owner memberships per account) matches the AU list shown in Admin → Authorized Users.
-3. Confirm zero `from('contributors')` reads remain outside the invite pipeline (Stage 3), `delete-account` cleanup, and `AdminDatabase` stats.
-4. Confirm no remaining caller of `submit-deletion-request`, and no UI surface offering deletion of someone else's account.
-5. Typecheck clean; owner/AU click-through on your side (external Supabase blocks authenticated browser checks here).
+## Work in this pass
 
-## Stop point
+1. **Migration** (schema/function only):
+   - Rewrite `validate_legacy_locker_delegate` so an untrusted INSERT is allowed only when
+     `NEW.delegate_user_id` equals the active `legacy_admins.legacy_admin_user_id` for the owner's account
+     (and still `<> user_id`); any other untrusted value or any untrusted UPDATE change still raises `42501`.
+   - Harden `assign_legacy_admin`: after the mirror UPDATE, if no locker row exists, record that in the activity
+     log details (`mirror_pending: true`) so the deferred-seed case is visible instead of silent.
+2. **Repair pass** (data): reconcile every account with exactly one active `legacy_admins` row whose existing
+   locker row has NULL or divergent `delegate_user_id`, using `legacy_admins` as sole source of truth, and NULL any
+   `delegate_user_id` on lockers whose account has no active Legacy Admin. Given current data this repairs **0
+   rows** — the only affected account has no locker row, which the fixed seed path now covers on creation. The
+   repair statement is still run so the invariant is asserted, and the result reported.
+3. **Verification queries**: for every account, active Legacy Admin vs `delegate_user_id` equality; no stale
+   pointer without an active designation; no `delegate_user_id = user_id`.
+4. **Reassignment test** (A → B) executed at the database layer against a scratch owner/AU pair, not the live
+   account: confirm A's open `recovery_requests` become `revoked`, A's `vault_delegate_grants` become `revoked`,
+   mirror flips to B, `legacy_locker.recovery_status` resets, and A's stale grant stays unusable.
+5. **Recovery-path and negative tests**: exercise the authorization predicates that `submit-recovery-request` and
+   the delegate-vault RLS use, for each case — Read Only AU, Full Access AU who is not Legacy Admin, revoked
+   former Legacy Admin, mismatched mirror, stale grant from a previous Legacy Admin, expired request, direct client
+   `delegate_user_id` write, owner self-designation, Legacy Admin of a different account. Each must fail closed.
+6. **Report**: root cause, rows repaired, enforcement added, assign/clear/reassign/downgrade behavior,
+   recovery-path results, negative-test results, and remaining gaps.
 
-Report the per-check mapping outcome and the one intended delta (AU plan inheritance now actually resolves). No Stage 3 or Stage 4 work without a new approval.
+## Testing limitation to state up front
+
+This project uses an external, unmanaged Supabase instance, so no browser session can be minted for an AU — a
+click-through end-to-end recovery run in the preview is not available. The recovery flow will therefore be validated
+at the authorization layer (the exact predicates the edge function and RLS evaluate, plus the wrap/grant row
+transitions) with each state transition documented, and any step that can only be confirmed by a human clicking as
+the Legacy Admin will be listed explicitly as owner-verified rather than claimed as passed.
+
+## Out of scope
+
+Authorized User permissions, Secure Vault encryption and passphrase behavior, continuity export, memorialization,
+closure, and the dormant contributors infrastructure. No change to the active Legacy Admin row or AU roles.
