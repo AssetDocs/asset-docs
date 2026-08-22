@@ -263,7 +263,7 @@ const FAQAccordion: React.FC = () => {
                     How does a Legacy Admin request access?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    If your Legacy Locker is encrypted, your delegate will see a button labeled "Request Access." They'll submit a short request explaining why access is needed. You'll receive a notification, and if you don't respond within your chosen grace period (usually 7–30 days), access will be granted to them automatically.
+                    If your Legacy Locker is encrypted, your Legacy Admin will see a button labeled "Request Access." They'll submit a short request explaining why access is needed. You'll receive a notification, and if you don't respond within your chosen grace period (usually 7–30 days), access will be granted to them automatically.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -281,7 +281,7 @@ const FAQAccordion: React.FC = () => {
                     What happens if I pass away?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    If you have already assigned a Legacy Admin (such as your spouse), they simply submit an access request through Asset Safe. If the account owner does not respond during the grace period, the system will automatically approve access—allowing your delegate to unlock your encrypted Legacy Locker.
+                    If you have already assigned a Legacy Admin (such as your spouse), they simply submit an access request through Asset Safe. If the account owner does not respond during the grace period, the system will automatically approve access—allowing your Legacy Admin to unlock your encrypted Legacy Locker.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -299,7 +299,7 @@ const FAQAccordion: React.FC = () => {
                     What if I don't assign a Legacy Admin?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    If you don't choose a Legacy Admin, nobody (including Asset Safe) will be able to access your encrypted Legacy Locker if you pass away. To prevent permanent lockout, we highly recommend adding at least one trusted delegate.
+                    If you don't choose a Legacy Admin, nobody (including Asset Safe) will be able to access your encrypted Legacy Locker if you pass away. To prevent permanent lockout, we highly recommend designating a Legacy Admin.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -308,7 +308,7 @@ const FAQAccordion: React.FC = () => {
                     Can I change my Legacy Admin later?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    Absolutely. You can update or remove your Legacy Admin at any time from your Legacy Locker settings. If you remove a delegate, previously encrypted access keys are automatically invalidated.
+                    Absolutely. You can update or remove your Legacy Admin at any time in Authorized Users → Legacy Admin. If you remove them, previously encrypted access keys are automatically invalidated.
                   </AccordionContent>
                 </AccordionItem>
 

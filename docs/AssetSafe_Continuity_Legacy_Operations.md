@@ -2,7 +2,7 @@
 
 Status: launch review draft
 Owner: Asset Safe operator / continuity reviewer
-Scope: Legacy Admin requests, Recovery Delegates, continuity review, owner disputes, account freezes, exports, preservation, memorialization, and continuity closure.
+Scope: Legacy Admin requests (including Secure Vault recovery), continuity review, owner disputes, account freezes, exports, preservation, memorialization, and continuity closure.
 
 ## 1. Operating Principles
 
