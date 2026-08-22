@@ -54,9 +54,10 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const [showTOTPChallenge, setShowTOTPChallenge] = useState(false);
   const [totpVerified, setTotpVerified] = useState(false);
   
-  // Recovery delegate state
+  // Secure Vault recovery state. The recovery participant is the active Legacy Admin;
+  // legacy_locker.delegate_user_id is a system-maintained mirror of that designation.
   const [contributorsList, setContributorsList] = useState<any[]>([]);
-  const [selectedDelegateId, setSelectedDelegateId] = useState<string | null>(null);
+  const [legacyAdminUserId, setLegacyAdminUserId] = useState<string | null>(null);
   const [gracePeriodDays, setGracePeriodDays] = useState(14);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [legacyLockerId, setLegacyLockerId] = useState<string | null>(null);
@@ -69,16 +70,10 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(initialTab === 'passwords' || false);
   const [legacyLockerOpen, setLegacyLockerOpen] = useState(initialTab === 'legacy' || false);
   
-  // Track original values for change detection
-  const [originalDelegateId, setOriginalDelegateId] = useState<string | null>(null);
-  const [originalGracePeriodDays, setOriginalGracePeriodDays] = useState(14);
-  const [isSavingDelegate, setIsSavingDelegate] = useState(false);
-  
   // Admin access control
   const [allowAdminAccess, setAllowAdminAccess] = useState(true);
   const [isSavingAdminAccess, setIsSavingAdminAccess] = useState(false);
   
-  const hasDelegateChanges = selectedDelegateId !== originalDelegateId || gracePeriodDays !== originalGracePeriodDays;
 
   // Track whether the initial load already happened so background refreshes
   // (e.g. Supabase TOKEN_REFRESHED when the tab regains focus) don't swap the
@@ -163,10 +158,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         setLegacyLockerId(data.id);
         setIsEncrypted(data.is_encrypted);
         setExistingEncrypted(data.is_encrypted);
-        setSelectedDelegateId(data.delegate_user_id);
-        setOriginalDelegateId(data.delegate_user_id);
+        setLegacyAdminUserId(data.delegate_user_id);
         setGracePeriodDays(data.recovery_grace_period_days || 14);
-        setOriginalGracePeriodDays(data.recovery_grace_period_days || 14);
         setHasPendingRequest(data.recovery_status === 'pending');
         setAllowAdminAccess(data.allow_admin_access ?? true);
         setWrappedVaultKey((data as any).encryption_key_encrypted_for_user ?? null);
@@ -768,7 +761,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
             <div className="rounded-lg border p-4 space-y-1">
               <h4 className="font-semibold text-sm">Secure Vault recovery</h4>
               <p className="text-sm text-muted-foreground">
-                {selectedDelegateId
+                {legacyAdminUserId
                   ? 'Your Legacy Admin is the only person who may request Secure Vault recovery access.'
                   : 'No Legacy Admin is designated yet, so no one can request Secure Vault recovery access.'}
               </p>
