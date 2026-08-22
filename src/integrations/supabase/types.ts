@@ -4658,13 +4658,9 @@ export type Database = {
           business_succession_plan: string | null
           ceremony_preferences: string | null
           charitable_giving: string | null
-          continuity_annual_reminder: boolean
           continuity_notes: string | null
           continuity_notes_encrypted: string | null
           continuity_preference: string | null
-          continuity_preferences: Json
-          continuity_preferences_reviewed_at: string | null
-          continuity_preferences_version: number
           created_at: string
           crypto_passwords: string | null
           debts_expenses: string | null
@@ -4743,13 +4739,9 @@ export type Database = {
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
           charitable_giving?: string | null
-          continuity_annual_reminder?: boolean
           continuity_notes?: string | null
           continuity_notes_encrypted?: string | null
           continuity_preference?: string | null
-          continuity_preferences?: Json
-          continuity_preferences_reviewed_at?: string | null
-          continuity_preferences_version?: number
           created_at?: string
           crypto_passwords?: string | null
           debts_expenses?: string | null
@@ -4828,13 +4820,9 @@ export type Database = {
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
           charitable_giving?: string | null
-          continuity_annual_reminder?: boolean
           continuity_notes?: string | null
           continuity_notes_encrypted?: string | null
           continuity_preference?: string | null
-          continuity_preferences?: Json
-          continuity_preferences_reviewed_at?: string | null
-          continuity_preferences_version?: number
           created_at?: string
           crypto_passwords?: string | null
           debts_expenses?: string | null
@@ -8545,10 +8533,6 @@ export type Database = {
         Returns: string
       }
       complete_phone_verification: { Args: never; Returns: undefined }
-      compute_continuity_readiness: {
-        Args: { _user_id: string }
-        Returns: Json
-      }
       compute_user_verification: {
         Args: { target_user_id: string }
         Returns: Json
