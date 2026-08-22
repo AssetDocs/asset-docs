@@ -146,25 +146,20 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
         </TabsList>
 
         <TabsContent value="preferences" className="pt-3">
-          <Card><CardHeader className="pb-3"><CardTitle className="text-base">Owner Continuity Preferences</CardTitle></CardHeader>
+          <Card><CardHeader className="pb-3"><CardTitle className="text-base">Owner Legacy Instructions</CardTitle></CardHeader>
             <CardContent>
-              {ownerPrefs?.continuity_preferences ? (
-                <pre className="text-xs bg-muted p-3 rounded overflow-auto max-h-80">{JSON.stringify(ownerPrefs.continuity_preferences, null, 2)}</pre>
-              ) : <p className="text-sm text-muted-foreground">No preferences set by owner.</p>}
-              <div className="flex flex-wrap gap-2 mt-3 text-xs">
-                <Badge variant="outline">Heartbeat: {ownerPrefs?.continuity_heartbeat_status || 'disabled'}</Badge>
-                <Badge variant="outline">Last: {ownerPrefs?.continuity_last_heartbeat_at ? new Date(ownerPrefs.continuity_last_heartbeat_at).toLocaleDateString() : 'Never'}</Badge>
-                <Badge variant="outline">Next: {ownerPrefs?.continuity_next_heartbeat_due_at ? new Date(ownerPrefs.continuity_next_heartbeat_due_at).toLocaleDateString() : 'Not scheduled'}</Badge>
-                {ownerPrefs?.continuity_heartbeat_enabled && <Badge variant="outline">Cadence: {ownerPrefs.continuity_heartbeat_interval_days} days</Badge>}
-              </div>
-              {ownerPrefs?.continuity_preferences_reviewed_at && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Last reviewed {new Date(ownerPrefs.continuity_preferences_reviewed_at).toLocaleDateString()} • Version {ownerPrefs.continuity_preferences_version}
-                </p>
-              )}
+              {ownerPrefs?.continuity_preference ? (
+                <div className="text-sm">
+                  Account preference: <Badge variant="outline">{ownerPrefs.continuity_preference}</Badge>
+                </div>
+              ) : <p className="text-sm text-muted-foreground">No account preference set by owner.</p>}
+              <p className="text-xs text-muted-foreground mt-2">
+                Stored for reference only. Owner notes may be encrypted and are not shown here.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
+
 
         <TabsContent value="consent" className="pt-3">
           <Card><CardHeader className="pb-3"><CardTitle className="text-base">Consent History</CardTitle></CardHeader>
