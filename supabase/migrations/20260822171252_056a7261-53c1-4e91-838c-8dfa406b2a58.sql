@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.execute_ownership_transfer(uuid, text, uuid, text);

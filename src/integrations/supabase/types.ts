@@ -8616,15 +8616,6 @@ export type Database = {
         }
         Returns: string
       }
-      execute_ownership_transfer: {
-        Args: {
-          _reason: string
-          _request_id: string
-          _senior_approver_id: string
-          _snapshot_reference: string
-        }
-        Returns: string
-      }
       execute_preservation_mode: {
         Args: {
           _reason?: string
