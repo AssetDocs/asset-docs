@@ -135,7 +135,7 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ inline = false 
   const advancedSteps: Step[] = [
     { label: 'Enable Secure Vault Protection', completed: hasVaultEncryption },
     { label: 'Add Password Catalog & Legacy Locker Details', completed: hasVaultData && hasPasswordEntries },
-    { label: 'Assign a Recovery Delegate', completed: hasRecoveryDelegate },
+    { label: 'Assign a Legacy Admin', completed: hasRecoveryDelegate },
   ];
   const advancedComplete = advancedSteps.every(s => s.completed);
 

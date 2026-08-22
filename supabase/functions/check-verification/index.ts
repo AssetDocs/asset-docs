@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
         has_documents: verificationData.has_documents,
         has_vault_encryption: verificationData.has_vault_encryption,
         has_vault_data_and_passwords: verificationData.has_vault_data_and_passwords,
-        has_recovery_delegate: verificationData.has_recovery_delegate,
+        has_legacy_admin: verificationData.has_legacy_admin,
         milestone_count: milestoneCount,
         is_verified_plus: isVerifiedPlus,
         verified_plus_at: isVerifiedPlus ? now : null,
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
           has_documents: verificationData.has_documents,
           has_vault_encryption: verificationData.has_vault_encryption,
           has_vault_data_and_passwords: verificationData.has_vault_data_and_passwords,
-          has_recovery_delegate: verificationData.has_recovery_delegate,
+          has_legacy_admin: verificationData.has_legacy_admin,
           milestone_count: milestoneCount
         },
         verified_at: upsertData?.verified_at || null,

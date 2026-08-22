@@ -15,7 +15,7 @@ export interface VerificationCriteria {
   has_documents: boolean;
   has_vault_encryption: boolean;
   has_vault_data_and_passwords: boolean;
-  has_recovery_delegate: boolean;
+  has_legacy_admin: boolean;
   milestone_count: number;
 }
 
@@ -71,7 +71,7 @@ export const useVerification = () => {
             has_documents: (data as any).has_documents ?? false,
             has_vault_encryption: (data as any).has_vault_encryption ?? false,
             has_vault_data_and_passwords: (data as any).has_vault_data_and_passwords ?? false,
-            has_recovery_delegate: (data as any).has_recovery_delegate ?? false,
+            has_legacy_admin: (data as any).has_legacy_admin ?? false,
             milestone_count: (data as any).milestone_count ?? 0,
           },
           verified_at: data.verified_at,
