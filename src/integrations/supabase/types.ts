@@ -8569,15 +8569,6 @@ export type Database = {
         Args: { _request_id: string }
         Returns: undefined
       }
-      execute_archive_custodian: {
-        Args: {
-          _expires_at: string
-          _permissions: Json
-          _reason: string
-          _request_id: string
-        }
-        Returns: string
-      }
       execute_memorialization: {
         Args: {
           _billing_handling_status?: string
@@ -8594,15 +8585,6 @@ export type Database = {
           _request_id: string
           _restrictions?: Json
           _state_type: string
-        }
-        Returns: string
-      }
-      execute_temporary_stewardship: {
-        Args: {
-          _expires_at: string
-          _permissions: Json
-          _reason: string
-          _request_id: string
         }
         Returns: string
       }
