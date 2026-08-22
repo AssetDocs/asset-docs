@@ -256,7 +256,7 @@ const AdminUsers = () => {
         });
         setCustomerLookup(lookup);
 
-        // Build owners with contributors data — combine legacy contributors + account_memberships
+        // Build owners with their Authorized Users from accounts + account_memberships + profiles
         const ownersMap = new Map<string, OwnerWithContributors>();
 
         const ensureOwner = (ownerId: string) => {
@@ -274,20 +274,7 @@ const AdminUsers = () => {
           return ownersMap.get(ownerId)!;
         };
 
-        contributorsData?.forEach(contributor => {
-          const bucket = ensureOwner(contributor.account_owner_id);
-          if (bucket) {
-            const auProfile = contributor.contributor_user_id
-              ? ownerProfileMap.get(contributor.contributor_user_id)
-              : null;
-            bucket.contributors.push({
-              ...contributor,
-              accepted_at: contributor.accepted_at || null,
-              contributor_account_number: auProfile?.account_number || null,
-            });
-          }
-        });
-
+        // One row per membership row, keyed by membership id (no duplication possible)
         membershipsData?.forEach((m: any) => {
           if (!m.role || m.role === 'owner') return;
           const ownerId = m.accounts?.owner_user_id;
@@ -295,14 +282,10 @@ const AdminUsers = () => {
           const bucket = ensureOwner(ownerId);
           if (!bucket) return;
           const auProfile = ownerProfileMap.get(m.user_id);
-          const auEmail = subscriberMap.get(m.user_id)?.email || authEmails[m.user_id] || null;
-          const alreadyTracked = bucket.contributors.some(c =>
-            c.contributor_user_id === m.user_id ||
-            (auEmail && c.contributor_email?.toLowerCase() === auEmail.toLowerCase())
-          );
-          if (alreadyTracked) return;
+          const auEmail =
+            subscriberMap.get(m.user_id)?.email || authEmails[m.user_id] || m.email || null;
           bucket.contributors.push({
-            id: `membership-${m.user_id}-${m.account_id}`,
+            id: m.id,
             contributor_email: auEmail || '',
             contributor_user_id: m.user_id,
             first_name: auProfile?.first_name || null,
@@ -310,11 +293,12 @@ const AdminUsers = () => {
             role: m.role,
             status: m.status,
             account_owner_id: ownerId,
-            created_at: '',
-            accepted_at: null,
+            created_at: m.created_at || '',
+            accepted_at: m.accepted_at || null,
             contributor_account_number: auProfile?.account_number || null,
           });
         });
+
 
         setOwnersWithContributors(Array.from(ownersMap.values()));
       }
