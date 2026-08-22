@@ -45,7 +45,7 @@ Minimum review checklist:
 2. Verify the proposed new owner's identity and email/account control.
 3. Confirm both parties consent, unless legal/court documentation says otherwise.
 4. Confirm there is no active continuity dispute, legal hold, deletion request, billing dispute, chargeback, or security incident.
-5. Confirm ownership transfer scope: one account/workspace, all properties, billing, Authorized Users, Legacy Admin settings, Recovery Delegates, exports, and storage.
+5. Confirm ownership transfer scope: one account/workspace, all properties, billing, Authorized Users, Legacy Admin settings, Legacy Admin, exports, and storage.
 6. Confirm Stripe customer/subscription handling: transfer, cancel/recreate, or leave with original owner until end of term.
 7. Capture a pre-transfer export or snapshot when appropriate.
 8. Record reviewer, approver, rationale, and final action in audit notes.

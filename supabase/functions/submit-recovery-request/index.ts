@@ -59,13 +59,36 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Verify user is the designated delegate
-    if (legacyLocker.delegate_user_id !== user.id) {
+    // Verify the caller is the current Legacy Admin AND that the vault mirror agrees.
+    // Fails closed when the designation and the vault recovery pointer disagree.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    );
+
+    const { data: ownerAccount } = await supabaseAdmin
+      .from("accounts")
+      .select("id")
+      .eq("owner_user_id", legacyLocker.user_id)
+      .maybeSingle();
+
+    const { data: activeLegacyAdmin } = ownerAccount
+      ? await supabaseAdmin
+          .from("legacy_admins")
+          .select("id")
+          .eq("account_id", ownerAccount.id)
+          .eq("status", "active")
+          .eq("legacy_admin_user_id", user.id)
+          .maybeSingle()
+      : { data: null };
+
+    if (legacyLocker.delegate_user_id !== user.id || !activeLegacyAdmin) {
       return new Response(
-        JSON.stringify({ error: "You are not the designated recovery delegate" }),
+        JSON.stringify({ error: "You are not the designated Legacy Admin for this account" }),
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
 
     // Check if there's already a pending request
     if (legacyLocker.recovery_status === 'pending') {
@@ -136,7 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: {
         ownerEmail: ownerUser?.email,
         ownerName: `${ownerProfile?.first_name || ''} ${ownerProfile?.last_name || ''}`.trim() || 'User',
-        delegateName: `${delegateProfile?.first_name || ''} ${delegateProfile?.last_name || ''}`.trim() || 'Recovery Delegate',
+        delegateName: `${delegateProfile?.first_name || ''} ${delegateProfile?.last_name || ''}`.trim() || 'Legacy Admin',
         gracePeriodDays,
         requestReason: reason
       }

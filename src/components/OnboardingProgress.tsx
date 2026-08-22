@@ -69,7 +69,7 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ inline = false 
       }
       setHasContributors(hasAuthorizedUsers);
 
-      // Check for legacy locker data, encryption, and recovery delegate
+      // Check for legacy locker data, encryption, and Legacy Admin
       const { data: legacyLocker } = await supabase
         .from('legacy_locker')
         .select('id, is_encrypted, full_legal_name, executor_name, delegate_user_id')
@@ -135,7 +135,7 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ inline = false 
   const advancedSteps: Step[] = [
     { label: 'Enable Secure Vault Protection', completed: hasVaultEncryption },
     { label: 'Add Password Catalog & Legacy Locker Details', completed: hasVaultData && hasPasswordEntries },
-    { label: 'Assign a Recovery Delegate', completed: hasRecoveryDelegate },
+    { label: 'Assign a Legacy Admin', completed: hasRecoveryDelegate },
   ];
   const advancedComplete = advancedSteps.every(s => s.completed);
 

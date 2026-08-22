@@ -64,7 +64,7 @@ const AcknowledgeAccess: React.FC = () => {
     }
 
     if (user.id !== delegateId) {
-      setError('You must be logged in with the account that was designated as the Recovery Delegate.');
+      setError('You must be logged in with the account that was designated as the Legacy Admin.');
       return;
     }
 
@@ -130,7 +130,7 @@ const AcknowledgeAccess: React.FC = () => {
               <Shield className="h-16 w-16 mx-auto text-primary mb-4" />
               <h2 className="text-xl font-semibold mb-2">Login Required</h2>
               <p className="text-muted-foreground mb-6">
-                Please log in to your Asset Safe account to acknowledge your access as Recovery Delegate.
+                Please log in to your Asset Safe account to acknowledge your access as Legacy Admin.
               </p>
               <Button onClick={() => navigate('/auth')}>
                 Log In
@@ -174,7 +174,7 @@ const AcknowledgeAccess: React.FC = () => {
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-yellow-600" />
               <div>
-                <CardTitle className="text-2xl">Recovery Delegate Access</CardTitle>
+                <CardTitle className="text-2xl">Legacy Admin Access</CardTitle>
                 <CardDescription className="text-yellow-700 dark:text-yellow-300">
                   Acknowledge your responsibilities for {ownerName}'s account
                 </CardDescription>
@@ -186,7 +186,7 @@ const AcknowledgeAccess: React.FC = () => {
             <Alert className="bg-amber-50 border-amber-300">
               <AlertTriangle className="h-5 w-5 text-amber-600" />
               <AlertDescription className="text-amber-800">
-                <strong>Important:</strong> The grace period has expired and you have been granted access to this Secure Vault as the designated Recovery Delegate.
+                <strong>Important:</strong> The grace period has expired and you have been granted access to this Secure Vault as the designated Legacy Admin.
               </AlertDescription>
             </Alert>
 
@@ -208,7 +208,7 @@ const AcknowledgeAccess: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>You understand this access was granted due to your role as <strong>Recovery Delegate</strong></span>
+                  <span>You understand this access was granted due to your role as <strong>Legacy Admin</strong></span>
                 </li>
               </ul>
             </div>

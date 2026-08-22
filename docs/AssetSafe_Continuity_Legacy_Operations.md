@@ -2,7 +2,7 @@
 
 Status: launch review draft
 Owner: Asset Safe operator / continuity reviewer
-Scope: Legacy Admin requests, Recovery Delegates, continuity review, owner disputes, account freezes, exports, preservation, memorialization, and continuity closure.
+Scope: Legacy Admin requests (including Secure Vault recovery), continuity review, owner disputes, account freezes, exports, preservation, memorialization, and continuity closure.
 
 ## 1. Operating Principles
 
@@ -19,7 +19,7 @@ Scope: Legacy Admin requests, Recovery Delegates, continuity review, owner dispu
 |---|---|---|
 | Account owner | Account, Legacy Locker, continuity preferences, dispute link | Person whose account may be preserved, exported, memorialized, or closed |
 | Legacy Admin | Existing authorized user designated in `legacy_admins` as primary or secondary | Can submit continuity requests for the assigned account; secondary designation does not change normal Authorized User permissions |
-| Recovery Delegate | `legacy_locker.delegate_user_id` and recovery request flow | Can request encrypted Legacy Locker recovery after owner grace period |
+| Legacy Admin | `legacy_locker.delegate_user_id` and recovery request flow | Can request encrypted Legacy Locker recovery after owner grace period |
 | Continuity reviewer | Admin Continuity & Preservation workspace | Reviews identity, legal authority, evidence, risk, owner response, and requested action |
 | Senior reviewer | Admin roles with freeze/temp-access/preservation authority | Can approve high-impact continuity actions |
 | Ownership administrator | Admin/owner role | Can execute final continuity actions where allowed |
@@ -66,7 +66,7 @@ Admin workspace:
 - Archived.
 - Audit Log.
 
-### 3.2 Recovery Delegate request
+### 3.2 Legacy Admin request
 
 Core tables/functionality:
 
@@ -86,7 +86,7 @@ Current behavior:
 
 Launch note:
 
-- Recovery Delegate flow is distinct from Legacy Admin continuity review. Recovery unlocks encrypted Legacy Locker material; it should not imply broader account ownership or billing authority.
+- Legacy Admin flow is distinct from Legacy Admin continuity review. Recovery unlocks encrypted Legacy Locker material; it should not imply broader account ownership or billing authority.
 
 ## 4. Evidence & Verification
 
@@ -222,7 +222,7 @@ Owner dispute operating policy:
 | `continuity_export_forensics` | Export forensic record |
 | `memorialized_accounts` | Memorialized account end-state |
 | `closure_requests` | Continuity closure workflow |
-| `recovery_requests` | Recovery Delegate encrypted-vault recovery |
+| `recovery_requests` | Legacy Admin encrypted-vault recovery |
 
 ## 7. Current Edge Functions & RPCs
 
@@ -270,7 +270,7 @@ Recommended default SLAs:
 | Temporary access decision | 2 business days after evidence complete | Senior reviewer |
 | Export authorization decision | 3 business days after evidence complete | Senior reviewer |
 | Closure waiting period | 30 calendar days unless legally bypassed | Ownership administrator |
-| Recovery Delegate owner grace | owner-configured 7-30 days | Automated sweeper + owner response |
+| Legacy Admin owner grace | owner-configured 7-30 days | Automated sweeper + owner response |
 
 Retired features (2026-08-22):
 
@@ -308,3 +308,15 @@ Retired features (2026-08-22):
 3. Should the retained ownership-transfer history tables be dropped in a later schema cleanup, once the remaining continuity workflows are settled?
 4. Which seeded evidence requirements need counsel-approved wording or second-reviewer signoff before launch?
 5. Who is allowed to bypass the 30-day continuity closure waiting period, and what evidence is mandatory?
+
+## Retired: Recovery Delegate (merged into Legacy Admin, 2026-08)
+
+Recovery Delegate no longer exists as a separate role. There is one continuity role: **Legacy Admin**.
+
+- Eligibility: only an **active Full Access Authorized User** of the same account. Enforced by `public.is_eligible_legacy_admin`.
+- Maximum **one active Legacy Admin per account** (unique partial index on `legacy_admins`).
+- Designation is written **only** through `public.assign_legacy_admin(account_id, user_id)` and `public.clear_legacy_admin(account_id)`. Owners have no direct insert/update/delete on `legacy_admins`.
+- `legacy_locker.delegate_user_id` is a **system-maintained mirror** of the active Legacy Admin. Client writes are rejected by `validate_legacy_locker_delegate`.
+- Loss of eligibility (role downgrade, revoke, membership delete) clears the designation automatically, clears the mirror, revokes `vault_delegate_grants`, revokes open `recovery_requests`, and logs `legacy_admin_removed_due_to_au_ineligibility`.
+- Secure Vault recovery requests can only be inserted by the current Legacy Admin **and** only when the mirror agrees (RLS + `submit-recovery-request` service-role cross-check). Desync fails closed.
+- Verification milestone renamed: `has_recovery_delegate` -> `has_legacy_admin` ("Assign a Legacy Admin").

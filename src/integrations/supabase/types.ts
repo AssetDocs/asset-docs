@@ -502,8 +502,8 @@ export type Database = {
           has_2fa: boolean
           has_contributors: boolean
           has_documents: boolean
+          has_legacy_admin: boolean
           has_property: boolean
-          has_recovery_delegate: boolean
           has_vault_data_and_passwords: boolean
           has_vault_encryption: boolean
           id: string
@@ -526,8 +526,8 @@ export type Database = {
           has_2fa?: boolean
           has_contributors?: boolean
           has_documents?: boolean
+          has_legacy_admin?: boolean
           has_property?: boolean
-          has_recovery_delegate?: boolean
           has_vault_data_and_passwords?: boolean
           has_vault_encryption?: boolean
           id?: string
@@ -550,8 +550,8 @@ export type Database = {
           has_2fa?: boolean
           has_contributors?: boolean
           has_documents?: boolean
+          has_legacy_admin?: boolean
           has_property?: boolean
-          has_recovery_delegate?: boolean
           has_vault_data_and_passwords?: boolean
           has_vault_encryption?: boolean
           id?: string
@@ -2125,36 +2125,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      continuity_secondary_legacy_admins: {
-        Row: {
-          account_id: string
-          created_at: string
-          designated_at: string
-          id: string
-          notes: string | null
-          secondary_user_id: string
-          status: string
-        }
-        Insert: {
-          account_id: string
-          created_at?: string
-          designated_at?: string
-          id?: string
-          notes?: string | null
-          secondary_user_id: string
-          status?: string
-        }
-        Update: {
-          account_id?: string
-          created_at?: string
-          designated_at?: string
-          id?: string
-          notes?: string | null
-          secondary_user_id?: string
-          status?: string
-        }
-        Relationships: []
       }
       continuity_temporary_access: {
         Row: {
@@ -4669,7 +4639,6 @@ export type Database = {
           digital_assets: Json | null
           digital_identity: string | null
           emotional_behavioral: string | null
-          encryption_key_encrypted_for_delegate: string | null
           encryption_key_encrypted_for_user: string | null
           ethical_will: string | null
           executor_contact: string | null
@@ -4750,7 +4719,6 @@ export type Database = {
           digital_assets?: Json | null
           digital_identity?: string | null
           emotional_behavioral?: string | null
-          encryption_key_encrypted_for_delegate?: string | null
           encryption_key_encrypted_for_user?: string | null
           ethical_will?: string | null
           executor_contact?: string | null
@@ -4831,7 +4799,6 @@ export type Database = {
           digital_assets?: Json | null
           digital_identity?: string | null
           emotional_behavioral?: string | null
-          encryption_key_encrypted_for_delegate?: string | null
           encryption_key_encrypted_for_user?: string | null
           ethical_will?: string | null
           executor_contact?: string | null
@@ -8459,6 +8426,10 @@ export type Database = {
         Args: { p_allowed: string[]; p_new: Json; p_old: Json }
         Returns: undefined
       }
+      assign_legacy_admin: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: string
+      }
       authorize_continuity_export: {
         Args: {
           _download_limit?: number
@@ -8528,6 +8499,7 @@ export type Database = {
         Args: { _account_id: string; _user_id: string }
         Returns: undefined
       }
+      clear_legacy_admin: { Args: { _account_id: string }; Returns: boolean }
       complete_closure: {
         Args: { _closure_id: string; _override?: boolean }
         Returns: string
@@ -8937,6 +8909,10 @@ export type Database = {
         Returns: boolean
       }
       is_deleted_account_email: { Args: { p_email: string }; Returns: boolean }
+      is_eligible_legacy_admin: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_owner_account_writable: {
         Args: { _owner_user_id: string }
         Returns: boolean
@@ -9109,6 +9085,10 @@ export type Database = {
       }
       revoke_continuity_access: {
         Args: { _grant_id: string; _grant_type: string; _reason: string }
+        Returns: undefined
+      }
+      revoke_legacy_admin_recovery_artifacts: {
+        Args: { _admin_user_id: string; _owner_user_id: string }
         Returns: undefined
       }
       set_memorialized_mode: {

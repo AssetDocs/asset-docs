@@ -808,7 +808,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
             <Alert>
               <Lock className="h-4 w-4" />
               <AlertDescription>
-                This Legacy Locker is encrypted. {isDelegate ? 'As a designated recovery delegate, you can request access if needed.' : 'Enter your vault passphrase to unlock and view.'}
+                This Legacy Locker is encrypted. {isDelegate ? 'As a designated Legacy Admin, you can request access if needed.' : 'Enter your vault passphrase to unlock and view.'}
               </AlertDescription>
             </Alert>
             

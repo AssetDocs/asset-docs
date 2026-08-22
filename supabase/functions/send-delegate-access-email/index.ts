@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
       status: 'grace_period_expired',
       grace_period_ends_at: new Date().toISOString(),
       reason: 'Grace period expired - awaiting delegate acknowledgment',
-      relationship: 'Recovery Delegate',
+      relationship: 'Legacy Admin',
     });
 
     const acknowledgmentUrl = `https://getassetsafe.com/acknowledge-access?token=${acknowledgmentToken}&lockerId=${legacyLockerId}&delegateId=${delegateUserId}`;
@@ -97,7 +97,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             <div style="background: #fef3cd; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
               <p style="color: #92400e; margin: 0; font-size: 14px;">
-                The recovery grace period for <strong>${ownerName}'s</strong> encrypted Secure Vault has expired. You have been designated as their Recovery Delegate and now have access.
+                The recovery grace period for <strong>${ownerName}'s</strong> encrypted Secure Vault has expired. You have been designated as their Legacy Admin and now have access.
               </p>
             </div>
 

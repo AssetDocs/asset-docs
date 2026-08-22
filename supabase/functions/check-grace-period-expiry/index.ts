@@ -94,7 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         const delegateName = delegateProfile 
           ? `${delegateProfile.first_name || ''} ${delegateProfile.last_name || ''}`.trim() 
-          : 'Recovery Delegate';
+          : 'Legacy Admin';
         
         const delegateEmail = delegateUser?.user?.email;
 

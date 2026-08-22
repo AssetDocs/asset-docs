@@ -41,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">Hello ${ownerName},</p>
 
             <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
-              Your designated Recovery Delegate, <strong>${delegateName}</strong>, has requested access to your encrypted Secure Vault (Password Catalog &amp; Legacy Locker).
+              Your designated Legacy Admin, <strong>${delegateName}</strong>, has requested access to your encrypted Secure Vault (Password Catalog &amp; Legacy Locker).
             </p>
 
             ${requestReason ? `<p style="color: #374151; line-height: 1.6; margin: 0 0 20px;"><strong>Reason provided:</strong> ${requestReason}</p>` : ''}
@@ -74,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="padding: 20px; text-align: center;">
             <p style="color: #9ca3af; font-size: 12px; margin: 0;">
               This is a security notification from Asset Safe.<br/>
-              If you did not designate a Recovery Delegate, please contact <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a> immediately.
+              If you did not designate a Legacy Admin, please contact <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a> immediately.
             </p>
           </div>
         </div>

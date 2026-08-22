@@ -30,7 +30,7 @@ const getRecommendedRoute = (label: string): string => {
   if (label === 'Upload Important Documents & Records') return '/account/documents';
   if (label === 'Enable Secure Vault Protection') return '/account?tab=password-catalog';
   if (label === 'Add Legacy Locker Details') return '/account?tab=legacy-locker';
-  if (label === 'Assign a Recovery Delegate') return '/account?tab=access-activity';
+  if (label === 'Assign a Legacy Admin') return '/account?tab=access-activity';
   return '/account';
 };
 
@@ -98,7 +98,7 @@ export function useDashboardResumePrompt(): DashboardResumePrompt | null {
       { label: 'Upload Important Documents & Records', completed: criteria?.has_documents ?? false, phase: 2 },
       { label: 'Enable Secure Vault Protection', completed: criteria?.has_vault_encryption ?? false, phase: 3 },
       { label: 'Add Legacy Locker Details', completed: criteria?.has_vault_data_and_passwords ?? false, phase: 3 },
-      { label: 'Assign a Recovery Delegate', completed: criteria?.has_recovery_delegate ?? false, phase: 3 },
+      { label: 'Assign a Legacy Admin', completed: criteria?.has_legacy_admin ?? false, phase: 3 },
     ];
 
     const nextTask = (() => {

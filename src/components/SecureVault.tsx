@@ -30,7 +30,6 @@ import { issuePendingDelegateGrants } from '@/lib/delegateGrants';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
 import PasswordCatalog from './PasswordCatalog';
 import LegacyLocker from './LegacyLocker';
-import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import TOTPChallenge from './TOTPChallenge';
@@ -173,7 +172,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         setWrappedVaultKey((data as any).encryption_key_encrypted_for_user ?? null);
       }
 
-      // Detect if this user is a recovery delegate for another user's vault
+      // Detect if this user is a Legacy Admin for another user's vault
       if (delegateRow) {
         setIsDelegate(true);
         setDelegateForLockerId(delegateRow.id);
@@ -446,66 +445,9 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
 
 
 
-  const handleSaveDelegate = async () => {
-    if (!user || !legacyLockerId) return;
-    
-    setIsSavingDelegate(true);
-    try {
-      // Update the legacy locker with the delegate settings
-      const updateData: any = {
-        delegate_user_id: selectedDelegateId,
-        recovery_grace_period_days: gracePeriodDays,
-        updated_at: new Date().toISOString()
-      };
+  // The Secure Vault recovery participant is now the Legacy Admin designation,
+  // maintained server-side by assign_legacy_admin / clear_legacy_admin.
 
-      // If setting a new delegate, start the grace period countdown
-      if (selectedDelegateId && selectedDelegateId !== originalDelegateId) {
-        updateData.recovery_requested_at = new Date().toISOString();
-        updateData.recovery_status = 'grace_period_active';
-      } else if (!selectedDelegateId) {
-        // If removing delegate, clear recovery status
-        updateData.recovery_requested_at = null;
-        updateData.recovery_status = 'none';
-      }
-
-      const { error } = await supabase
-        .from('legacy_locker')
-        .update(updateData)
-        .eq('id', legacyLockerId);
-
-      if (error) throw error;
-
-      // Update original values to reflect saved state
-      setOriginalDelegateId(selectedDelegateId);
-      setOriginalGracePeriodDays(gracePeriodDays);
-
-      if (selectedDelegateId && selectedDelegateId !== originalDelegateId) {
-        toast({
-          title: "Recovery Delegate Saved",
-          description: `Grace period countdown of ${gracePeriodDays} days has started. After expiration, your delegate will receive access notification.`,
-        });
-      } else if (!selectedDelegateId && originalDelegateId) {
-        toast({
-          title: "Recovery Delegate Removed",
-          description: "Your recovery delegate has been removed.",
-        });
-      } else {
-        toast({
-          title: "Settings Saved",
-          description: "Your recovery delegate settings have been updated.",
-        });
-      }
-    } catch (error: any) {
-      console.error('Error saving delegate:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save recovery delegate settings.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSavingDelegate(false);
-    }
-  };
 
   const handleAdminAccessToggle = async (checked: boolean) => {
     if (!user || !legacyLockerId) return;
@@ -556,7 +498,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
 
   // Mandatory gate: the account owner must always unlock (or first set up) the
   // vault before Digital Access or Legacy Locker can mount. Contributors and
-  // recovery delegates keep the previous behaviour (gated only when encrypted)
+  // Legacy Admins keep the previous behaviour (gated only when encrypted)
   // and never see the setup flow — only the owner can create the passphrase.
   const isOwnerView = !isContributor && !isDelegate;
   const needsVaultSetup = isOwnerView && !existingEncrypted && computeSetupMode();
@@ -613,7 +555,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     );
   }
 
-  // Locked state - show unlock/setup prompt (or delegate panel if user is a recovery delegate)
+  // Locked state - show unlock/setup prompt (or delegate panel if user is a Legacy Admin)
   if (vaultLocked) {
 
     // Delegate view: show appropriate panel based on recovery status
@@ -627,10 +569,10 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
             <CardHeader className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-400">
               <CardTitle className="flex items-center gap-2 text-xl">
                 <ShieldAlert className="h-6 w-6 text-blue-600" />
-                Secure Vault — Recovery Delegate Access
+                Secure Vault — Legacy Admin Access
               </CardTitle>
               <CardDescription className="text-blue-700 dark:text-blue-300">
-                You have been designated as the Recovery Delegate for this Secure Vault.
+                You have been designated as the Legacy Admin for this Secure Vault.
               </CardDescription>
             </CardHeader>
             <CardContent className="py-12">
@@ -644,7 +586,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                     </p>
                     <Button onClick={handleUnlockClick} size="lg" className="bg-blue-500 hover:bg-blue-600 text-white">
                       <Unlock className="h-5 w-5 mr-2" />
-                      Unlock Vault as Delegate
+                      Unlock Vault as Legacy Admin
                     </Button>
                   </>
                 ) : isPendingOrAwaiting ? (
@@ -665,7 +607,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                     <Key className="h-20 w-20 mx-auto mb-6 text-blue-500" />
                     <h3 className="text-xl font-semibold mb-3">Emergency Access Request</h3>
                     <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                      You are the designated Recovery Delegate for this vault. In case of emergency, you may submit an access request. The vault owner will be notified and can approve or deny your request.
+                      You are the designated Legacy Admin for this vault. In case of emergency, you may submit an access request. The vault owner will be notified and can approve or deny your request.
                     </p>
                     <Button
                       onClick={() => setShowRecoveryRequestDialog(true)}
@@ -702,7 +644,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
             isOpen={showTOTPChallenge}
             onClose={() => setShowTOTPChallenge(false)}
             onVerified={handleTOTPVerified}
-            actionDescription="access the Secure Vault as Recovery Delegate"
+            actionDescription="access the Secure Vault as Legacy Admin"
           />
         </>
       );
@@ -804,7 +746,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
             <Info className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-200">
               <strong>Both sections share the same encryption:</strong> Your Digital Access and Legacy Locker are protected with the same vault passphrase. 
-              Your designated Recovery Delegate can request access to both sections in case of emergency.
+              Your designated Legacy Admin can request access to both sections in case of emergency.
             </AlertDescription>
           </Alert>
         </CardHeader>
@@ -821,19 +763,21 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
             />
           )}
 
-          {/* Recovery Delegate Selector - only show for owners when encrypted */}
+          {/* Legacy Admin recovery participant - read-only summary for owners */}
           {isEncrypted && !isDelegate && !isContributor && (
-            <RecoveryDelegateSelector
-              contributors={contributorsList}
-              selectedDelegateId={selectedDelegateId}
-              gracePeriodDays={gracePeriodDays}
-              onDelegateChange={setSelectedDelegateId}
-              onGracePeriodChange={setGracePeriodDays}
-              onSave={handleSaveDelegate}
-              isSaving={isSavingDelegate}
-              hasChanges={hasDelegateChanges}
-            />
+            <div className="rounded-lg border p-4 space-y-1">
+              <h4 className="font-semibold text-sm">Secure Vault recovery</h4>
+              <p className="text-sm text-muted-foreground">
+                {selectedDelegateId
+                  ? 'Your Legacy Admin is the only person who may request Secure Vault recovery access.'
+                  : 'No Legacy Admin is designated yet, so no one can request Secure Vault recovery access.'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Manage this designation in Authorized Users → Legacy Admin.
+              </p>
+            </div>
           )}
+
 
           {/* Admin Access Control - only show for owners */}
           {!isContributor && legacyLockerId && (
