@@ -272,12 +272,11 @@ Recommended default SLAs:
 | Closure waiting period | 30 calendar days unless legally bypassed | Ownership administrator |
 | Recovery Delegate owner grace | owner-configured 7-30 days | Automated sweeper + owner response |
 
-Owner heartbeat policy:
+Retired features (2026-08-22):
 
-- Owner heartbeat is optional and owner-configured from Continuity Preferences.
-- Supported cadences are 30, 60, 90, 180, or 365 days.
-- A missed heartbeat is an admin-review signal only. It does not automatically trigger continuity, grant access, export data, memorialize, preserve, close, or transfer an account.
-- Heartbeat due/overdue cases are available through `get_continuity_heartbeat_report`.
+- Continuity Preferences (temporary incapacity, permanent incapacity, and death event options), Legacy Continuity Readiness scoring, the Annual Review Reminder, and the Continuity Heartbeat have all been removed from the product. The `legacy_locker` columns `continuity_preferences`, `continuity_preferences_version`, `continuity_preferences_reviewed_at`, and `continuity_annual_reminder` and the function `compute_continuity_readiness` were dropped.
+- Asset Safe does not monitor wellbeing, determine incapacity or death, or interpret inactivity as a continuity concern. Every continuity action remains an evidence-based, manually reviewed admin decision.
+- What remains user-facing is Legacy Instructions on the Legacy Locker tab: Legacy Admin designation, a stored account preference (`legacy_locker.continuity_preference`, human-read only, no automation consumes it), and notes for family or support. These are stored for reference and do not trigger access, transfer, or other actions.
 
 ## 9. Launch Gaps
 
