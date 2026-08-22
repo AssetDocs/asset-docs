@@ -25,7 +25,6 @@ const ProposedSuccessorSummary: React.FC<{ caseData: any }> = ({ caseData }) => 
         .eq('legacy_admin_user_id', requesterId)
         .eq('account_id', caseData.account_id)
         .eq('status', 'active')
-        .order('designation_priority', { ascending: true })
         .limit(1)
         .maybeSingle();
       const { data: membership } = await supabase.from('account_memberships').select('role,created_at').eq('user_id', requesterId).eq('account_id', caseData.account_id).maybeSingle();
@@ -33,21 +32,20 @@ const ProposedSuccessorSummary: React.FC<{ caseData: any }> = ({ caseData }) => 
     })();
   }, [caseData?.requested_by_user_id, caseData?.requester_user_id, caseData?.account_id]);
 
-  if (!data) return <div className="text-sm text-muted-foreground p-4">Loading successor...</div>;
+  if (!data) return <div className="text-sm text-muted-foreground p-4">Loading Legacy Admin...</div>;
   const { profile, legacy, membership, requesterId } = data;
   const designatedAt = legacy?.assigned_at || legacy?.designated_at;
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Proposed Successor (Legacy Admin)</CardTitle>
+        <CardTitle className="text-base">Requesting Legacy Admin</CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
         <Row label="Name" value={[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || '-'} />
         <Row label="User ID" value={<span className="font-mono text-xs">{requesterId?.slice(0, 8)}...</span>} />
         <Row label="Relationship" value={caseData.relationship || legacy?.relationship || '-'} />
         <Row label="Current role" value={membership?.role || 'none'} />
-        <Row label="Legacy Admin role" value={legacy?.designation_role || 'Legacy Admin'} />
         <Row label="Added as authorized user" value={membership?.created_at ? new Date(membership.created_at).toLocaleDateString() : '-'} />
         <Row label="Legacy Admin since" value={designatedAt ? new Date(designatedAt).toLocaleDateString() : '-'} />
         <Row label="Identity verification" value={<Badge variant="outline">{caseData.identity_verification_status || 'pending'}</Badge>} />
