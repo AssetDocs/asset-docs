@@ -1,10 +1,10 @@
 export type ContinuityRequestType =
-  | 'temporary_assistance'
   | 'data_export'
   | 'preservation'
   | 'memorialization'
   | 'account_closure'
   // legacy values retained for historical rows
+  | 'temporary_assistance'
   | 'ownership_transfer';
 
 export type ContinuityStatus =
@@ -26,12 +26,6 @@ export const REQUEST_TYPE_OPTIONS: {
   label: string;
   description: string;
 }[] = [
-  {
-    value: 'temporary_assistance',
-    label: 'Temporary Continuity Access',
-    description:
-      'Time-bound assistance access while the account holder is temporarily unable to manage their account.',
-  },
   {
     value: 'data_export',
     label: 'Continuity Export Request',
@@ -126,7 +120,6 @@ export const DOCUMENT_CATEGORIES = [
 ];
 
 export const REQUESTED_OUTCOMES = [
-  { value: 'temporary_access', label: 'Temporary continuity access' },
   { value: 'export_contents', label: 'Continuity export of account contents' },
   { value: 'preserve_as_is', label: 'Preserve account in read-only state' },
   { value: 'memorialize', label: 'Memorialize the account' },

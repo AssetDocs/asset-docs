@@ -13,8 +13,6 @@ import CurrentOwnershipSummary from './CurrentOwnershipSummary';
 import ProposedSuccessorSummary from './ProposedSuccessorSummary';
 import PreTransferChecklist, { computeCanExecute } from './PreTransferChecklist';
 import TransferScopeSelector from './TransferScopeSelector';
-import TemporaryContinuityAccessForm from './TemporaryContinuityAccessForm';
-import ArchiveCustodianForm from './ArchiveCustodianForm';
 import MemorializationForm from './MemorializationForm';
 import PreservationForm from './PreservationForm';
 import ApproveClosureForm from './ApproveClosureForm';
@@ -104,24 +102,6 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
 
       {!checklistOk && (
         <Alert><AlertDescription className="text-sm">{EXECUTION_DISABLED_HELP}</AlertDescription></Alert>
-      )}
-
-      {scope === 'temporary' && (
-        <TemporaryContinuityAccessForm
-          caseData={caseData}
-          disabled={!checklistOk || !canApproveAccess}
-          disabledReason={!canApproveAccess ? CAP_REQUIREMENT_HELP.approve_temp_access : EXECUTION_DISABLED_HELP}
-          onDone={handleDone}
-        />
-      )}
-
-      {scope === 'archive' && (
-        <ArchiveCustodianForm
-          caseData={caseData}
-          disabled={!checklistOk || !canApproveAccess}
-          disabledReason={!canApproveAccess ? CAP_REQUIREMENT_HELP.approve_temp_access : EXECUTION_DISABLED_HELP}
-          onDone={handleDone}
-        />
       )}
 
       {scope === 'memorialization' && (
