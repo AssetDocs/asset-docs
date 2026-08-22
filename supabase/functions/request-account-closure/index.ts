@@ -115,25 +115,52 @@ serve(async (req) => {
         );
       }
 
-      const { data: contribs } = await supabase
-        .from('contributors')
-        .select('contributor_email, first_name, last_name, status')
-        .eq('account_owner_id', user.id)
-        .eq('status', 'accepted');
+      // Notify active Authorized Users on the owner's account(s).
+      // Sourced from account_memberships — the legacy contributors table is retired.
+      const { data: ownedAccounts } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('owner_user_id', user.id);
+      const ownedAccountIds = (ownedAccounts ?? []).map((a: any) => a.id);
 
-      for (const c of contribs ?? []) {
-        if (!c.contributor_email) continue;
-        const cName = [c.first_name, c.last_name].filter(Boolean).join(' ').trim() || null;
+      let members: any[] = [];
+      if (ownedAccountIds.length > 0) {
+        const { data } = await supabase
+          .from('account_memberships')
+          .select('user_id, email, role, status')
+          .in('account_id', ownedAccountIds)
+          .eq('status', 'active')
+          .neq('role', 'owner');
+        members = data ?? [];
+      }
+
+      const memberUserIds = members.map((m: any) => m.user_id).filter(Boolean);
+      let nameByUserId: Record<string, string | null> = {};
+      if (memberUserIds.length > 0) {
+        const { data: memberProfiles } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name')
+          .in('user_id', memberUserIds);
+        for (const p of memberProfiles ?? []) {
+          nameByUserId[(p as any).user_id] =
+            [(p as any).first_name, (p as any).last_name].filter(Boolean).join(' ').trim() || null;
+        }
+      }
+
+      for (const c of members) {
+        if (!c.email || c.user_id === user.id) continue;
+        const cName = nameByUserId[c.user_id] ?? null;
         tasks.push(
           sendContributorScheduledEmail({
-            to: c.contributor_email,
+            to: c.email,
             contributorName: cName,
             ownerName,
             ownerEmail,
             scheduledDateIso: scheduled.toISOString(),
-          }).catch((e) => log("contributor email error", { email: c.contributor_email, message: e?.message }))
+          }).catch((e) => log("authorized user email error", { email: c.email, message: e?.message }))
         );
       }
+
 
       await Promise.allSettled(tasks);
       log("Notification emails dispatched", { count: tasks.length });
