@@ -51,7 +51,6 @@ import ServiceProsSection from '@/components/ServiceProsSection';
 import AccessActivitySection from '@/components/AccessActivitySection';
 import EmergencyInstructions from '@/components/EmergencyInstructions';
 import AccountContinuityInstructions from '@/components/AccountContinuityInstructions';
-import ContinuityPreferencesPage from '@/components/continuity/ContinuityPreferencesPage';
 import ContinuityRequestBanner from '@/components/continuity/ContinuityRequestBanner';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import AccountTabErrorBoundary from '@/components/AccountTabErrorBoundary';
@@ -436,7 +435,6 @@ const Account: React.FC = () => {
                 </div>
                 <ContinuityRequestBanner />
                 <AccountContinuityInstructions />
-                <ContinuityPreferencesPage />
                 <SecureVault initialTab="legacy" />
               </div>
             </TabsContent>
