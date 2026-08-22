@@ -56,7 +56,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   
   // Secure Vault recovery state. The recovery participant is the active Legacy Admin;
   // legacy_locker.delegate_user_id is a system-maintained mirror of that designation.
-  const [contributorsList, setContributorsList] = useState<any[]>([]);
+  
   const [legacyAdminUserId, setLegacyAdminUserId] = useState<string | null>(null);
   const [gracePeriodDays, setGracePeriodDays] = useState(14);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
@@ -82,60 +82,16 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
 
   useEffect(() => {
     fetchVaultStatus();
-    fetchContributorsList();
   }, [user?.id]);
-
-
-  const fetchContributorsList = async () => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase
-        .from('contributors')
-        .select('*')
-        .eq('account_owner_id', user.id)
-        .eq('status', 'accepted');
-
-      if (error) throw error;
-      setContributorsList(data || []);
-    } catch (error) {
-      console.error('Error fetching contributors:', error);
-    }
-  };
 
   const fetchVaultStatus = async () => {
     if (!user) return;
-    
+
     try {
       // Only block the UI on the very first load.
       if (!hasLoadedRef.current) setLoading(true);
 
-      
-      // First check if user is an admin contributor
-      const { data: contributorData } = await supabase
-        .from('contributors')
-        .select('account_owner_id, role')
-        .eq('contributor_user_id', user.id)
-        .eq('status', 'accepted')
-        .maybeSingle();
-      
-      // If admin contributor, fetch owner's vault settings
-      if (contributorData && contributorData.role === 'administrator') {
-        const { data: ownerVaultData, error: ownerError } = await supabase
-          .from('legacy_locker')
-          .select('id, is_encrypted, allow_admin_access, encryption_key_encrypted_for_user')
-          .eq('user_id', contributorData.account_owner_id)
-          .maybeSingle();
 
-        if (!ownerError && ownerVaultData) {
-          setLegacyLockerId(ownerVaultData.id);
-          setIsEncrypted(ownerVaultData.is_encrypted);
-          setExistingEncrypted(ownerVaultData.is_encrypted);
-          setAllowAdminAccess(ownerVaultData.allow_admin_access ?? true);
-          setWrappedVaultKey(ownerVaultData.encryption_key_encrypted_for_user ?? null);
-        }
-        setLoading(false);
-        return;
-      }
       
       // For account owners, fetch their own vault
       const [{ data, error }, { data: delegateRow }] = await Promise.all([

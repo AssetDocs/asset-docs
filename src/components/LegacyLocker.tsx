@@ -143,10 +143,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   const [loading, setLoading] = useState(false);
   const [showMasterPasswordModal, setShowMasterPasswordModal] = useState(false);
   const [existingData, setExistingData] = useState<LegacyLockerData | null>(null);
-  const [contributorRole, setContributorRole] = useState<'administrator' | 'contributor' | 'viewer' | null>(null);
-  const [isContributor, setIsContributor] = useState(false);
-  const [contributorCheckDone, setContributorCheckDone] = useState(false);
-  const [contributors, setContributors] = useState<any[]>([]);
   // Read-only: grace period is configured on the owner's vault record and shown in the recovery dialog.
   const [gracePeriodDays, setGracePeriodDays] = useState(14);
   const [showRecoveryRequestDialog, setShowRecoveryRequestDialog] = useState(false);
@@ -394,55 +390,9 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   };
 
   useEffect(() => {
-    checkContributorStatus();
     fetchLegacyLocker();
-    fetchContributors();
   }, []);
 
-  const checkContributorStatus = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setContributorCheckDone(true);
-        return;
-      }
-
-      // Check if this user is a contributor to someone else's account
-      const { data: contributorData } = await supabase
-        .from('contributors')
-        .select('role, account_owner_id')
-        .eq('contributor_user_id', user.id)
-        .eq('status', 'accepted')
-        .maybeSingle();
-
-      if (contributorData) {
-        setIsContributor(true);
-        setContributorRole(contributorData.role);
-      }
-      setContributorCheckDone(true);
-    } catch (error) {
-      console.error('Error checking contributor status:', error);
-      setContributorCheckDone(true);
-    }
-  };
-
-  const fetchContributors = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('contributors')
-        .select('*')
-        .eq('account_owner_id', user.id)
-        .eq('status', 'accepted');
-
-      if (error) throw error;
-      setContributors(data || []);
-    } catch (error) {
-      console.error('Error fetching contributors:', error);
-    }
-  };
 
   const fetchLegacyLocker = async () => {
     try {
@@ -745,41 +695,9 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Check if user is a non-administrator contributor
-  if (isContributor && contributorRole !== 'administrator') {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Legacy Locker
-          </CardTitle>
-          <CardDescription>
-            High-Value Information Beyond a Traditional Will
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert className="border-amber-200 bg-amber-50">
-            <Lock className="h-5 w-5 text-amber-600" />
-            <AlertDescription className="text-amber-900">
-              <strong>Access Restricted</strong>
-              <br />
-              The Legacy Locker section is only accessible to users with Administrator permissions. 
-              Your current role ({contributorRole}) does not include access to this sensitive information.
-              <br /><br />
-              Please contact the account owner if you need access to this section.
-            </AlertDescription>
-          </Alert>
-          <div className="bg-muted/50 rounded-lg p-8 text-center space-y-4">
-            <Lock className="h-16 w-16 mx-auto text-muted-foreground" />
-            <p className="text-muted-foreground">
-              Legacy Locker content is hidden to protect sensitive personal and estate information.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Legacy Locker access is governed by the Secure Vault gate (owner unlock or the
+  // Legacy Admin recovery flow). The retired contributor role no longer gates it.
+
 
   // If controlled by parent but not unlocked, return null (parent handles unlock UI)
   if (isControlledByParent && isEncrypted && !isUnlocked) {
