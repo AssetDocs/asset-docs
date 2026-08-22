@@ -30,14 +30,28 @@ Frontend
 - Resulting Legacy Locker tab order: Continuity request banner (unchanged) → Legacy Instructions → Secure Vault (Recovery Delegate, Admin Access Control, Digital Access, Legacy Locker).
 - Admin `OwnerRiskPanel`: drop the heartbeat badges and the heartbeat/annual columns from its `select`, and drop the `continuity_preferences` JSON dump plus the "Last reviewed / Version" line, since those preferences no longer exist. Leave the rest of the panel intact.
 
-Database
+Sequencing
+1. Frontend removal and the Legacy Instructions rename first.
+2. Verify the simplified Legacy Locker tab (checkpoint).
+3. Then run the database migration.
+4. Then update the continuity operations doc in the same pass.
+
+Database (step 3)
 - One migration: drop the now-unused `legacy_locker` columns `continuity_preferences`, `continuity_preferences_version`, `continuity_preferences_reviewed_at`, `continuity_annual_reminder` (verified: no function, trigger, view, or policy references them), and drop `compute_continuity_readiness`.
 - Keep `continuity_preference`, `continuity_notes`, `continuity_notes_encrypted` (Legacy Instructions), and all continuity request/execution tables and functions.
+- `execute_ownership_transfer` is flagged as orphaned and left in place for a separate review; it is not dropped here.
+
+Docs (step 4)
+- Update `docs/AssetSafe_Continuity_Legacy_Operations.md` to remove Heartbeat, readiness scoring, and the three event-preference sections, so no doc describes them as current behavior.
+
+Disclaimer copy under Legacy Instructions
+"These instructions are stored for reference and do not automatically trigger account access, transfer, or other actions."
 
 Not touched
 Secure Vault gating and passphrase flow, encryption/decryption, vault relock, Digital Access, Legacy Locker fields, Recovery Delegate, Admin Access Control, Authorized User permissions, Legacy Admin assignment, `account_continuity_requests` and the admin review workflow.
 
 ## Verification
-- Repo-wide search for `readiness`, `heartbeat`, `annual_reminder`, `continuity_preferences`, `vault_segments`, `incapacit` returns no live references outside migration history and docs.
-- Typecheck clean; Legacy Instructions saves and reloads (including encrypted notes when the vault is unlocked); Legacy Admin badge still renders; Secure Vault still locks and unlocks; admin Owner & Risk panel renders without the removed fields.
-- Report at the end: `execute_ownership_transfer` and `compute_continuity_readiness` orphan status, plus a note that `docs/AssetSafe_Continuity_Legacy_Operations.md` still documents heartbeat/readiness and needs a follow-up doc pass.
+- Checkpoint after frontend: simplified tab renders, Legacy Instructions saves and reloads (including encrypted notes when the vault is unlocked), Legacy Admin badge still renders, Secure Vault still locks and unlocks, admin Owner & Risk panel renders without the removed fields, typecheck clean.
+- Repo-wide search for `readiness`, `heartbeat`, `annual_reminder`, `continuity_preferences`, `vault_segments`, `incapacit` returns no live references outside migration history.
+- Final report: `execute_ownership_transfer` orphan status for separate review, and confirmation that `compute_continuity_readiness` was dropped.
+
