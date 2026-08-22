@@ -1,85 +1,44 @@
-# Change Log for External Review (Legacy Admin / Contributors Retirement)
+# Codex Audit Response + Cleanup Plan
 
-Scope covered: Stage 1, Stage 2A, Stage 2B, and the Legacy Admin mirror repair + recovery hardening pass. Stage 3 (invite pipeline retirement) and Stage 4 (dropping the `contributors` table) were explicitly NOT started.
+## Headline: the audit ran against a stale checkout
 
----
+Current repo HEAD here is `ce8628e2` with a clean worktree (no uncommitted changes). Codex reports `1911dc1c`. Every commit carrying this work landed after that point:
 
-## 1. Backend — Database Functions
+```text
+ce8628e2  Update plan
+6bb40778  Changes
+d8cf730c  Added legacy recovery policy
+b1787eac  Changes
+73244cc1  Update plan
+```
 
-| Function | Change |
+Codex also cites line numbers that no longer exist: `ManageTab.tsx:818` (file is 779 lines), `SecureVault.tsx:95` / `:128` (no contributors fetch there), `AdminUsers.tsx:133`, `ExportService.ts:1930`. Codex should `git fetch && git pull` and re-run. Note also that Secure Vault lives at `src/components/SecureVault.tsx` and the locker at `src/components/LegacyLocker.tsx` — there is no `src/pages/SecureVault.tsx`.
+
+## Finding-by-finding verification against current HEAD
+
+| Codex finding | Actual state now |
 | --- | --- |
-| `compute_user_verification` | Rewritten. `has_contributors` no longer reads `contributors`; it now counts active non-owner rows in `account_memberships` (`full_access` or `read_only`). Fixes the Security Progress row that never lit up. |
-| `validate_legacy_locker_delegate` | Rewritten. Previously rejected any non-NULL `delegate_user_id` on INSERT, which silently blocked the seed trigger. Now permits an INSERT value that matches the account's active Legacy Admin. |
-| `assign_legacy_admin` | Hardened. Writes the `legacy_locker.delegate_user_id` mirror when a locker exists; logs `mirror_pending: true` when no locker exists yet. Reassignment revokes the prior admin's artifacts atomically in the same call. |
-| `revoke_legacy_admin_recovery_artifacts` | Now also sets `wrapped_vault_key = NULL` in addition to `status='revoked'` and `revoked_at=now()`. This is the single choke point shared by reassignment, `clear_legacy_admin`, and the membership-eligibility trigger. |
-| `clear_legacy_admin` | Verified to route through the shared revoke helper (nulls mirror + destroys key material). |
-| `enforce_legacy_admin_eligibility` (trigger on `account_memberships`) | Verified: AU downgrade, revocation, or removal clears the Legacy Admin designation and triggers artifact revocation. |
+| P1 — SecureVault fetches contributors, branches on `role === 'administrator'` | **Resolved.** No contributors query and no role branch remain. `fetchVaultStatus` reads only the user's own locker (`.eq('user_id', user.id)`) plus a delegate lookup (`.eq('delegate_user_id', user.id)`). The one surviving word "administrators" is UI copy at line 482. |
+| P1 — contributor-initiated deletion UI + "Only administrator contributors can delete accounts." | **Resolved.** `delete-account/index.ts` now documents the retirement inline and returns `403 "Only the account owner can delete this account"` for any third-party attempt; only owner self-deletion or the scheduled-closure sweeper proceeds. The contributor deletion UI is gone from `ManageTab.tsx`. |
+| P2 — `check-subscription` uses contributors | **Resolved.** Reads `account_memberships` with `status='active'` and `role <> 'owner'`, joined to `accounts.owner_user_id`. |
+| P2 — `ExportService` uses contributors | **Resolved.** Sources active `account_memberships`; only the in-memory field name is still `contributors`. |
+| P2 — `AdminUsers` uses contributors | **Resolved.** Fetches `account_memberships` (all statuses, so revoked rows stay visible as historical) joined to `accounts`. Only local variable/tab identifiers still read `contributors`. |
+| P2 — no `assign_legacy_admin`, `revoke_legacy_admin_recovery_artifacts`, or the two policy names locally | **Present.** They live in `supabase/migrations/20260822180729_…`, `20260822181528_…`, `20260822211611_…`, `20260822213930_…` — all after Codex's HEAD. |
+| P3 — types model `wrapped_vault_key` as non-null | **Already regenerated.** `types.ts` shows `wrapped_vault_key: string \| null` (line 7921) and optional-nullable in Insert/Update. |
 
-## 2. Backend — Schema
+## Genuinely remaining items (all cosmetic or Stage 4 scope)
 
-- `vault_delegate_grants.wrapped_vault_key`: `NOT NULL` constraint dropped so revoked rows can have key material destroyed while the audit row survives.
-- No tables created, renamed, or dropped. `contributors` still exists (Stage 4 out of scope).
-- `account_memberships` rows, roles, statuses, and invite-acceptance data untouched throughout.
+1. `ManageTab.tsx` lines 327, 685, 691, 692 — owner-facing copy still says "administrator has requested to delete your account". That banner is now only reachable through the legacy `account_deletion_requests` path; the wording should say "an authorized user" or the request surface should be removed with Stage 4.
+2. `AdminUsers.tsx` — bucket field `contributors`, tab value `contributors`, and the `ContributorRecord` type name are stale identifiers behind correct data. Rename to `authorizedUsers` / `MembershipRecord`.
+3. `ExportService.ts` — `assets.contributors` field name, same cosmetic rename.
+4. `delete-account/index.ts` lines 756–761 — still deletes `contributors` rows during cleanup. Correct to keep until Stage 4 drops the table; remove in the same pass.
+5. Stage 3 / Stage 4 remain deliberately unstarted: the contributor invite edge functions (`invite-contributor`, `accept-contributor-invitation`, `complete-contributor-signup`), `has_contributor_access`, the `contributors` table with its four policies, and the `contributor_role` enum all still exist. Table holds 0 rows.
 
-## 3. Backend — RLS Policy Changes
+## Proposed next step (optional, pick one)
 
-Removed (Stage 1) — six SELECT policies named `Administrator contributors can view ...` on `legacy_locker` and related vault tables. Zero remain.
+- **Cosmetic-only pass:** rename the stale `contributors` identifiers in `AdminUsers.tsx` and `ExportService.ts`, and fix the "administrator" deletion copy in `ManageTab.tsx`. No behavior change, makes the next audit read clean.
+- **Or hold** until you decide on Stage 3/4, and do the renames inside that pass so the audit surface changes once instead of twice.
 
-Added — `legacy_locker`, `Legacy admin reads owner locker during active recovery`, role `authenticated`, requiring ALL of:
-1. `delegate_user_id = auth.uid()` (mirror match)
-2. `user_id <> auth.uid()` (not self)
-3. an `active` `legacy_admins` row for `auth.uid()` on the account owning that locker
-4. an `active` `vault_delegate_grants` row matching locker id + owner + delegate with non-NULL `wrapped_vault_key`
+## Technical note for the reviewer
 
-Tightened — `vault_delegate_grants`, `Delegate reads own active grants`: now `auth.uid() = delegate_user_id AND status = 'active'`.
-
-Unchanged by design — owner self-access policies (`auth.uid() = user_id`), the pre-existing app-admin `allow_admin_access` policy, `vault_delegate_keypairs` self-only policies, `recovery_requests` approval policies. `vault_delegate_grants` still has no client INSERT policy (service-role only).
-
-Current live policy set on the vault/continuity tables was re-read and confirmed after all changes.
-
-## 4. Backend — Edge Functions
-
-- Account deletion edges: contributor-initiated deletion retired; third-party deletion attempts now return **403**. Deletion is owner-only.
-- `check-subscription`: entitlement inheritance repointed from `contributors` to active `account_memberships`.
-- Account closure notification path repointed to `account_memberships`.
-
-## 5. Frontend Changes
-
-| File | Change |
-| --- | --- |
-| `src/pages/SecureVault.tsx` | Removed `fetchContributorsList` and all admin-contributor branches; removed dead contributor state. Vault access is owner-only or Legacy Admin recovery. Vault queries confirmed self-scoped (`.eq('user_id', user.id)`). |
-| `src/pages/LegacyLocker.tsx` | Same contributor branch removal. |
-| `src/components/admin/AdminUsers.tsx` | Contributors fetch + legacy merge removed. Owner/AU relationships now built from `accounts` + `account_memberships` + `profiles`, including inactive/revoked rows for historical visibility. Role labels standardized to "Full Access" / "Read Only" (no more administrator/contributor/viewer). |
-| `ManageTab.tsx` | Contributor-based deletion entry point removed. |
-| `ExportService`, `ProtectionScore` | Repointed to `account_memberships`. |
-| `src/components/AccountHeader.tsx` | Deleted (dead file). |
-
-## 6. Role Mapping Decisions Applied
-
-| Old contributor check | New mapping |
-| --- | --- |
-| `role === 'administrator'` → initiate account deletion | **Nobody** (owner-only) |
-| `role === 'administrator'` → view owner's Secure Vault | **Legacy Admin only**, and only during an approved active recovery |
-| contributor exists → subscription inheritance | Active `account_memberships` (either role) |
-| contributor count → verification / Security Progress | Active non-owner `account_memberships` |
-| contributor role labels in Admin CRM | Full Access / Read Only |
-
-Explicitly rejected: any blanket `administrator → full_access` conversion. Full Access AU gained no Secure Vault access as a side effect.
-
-## 7. Verification Already Performed
-
-- `account_memberships`: 17 rows / 16 active preserved; 1 active `legacy_admins` row preserved; 0 grants, 0 recovery requests, 1 locker row (clean post-rollback state).
-- Positive recovery: active Legacy Admin + mirror match + active grant reads exactly 1 locker row (the owner's).
-- Cross-locker isolation: grant for Locker 1 gives 0 rows on Locker 2 for the same Legacy Admin.
-- Reassignment A→B: A's request and grant revoked, key nulled, mirror repointed to B, B has 0 active grants until a fresh cycle.
-- Negatives all returned 0 rows: Full Access AU, Read Only AU, LA without grant, mirror mismatch, revoked grant, former LA, new LA pre-grant, arbitrary non-admin user.
-- Mirror invariants: `mismatch_active = 0`, `stale_pointer_no_admin = 0`.
-- One expected non-zero: an app-admin identity can read a locker via the pre-existing `allow_admin_access` policy — unchanged, not introduced here.
-
-## 8. Known Open Items for Codex to Confirm
-
-1. **Stage 3 not started** — the parallel contributor invite pipeline and its edge functions still exist and are still deployed.
-2. **Stage 4 not started** — the `contributors` table, its four RLS policies, and the `contributor_role` enum (`administrator`, `contributor`, `viewer`) still exist. Table has 0 rows.
-3. **Grant expiry** — the recovery SELECT policy has no time bound because `vault_delegate_grants` has no expiry column; grace-period timing lives on `recovery_requests.grace_period_ends_at` and gates approval only. Worth deciding whether grants should expire independently.
-4. **Manual browser E2E not executed** — external/unmanaged Supabase means sessions can't be minted in the sandbox. The owner → confirm LA → create vault → LA requests → owner approves → owner unlocks (issues grant) → LA opens `/delegate-vault` → owner revokes sequence still needs a human run.
-5. Pre-existing project-wide linter warnings (GraphQL exposure, SECURITY DEFINER functions) are unrelated to this work.
+Nothing in this work is "deployed remotely but absent from the repo." The four migrations are committed files in `supabase/migrations/`, the edge function sources are committed under `supabase/functions/`, and the frontend edits are committed under `src/`. The divergence is purely that the reviewing checkout is behind `origin/main`.
