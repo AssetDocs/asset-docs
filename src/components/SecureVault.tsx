@@ -821,19 +821,21 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
             />
           )}
 
-          {/* Recovery Delegate Selector - only show for owners when encrypted */}
+          {/* Legacy Admin recovery participant - read-only summary for owners */}
           {isEncrypted && !isDelegate && !isContributor && (
-            <RecoveryDelegateSelector
-              contributors={contributorsList}
-              selectedDelegateId={selectedDelegateId}
-              gracePeriodDays={gracePeriodDays}
-              onDelegateChange={setSelectedDelegateId}
-              onGracePeriodChange={setGracePeriodDays}
-              onSave={handleSaveDelegate}
-              isSaving={isSavingDelegate}
-              hasChanges={hasDelegateChanges}
-            />
+            <div className="rounded-lg border p-4 space-y-1">
+              <h4 className="font-semibold text-sm">Secure Vault recovery</h4>
+              <p className="text-sm text-muted-foreground">
+                {selectedDelegateId
+                  ? 'Your Legacy Admin is the only person who may request Secure Vault recovery access.'
+                  : 'No Legacy Admin is designated yet, so no one can request Secure Vault recovery access.'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Manage this designation in Authorized Users → Legacy Admin.
+              </p>
+            </div>
           )}
+
 
           {/* Admin Access Control - only show for owners */}
           {!isContributor && legacyLockerId && (
