@@ -465,7 +465,7 @@ export class ExportService {
     yPosition += lineHeight;
     pdf.text(`Medication List: ${assets.familyMedications.length}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Contributors: ${assets.contributors.length}`, 30, yPosition);
+    pdf.text(`Authorized Users: ${assets.contributors.length}`, 30, yPosition);
     yPosition += 20;
 
     // Properties section
@@ -929,7 +929,7 @@ export class ExportService {
       checkPageSpace(30);
       pdf.setFontSize(16);
       pdf.setFont(undefined, 'bold');
-      pdf.text('Contributors', 20, yPosition);
+      pdf.text('Authorized Users', 20, yPosition);
       yPosition += 10;
 
       assets.contributors.forEach((contributor, index) => {
@@ -1925,23 +1925,48 @@ export class ExportService {
         }));
       }
 
-      // Fetch contributors (accepted only)
-      const { data: contributors, error: contributorsError } = await supabase
-        .from('contributors')
-        .select('*')
-        .eq('account_owner_id', userId)
-        .eq('status', 'accepted');
+      // Fetch active Authorized Users (account_memberships; contributors retired)
+      const { data: ownedAccounts } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('owner_user_id', userId);
+      const ownedAccountIds = (ownedAccounts || []).map((a: any) => a.id);
 
-      if (!contributorsError && contributors) {
-        assets.contributors = contributors.map(c => ({
-          id: c.id,
-          firstName: c.first_name || undefined,
-          lastName: c.last_name || undefined,
-          email: c.contributor_email,
-          role: c.role,
-          acceptedAt: c.accepted_at || undefined
-        }));
+      if (ownedAccountIds.length > 0) {
+        const { data: memberships, error: membershipsError } = await supabase
+          .from('account_memberships')
+          .select('id, user_id, email, role, status, accepted_at')
+          .in('account_id', ownedAccountIds)
+          .eq('status', 'active')
+          .neq('role', 'owner');
+
+        if (!membershipsError && memberships) {
+          const memberUserIds = memberships.map((m: any) => m.user_id).filter(Boolean);
+          const nameByUserId: Record<string, { first?: string; last?: string }> = {};
+          if (memberUserIds.length > 0) {
+            const { data: memberProfiles } = await supabase
+              .from('profiles')
+              .select('user_id, first_name, last_name')
+              .in('user_id', memberUserIds);
+            for (const p of memberProfiles || []) {
+              nameByUserId[(p as any).user_id] = {
+                first: (p as any).first_name || undefined,
+                last: (p as any).last_name || undefined,
+              };
+            }
+          }
+
+          assets.contributors = memberships.map((m: any) => ({
+            id: m.id,
+            firstName: nameByUserId[m.user_id]?.first,
+            lastName: nameByUserId[m.user_id]?.last,
+            email: m.email,
+            role: m.role === 'full_access' ? 'Full Access' : m.role === 'read_only' ? 'Read Only' : m.role,
+            acceptedAt: m.accepted_at || undefined,
+          }));
+        }
       }
+
 
     } catch (error) {
       console.error('Error fetching user assets:', error);

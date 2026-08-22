@@ -127,15 +127,16 @@ const ProtectionScore: React.FC<ProtectionScoreProps> = ({ defaultOpen = false }
       )
       .subscribe();
 
-    // Subscribe to contributors changes
+    // Subscribe to authorized user (account membership) changes
     const contributorsChannel = supabase
-      .channel('protection-score-contributors')
+      .channel('protection-score-memberships')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'contributors', filter: `account_owner_id=eq.${user.id}` },
+        { event: '*', schema: 'public', table: 'account_memberships' },
         () => fetchMetrics()
       )
       .subscribe();
+
 
     // Subscribe to receipts changes
     const receiptsChannel = supabase

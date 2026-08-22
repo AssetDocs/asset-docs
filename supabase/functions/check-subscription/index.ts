@@ -89,25 +89,31 @@ serve(async (req) => {
       }
     }
 
-    // If user doesn't have their own subscription, check contributor access
+    // If user doesn't have their own subscription, inherit from an account they
+    // are an active Authorized User on (account_memberships; contributors is retired).
     if (!isSubscribed) {
-      logStep("Checking contributor access");
-      const { data: contributorAccess, error: contributorError } = await supabaseClient
-        .from("contributors")
-        .select("account_owner_id, status, role")
-        .eq("contributor_user_id", user.id)
-        .eq("status", "accepted")
-        .maybeSingle();
+      logStep("Checking authorized user access");
+      const { data: memberships, error: membershipError } = await supabaseClient
+        .from("account_memberships")
+        .select("account_id, role, status, accounts!inner(owner_user_id)")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .neq("role", "owner");
 
-      if (!contributorError && contributorAccess) {
+      const inherited = (memberships ?? []).find(
+        (m: any) => m.accounts?.owner_user_id && m.accounts.owner_user_id !== user.id
+      );
+
+      if (!membershipError && inherited) {
+        const ownerUserId = (inherited as any).accounts.owner_user_id;
         const { data: ownerEntitlement } = await supabaseClient
           .from("entitlements")
           .select("*")
-          .eq("user_id", contributorAccess.account_owner_id)
+          .eq("user_id", ownerUserId)
           .maybeSingle();
 
         if (ownerEntitlement && isEffectivelyActive(ownerEntitlement)) {
-          logStep("User has contributor access", { ownerPlan: ownerEntitlement.plan });
+          logStep("User has authorized user access", { ownerPlan: ownerEntitlement.plan });
           isSubscribed = true;
           subscriptionTier = ownerEntitlement.plan;
           planStatus = ownerEntitlement.status;
@@ -116,6 +122,7 @@ serve(async (req) => {
         }
       }
     }
+
 
     const expiredGiftEntitlement = entitlement?.entitlement_source === 'gift' && !isEffectivelyActive(entitlement);
     const response = {

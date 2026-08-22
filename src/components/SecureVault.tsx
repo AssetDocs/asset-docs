@@ -41,7 +41,7 @@ interface SecureVaultProps {
 
 const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const { user } = useAuth();
-  const { isContributor, canAccessEncryptedVault, isViewer, isContributorRole, contributorRole, isAdministrator } = useAccount();
+  const { isContributor, canAccessEncryptedVault } = useAccount();
   const { toast } = useToast();
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -442,9 +442,6 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     );
   }
 
-  // Check if admin is blocked from vault access
-  const isAdminBlockedFromVault = isAdministrator && !allowAdminAccess;
-
   // Mandatory gate: the account owner must always unlock (or first set up) the
   // vault before Digital Access or Legacy Locker can mount. Contributors and
   // Legacy Admins keep the previous behaviour (gated only when encrypted)
@@ -455,10 +452,10 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const childUnlocked = isOwnerView ? isUnlocked : (!isEncrypted || isUnlocked);
 
 
-  // Contributor restriction - show access denied for encrypted vault or blocked admin
-  if ((isEncrypted && !canAccessEncryptedVault) || isAdminBlockedFromVault) {
-    // Different messaging for admin blocked vs other contributor restrictions
-    const isManualAdminRestriction = isAdminBlockedFromVault;
+  // Access restriction - show access denied for an encrypted vault the current
+  // viewer is not entitled to open.
+  if (isEncrypted && !canAccessEncryptedVault) {
+    const isManualAdminRestriction = false;
     
     return (
       <Card className="w-full border-4 border-yellow-400 shadow-lg">
@@ -491,7 +488,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
             ) : (
               <>
                 <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                  Contributors with {contributorRole === 'viewer' ? 'viewer' : 'limited'} access cannot access encrypted vaults.
+                  Authorized Users cannot access the account owner's encrypted vault.
                 </p>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   Please contact the account owner if you need access to this information.
@@ -743,7 +740,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                       }
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Note: Viewers and limited-access contributors never have access to the Secure Vault.
+                      Note: Authorized Users never have access to the Secure Vault.
                     </p>
                   </div>
                 </div>

@@ -83,23 +83,50 @@ serve(async (req) => {
             .catch((e) => log("owner email error", { message: e?.message }))
         );
       }
-      const { data: contribs } = await supabase
-        .from('contributors')
-        .select('contributor_email, first_name, last_name, status')
-        .eq('account_owner_id', userId)
-        .eq('status', 'accepted');
-      for (const c of contribs ?? []) {
-        if (!c.contributor_email) continue;
-        const cName = [c.first_name, c.last_name].filter(Boolean).join(' ').trim() || null;
+      // Notify active Authorized Users (account_memberships; contributors retired).
+      const { data: ownedAccounts } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('owner_user_id', userId);
+      const ownedAccountIds = (ownedAccounts ?? []).map((a: any) => a.id);
+
+      let members: any[] = [];
+      if (ownedAccountIds.length > 0) {
+        const { data } = await supabase
+          .from('account_memberships')
+          .select('user_id, email, role, status')
+          .in('account_id', ownedAccountIds)
+          .eq('status', 'active')
+          .neq('role', 'owner');
+        members = data ?? [];
+      }
+
+      const memberUserIds = members.map((m: any) => m.user_id).filter(Boolean);
+      const nameByUserId: Record<string, string | null> = {};
+      if (memberUserIds.length > 0) {
+        const { data: memberProfiles } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name')
+          .in('user_id', memberUserIds);
+        for (const p of memberProfiles ?? []) {
+          nameByUserId[(p as any).user_id] =
+            [(p as any).first_name, (p as any).last_name].filter(Boolean).join(' ').trim() || null;
+        }
+      }
+
+      for (const c of members) {
+        if (!c.email || c.user_id === userId) continue;
+        const cName = nameByUserId[c.user_id] ?? null;
         tasks.push(
           sendContributorReversedEmail({
-            to: c.contributor_email,
+            to: c.email,
             contributorName: cName,
             ownerName,
             ownerEmail,
-          }).catch((e) => log("contributor email error", { email: c.contributor_email, message: e?.message }))
+          }).catch((e) => log("authorized user email error", { email: c.email, message: e?.message }))
         );
       }
+
       await Promise.allSettled(tasks);
       log("Reversal emails dispatched", { count: tasks.length });
     } catch (e: any) {

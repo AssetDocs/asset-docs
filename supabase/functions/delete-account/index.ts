@@ -553,105 +553,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check contributor status
-    const { data: contributorData, error: contributorError } = user
-      ? await supabaseAdmin
-        .from('contributors')
-        .select('account_owner_id, role, status')
-        .eq('contributor_user_id', user.id)
-      : { data: null, error: null };
-
-    if (contributorError) {
-      console.log('[DELETE-ACCOUNT] Error checking contributor status:', contributorError);
-    }
-
-    // If this is an admin deletion (deleting someone else's account)
+    // Authorization. The legacy "administrator contributor deletes the owner's
+    // account" path is retired: no Authorized User role can delete another
+    // person's account. Only the account owner (self-deletion) or the internal
+    // scheduled-closure sweeper may proceed.
     if (isScheduledClosureDeletion) {
       console.log('[DELETE-ACCOUNT] Scheduled closure deletion authorized, proceeding with account:', targetAccountId);
     } else if (isAdminDeletion && user) {
-      // Find the contributor relationship for this specific account
-      const relevantContributor = contributorData?.find(
-        c => c.account_owner_id === targetAccountId
-      );
-
-      if (!relevantContributor) {
-        console.log('[DELETE-ACCOUNT] User is not a contributor to target account');
-        return new Response(
-          JSON.stringify({ error: 'You do not have access to this account' }),
-          { 
-            status: 403, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
-      }
-
-      if (relevantContributor.role !== 'administrator' || relevantContributor.status !== 'accepted') {
-        console.log('[DELETE-ACCOUNT] User is not an administrator:', relevantContributor);
-        return new Response(
-          JSON.stringify({ error: 'Only administrator contributors can delete accounts' }),
-          { 
-            status: 403, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
-      }
-
-      // Check for approved deletion request or expired grace period
-      const { data: deletionRequest, error: requestError } = await supabaseAdmin
-        .from('account_deletion_requests')
-        .select('*')
-        .eq('account_owner_id', targetAccountId)
-        .eq('requester_user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (requestError || !deletionRequest) {
-        console.log('[DELETE-ACCOUNT] No deletion request found');
-        return new Response(
-          JSON.stringify({ error: 'You must first submit a deletion request before deleting this account' }),
-          { 
-            status: 403, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
-      }
-
-      const gracePeriodEnded = new Date(deletionRequest.grace_period_ends_at) <= new Date();
-      const isApproved = deletionRequest.status === 'approved';
-      const isPending = deletionRequest.status === 'pending';
-
-      if (deletionRequest.status === 'rejected') {
-        console.log('[DELETE-ACCOUNT] Deletion request was rejected');
-        return new Response(
-          JSON.stringify({ error: 'The account owner has rejected the deletion request' }),
-          { 
-            status: 403, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
-      }
-
-      if (!isApproved && !(isPending && gracePeriodEnded)) {
-        const daysRemaining = Math.ceil(
-          (new Date(deletionRequest.grace_period_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-        );
-        console.log('[DELETE-ACCOUNT] Grace period not yet ended, days remaining:', daysRemaining);
-        return new Response(
-          JSON.stringify({ 
-            error: `Cannot delete yet. The account owner has ${daysRemaining} day(s) to respond to the deletion request.` 
-          }),
-          { 
-            status: 403, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
-      }
-
-      console.log('[DELETE-ACCOUNT] Admin deletion authorized, proceeding with account:', targetAccountId);
+      console.log('[DELETE-ACCOUNT] Rejected third-party deletion attempt', {
+        requester: user.id,
+        targetAccountId,
+      });
+      return new Response(
+        JSON.stringify({ error: 'Only the account owner can delete this account' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     } else if (user) {
-      // User is deleting their own account
-      // Check if they're only a contributor (not the owner)
+      // User is deleting their own account — must actually own it
       const ownsAccount = await supabaseAdmin
         .from('profiles')
         .select('user_id')
@@ -669,13 +587,7 @@ Deno.serve(async (req) => {
         )
       }
 
-      // Check if user is a viewer/contributor (non-admin) trying to delete
-      // They should only be able to delete their own account if they are the owner
-      const isContributorToOthers = contributorData?.some(
-        c => c.account_owner_id !== user.id && c.status === 'accepted'
-      );
-
-      // This is fine - they can still delete their own account even if they're a contributor elsewhere
+      // Being an Authorized User elsewhere does not block self-deletion.
       console.log('[DELETE-ACCOUNT] User owns account, proceeding with self-deletion');
     } else {
       return new Response(
@@ -683,6 +595,7 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
 
     console.log('[DELETE-ACCOUNT] Authorization verified, proceeding with deletion of:', targetAccountId);
 

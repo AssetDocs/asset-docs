@@ -1,11 +1,10 @@
 // @ts-nocheck
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,11 +62,6 @@ interface DeletionRequest {
   requested_at: string;
 }
 
-interface ContributorInfo {
-  account_owner_id: string;
-  role: string;
-  status: string;
-}
 
 const CollapsiblePaymentHistory: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -116,13 +110,13 @@ const ManageTab: React.FC = () => {
   const [showNewDeleteDialog, setShowNewDeleteDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showAccountDeletedDialog, setShowAccountDeletedDialog] = useState(false);
-  const [showDeletionRequestDialog, setShowDeletionRequestDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
-  const [deletionReason, setDeletionReason] = useState('');
+  // True when this user is an Authorized User (non-owner member) on someone
+  // else's account. Sourced from account_memberships — the legacy contributors
+  // table is retired.
   const [isContributor, setIsContributor] = useState(false);
-  const [contributorInfo, setContributorInfo] = useState<ContributorInfo | null>(null);
-  const [pendingDeletionRequest, setPendingDeletionRequest] = useState<DeletionRequest | null>(null);
+
+
   const [incomingDeletionRequests, setIncomingDeletionRequests] = useState<DeletionRequest[]>([]);
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     subscribed: boolean;
@@ -148,32 +142,21 @@ const ManageTab: React.FC = () => {
     if (!userId) return;
     try {
       const { data, error } = await supabase
-        .from('contributors')
-        .select('account_owner_id, role, status')
-        .eq('contributor_user_id', userId)
-        .eq('status', 'accepted')
-        .neq('account_owner_id', userId);
+        .from('account_memberships')
+        .select('account_id, role, status, accounts!inner(owner_user_id)')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .neq('role', 'owner');
       if (error) return;
-      if (data && data.length > 0) {
-        setIsContributor(true);
-        setContributorInfo(data[0] as ContributorInfo);
-        if (data[0].role === 'administrator') {
-          const { data: requestData } = await supabase
-            .from('account_deletion_requests')
-            .select('*')
-            .eq('account_owner_id', data[0].account_owner_id)
-            .eq('requester_user_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(1);
-          if (requestData && requestData.length > 0) {
-            setPendingDeletionRequest(requestData[0] as DeletionRequest);
-          }
-        }
-      }
+      const sharedMembership = (data || []).find(
+        (m: any) => m.accounts?.owner_user_id && m.accounts.owner_user_id !== userId
+      );
+      setIsContributor(!!sharedMembership);
     } catch (error) {
-      console.error('Error checking contributor status:', error);
+      console.error('Error checking authorized user status:', error);
     }
   };
+
 
   const checkIncomingDeletionRequests = async () => {
     if (!userId) return;
@@ -328,47 +311,8 @@ const ManageTab: React.FC = () => {
     }
   };
 
-  const handleAdminDeleteAccount = async () => {
-    if (!user || !contributorInfo) return;
-    setIsDeleting(true);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const { error } = await supabase.functions.invoke('delete-account', {
-        body: { target_account_id: contributorInfo.account_owner_id },
-        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` }
-      });
-      if (error) throw error;
-      toast({ title: "Account Deleted", description: "The account has been permanently deleted." });
-      await signOut();
-      navigate('/');
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to delete account.", variant: "destructive" });
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
-    }
-  };
 
-  const handleSubmitDeletionRequest = async () => {
-    if (!user || !contributorInfo) return;
-    setIsSubmittingRequest(true);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke('submit-deletion-request', {
-        body: { account_owner_id: contributorInfo.account_owner_id, reason: deletionReason, grace_period_days: 14 },
-        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` }
-      });
-      if (error) throw error;
-      toast({ title: "Deletion Request Submitted", description: "The account owner has been notified and has 14 days to respond." });
-      setPendingDeletionRequest(data.request);
-      setShowDeletionRequestDialog(false);
-      setDeletionReason('');
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to submit deletion request.", variant: "destructive" });
-    } finally {
-      setIsSubmittingRequest(false);
-    }
-  };
+
 
   const handleRespondDeletionRequest = async (requestId: string, action: 'approve' | 'reject') => {
     try {
@@ -814,75 +758,12 @@ const ManageTab: React.FC = () => {
       />
 
 
-      {/* Admin Contributor Deletion */}
-      {isContributor && contributorInfo?.role === 'administrator' && (
-        <Card className="border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-destructive">Account Deletion</CardTitle>
-            <CardDescription>Request deletion of the account you manage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendingDeletionRequest ? (
-                <>
-                  {pendingDeletionRequest.status === 'pending' && (
-                    <Alert>
-                      <Clock className="h-4 w-4" />
-                      <AlertTitle>Deletion Request Pending</AlertTitle>
-                      <AlertDescription>
-                        {(() => {
-                          const gracePeriodEnds = new Date(pendingDeletionRequest.grace_period_ends_at);
-                          const daysRemaining = Math.max(0, Math.ceil((gracePeriodEnds.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-                          return daysRemaining > 0
-                            ? `Waiting for account owner response. ${daysRemaining} day(s) remaining.`
-                            : 'The grace period has expired. You can now proceed with deletion.';
-                        })()}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {pendingDeletionRequest.status === 'approved' && (
-                    <Alert className="border-green-500 bg-green-50">
-                      <Check className="h-4 w-4 text-green-600" />
-                      <AlertTitle className="text-green-700">Request Approved</AlertTitle>
-                      <AlertDescription className="text-green-600">The account owner has approved your deletion request.</AlertDescription>
-                    </Alert>
-                  )}
-                  {pendingDeletionRequest.status === 'rejected' && (
-                    <Alert variant="destructive">
-                      <X className="h-4 w-4" />
-                      <AlertTitle>Request Rejected</AlertTitle>
-                      <AlertDescription>The account owner has rejected your deletion request.</AlertDescription>
-                    </Alert>
-                  )}
-                  {(pendingDeletionRequest.status === 'approved' ||
-                    (pendingDeletionRequest.status === 'pending' && new Date(pendingDeletionRequest.grace_period_ends_at) <= new Date())) && (
-                    <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting} className="w-full">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      {isDeleting ? 'Deleting...' : 'Proceed with Account Deletion'}
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-muted-foreground">
-                    As an administrator, you can request to delete the account you manage. The account owner will be notified and given a grace period to respond.
-                  </p>
-                  <Button variant="destructive" onClick={() => setShowDeletionRequestDialog(true)} className="w-full">
-                    <Trash2 className="h-4 w-4 mr-2" /> Request Account Deletion
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Dialogs */}
       <DeleteConfirmationDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
-        onConfirm={isContributor ? handleAdminDeleteAccount : handleDeleteAccount}
-        title={isContributor ? "Delete Managed Account" : "Delete Account"}
+        onConfirm={handleDeleteAccount}
+        title="Delete Account"
         description="Are you sure? This action cannot be undone. All data will be permanently removed."
       />
 
@@ -891,30 +772,6 @@ const ManageTab: React.FC = () => {
         onClose={() => { setShowAccountDeletedDialog(false); navigate('/'); }}
       />
 
-      <Dialog open={showDeletionRequestDialog} onOpenChange={setShowDeletionRequestDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Request Account Deletion</DialogTitle>
-            <DialogDescription>Submit a request to delete the account you manage. The account owner will be notified.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Reason for Deletion (Optional)</Label>
-              <Textarea value={deletionReason} onChange={(e) => setDeletionReason(e.target.value)} placeholder="Please provide a reason..." />
-            </div>
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>The account owner will have 14 days to respond before you can proceed.</AlertDescription>
-            </Alert>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeletionRequestDialog(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleSubmitDeletionRequest} disabled={isSubmittingRequest}>
-              {isSubmittingRequest ? 'Submitting...' : 'Submit Request'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

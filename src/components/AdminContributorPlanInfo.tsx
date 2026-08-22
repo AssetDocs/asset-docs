@@ -16,7 +16,7 @@ interface SubscriptionInfo {
   storage_quota_gb?: number;
 }
 
-interface Contributor {
+interface AuthorizedUser {
   id: string;
   first_name: string | null;
   last_name: string | null;
@@ -28,7 +28,7 @@ interface Contributor {
 const AdminContributorPlanInfo: React.FC = () => {
   const { isFullAccess: isAdministrator, accountId: accountOwnerId, ownerName } = useAccount();
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
-  const [contributors, setContributors] = useState<Contributor[]>([]);
+  const [contributors, setContributors] = useState<AuthorizedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,15 +45,41 @@ const AdminContributorPlanInfo: React.FC = () => {
           setSubscriptionInfo(subData);
         }
 
-        // Fetch all contributors for this account
-        const { data: contribData, error: contribError } = await supabase
-          .from('contributors')
-          .select('id, first_name, last_name, role, contributor_email, status')
-          .eq('account_owner_id', accountOwnerId)
-          .eq('status', 'accepted');
+        // Fetch all active Authorized Users for this account
+        // (account_memberships; the legacy contributors table is retired)
+        const { data: memberships, error: membershipError } = await supabase
+          .from('account_memberships')
+          .select('id, user_id, email, role, status')
+          .eq('account_id', accountOwnerId)
+          .eq('status', 'active')
+          .neq('role', 'owner');
 
-        if (!contribError && contribData) {
-          setContributors(contribData);
+        if (!membershipError && memberships) {
+          const memberUserIds = memberships.map((m: any) => m.user_id).filter(Boolean);
+          const nameByUserId: Record<string, { first: string | null; last: string | null }> = {};
+          if (memberUserIds.length > 0) {
+            const { data: memberProfiles } = await supabase
+              .from('profiles')
+              .select('user_id, first_name, last_name')
+              .in('user_id', memberUserIds);
+            for (const prof of memberProfiles || []) {
+              nameByUserId[(prof as any).user_id] = {
+                first: (prof as any).first_name ?? null,
+                last: (prof as any).last_name ?? null,
+              };
+            }
+          }
+
+          setContributors(
+            memberships.map((m: any) => ({
+              id: m.id,
+              first_name: nameByUserId[m.user_id]?.first ?? null,
+              last_name: nameByUserId[m.user_id]?.last ?? null,
+              role: m.role,
+              contributor_email: m.email,
+              status: m.status,
+            }))
+          );
         }
       } catch (error) {
         console.error('Error fetching admin contributor data:', error);
@@ -78,11 +104,9 @@ const AdminContributorPlanInfo: React.FC = () => {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'administrator':
+      case 'full_access':
         return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'contributor':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'viewer':
+      case 'read_only':
         return 'bg-gray-100 text-gray-800 border-gray-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -97,7 +121,7 @@ const AdminContributorPlanInfo: React.FC = () => {
           Account Overview (Full Access)
         </CardTitle>
         <CardDescription>
-          Subscription and contributor information for {ownerName}'s account
+          Subscription and authorized user information for {ownerName}'s account
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -170,7 +194,11 @@ const AdminContributorPlanInfo: React.FC = () => {
                     <p className="text-xs text-muted-foreground">{contributor.contributor_email}</p>
                   </div>
                   <Badge variant="outline" className={getRoleBadgeColor(contributor.role)}>
-                    {contributor.role.charAt(0).toUpperCase() + contributor.role.slice(1)}
+                    {contributor.role === 'full_access'
+                      ? 'Full Access'
+                      : contributor.role === 'read_only'
+                        ? 'Read Only'
+                        : contributor.role}
                   </Badge>
                 </div>
               ))}
