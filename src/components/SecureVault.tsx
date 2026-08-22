@@ -415,10 +415,10 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
 
       setAllowAdminAccess(checked);
       toast({
-        title: checked ? "Admin Access Enabled" : "Admin Access Disabled",
+        title: checked ? "Support Staff Access Enabled" : "Support Staff Access Disabled",
         description: checked 
-          ? "Administrators (authorized user) can now access the Secure Vault."
-          : "Administrators (authorized user) are now restricted from the Secure Vault.",
+          ? "Authorized Asset Safe support staff can access the Secure Vault record when needed for account support."
+          : "Asset Safe support staff are restricted from the Secure Vault record.",
       });
     } catch (error: any) {
       console.error('Error updating admin access:', error);
@@ -455,8 +455,6 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   // Access restriction - show access denied for an encrypted vault the current
   // viewer is not entitled to open.
   if (isEncrypted && !canAccessEncryptedVault) {
-    const isManualAdminRestriction = false;
-    
     return (
       <Card className="w-full border-4 border-yellow-400 shadow-lg">
         <CardHeader className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-400">
@@ -476,25 +474,12 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           <div className="text-center">
             <UserX className="h-20 w-20 mx-auto mb-6 text-amber-500" />
             <h3 className="text-xl font-semibold mb-3">Access Restricted</h3>
-            {isManualAdminRestriction ? (
-              <>
-                <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                  The account owner has manually restricted access to Digital Access and Legacy Locker for all administrators.
-                </p>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  If you believe this to be an error, please contact the account owner directly to request access.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                  Authorized Users cannot access the account owner's encrypted vault.
-                </p>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Please contact the account owner if you need access to this information.
-                </p>
-              </>
-            )}
+            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+              Authorized Users cannot access the account owner's encrypted vault.
+            </p>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Please contact the account owner if you need access to this information.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -725,19 +710,16 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           )}
 
 
-          {/* Admin Access Control - only show for owners */}
+          {/* Support Staff Access - only show for owners */}
           {!isContributor && legacyLockerId && (
             <div className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 rounded-lg p-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <UserX className="h-6 w-6 text-orange-600 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-orange-800 dark:text-orange-300">Admin Access Control</h4>
+                    <h4 className="font-semibold text-orange-800 dark:text-orange-300">Support Staff Access</h4>
                     <p className="text-sm text-orange-700 dark:text-orange-400 mt-1">
-                      {allowAdminAccess 
-                        ? "Administrators (authorized user) can currently access the Secure Vault."
-                        : "Administrators (authorized user) are currently restricted from the Secure Vault."
-                      }
+                      Allow authorized Asset Safe support staff to access the Secure Vault record when needed for account support. Vault contents remain encrypted and cannot be decrypted without the required vault recovery credentials.
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
                       Note: Authorized Users never have access to the Secure Vault.

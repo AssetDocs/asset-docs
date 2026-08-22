@@ -30,7 +30,7 @@ interface UserRecord {
   plan_lookup_key?: string | null;
 }
 
-interface ContributorRecord {
+interface MembershipRecord {
   id: string;
   contributor_email: string;
   contributor_user_id: string | null;
@@ -49,7 +49,7 @@ interface OwnerWithContributors {
   ownerName: string;
   ownerEmail: string | null;
   accountNumber: string | null;
-  contributors: ContributorRecord[];
+  authorizedUsers: MembershipRecord[];
 }
 
 
@@ -268,7 +268,7 @@ const AdminUsers = () => {
               ownerName: `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim(),
               ownerEmail: subscriberMap.get(ownerId)?.email || authEmails[ownerId] || null,
               accountNumber: ownerProfile.account_number,
-              contributors: []
+              authorizedUsers: []
             });
           }
           return ownersMap.get(ownerId)!;
@@ -284,7 +284,7 @@ const AdminUsers = () => {
           const auProfile = ownerProfileMap.get(m.user_id);
           const auEmail =
             subscriberMap.get(m.user_id)?.email || authEmails[m.user_id] || m.email || null;
-          bucket.contributors.push({
+          bucket.authorizedUsers.push({
             id: m.id,
             contributor_email: auEmail || '',
             contributor_user_id: m.user_id,
@@ -352,7 +352,7 @@ const AdminUsers = () => {
       owner.ownerName.toLowerCase().includes(searchLower) ||
       owner.ownerEmail?.toLowerCase().includes(searchLower) ||
       owner.accountNumber?.toLowerCase().includes(searchLower) ||
-      owner.contributors.some(c => 
+      owner.authorizedUsers.some(c => 
         c.contributor_email.toLowerCase().includes(searchLower) ||
         c.first_name?.toLowerCase().includes(searchLower) ||
         c.last_name?.toLowerCase().includes(searchLower) ||
@@ -615,7 +615,7 @@ const AdminUsers = () => {
       <Tabs defaultValue="all-users">
         <TabsList>
           <TabsTrigger value="all-users">All Users</TabsTrigger>
-          <TabsTrigger value="contributors">Authorized Users</TabsTrigger>
+          <TabsTrigger value="authorized-users">Authorized Users</TabsTrigger>
           <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
           <TabsTrigger value="gifts">Gift Subscriptions</TabsTrigger>
           <TabsTrigger value="payments">Payment Events</TabsTrigger>
@@ -985,12 +985,12 @@ const AdminUsers = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="contributors" className="space-y-4">
+        <TabsContent value="authorized-users" className="space-y-4">
           {(() => {
             // Flatten all AUs across owners
             const flatRows = filteredOwnersWithContributors
               .flatMap((owner) =>
-                owner.contributors.map((c) => ({ owner, c }))
+                owner.authorizedUsers.map((c) => ({ owner, c }))
               )
               .sort((a, b) => {
                 const ow = (a.owner.ownerName || '').localeCompare(b.owner.ownerName || '');

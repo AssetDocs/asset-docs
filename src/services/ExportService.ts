@@ -265,7 +265,7 @@ export interface AssetSummary {
     fileUrl?: string;
     updatedAt: string;
   }>;
-  contributors: Array<{
+  authorizedUsers: Array<{
     id: string;
     firstName?: string;
     lastName?: string;
@@ -465,7 +465,7 @@ export class ExportService {
     yPosition += lineHeight;
     pdf.text(`Medication List: ${assets.familyMedications.length}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Authorized Users: ${assets.contributors.length}`, 30, yPosition);
+    pdf.text(`Authorized Users: ${assets.authorizedUsers.length}`, 30, yPosition);
     yPosition += 20;
 
     // Properties section
@@ -925,14 +925,14 @@ export class ExportService {
     }
 
     // Contributors section
-    if (assets.contributors.length > 0) {
+    if (assets.authorizedUsers.length > 0) {
       checkPageSpace(30);
       pdf.setFontSize(16);
       pdf.setFont(undefined, 'bold');
       pdf.text('Authorized Users', 20, yPosition);
       yPosition += 10;
 
-      assets.contributors.forEach((contributor, index) => {
+      assets.authorizedUsers.forEach((contributor, index) => {
         checkPageSpace(20);
         pdf.setFontSize(10);
         pdf.setFont(undefined, 'normal');
@@ -1145,7 +1145,7 @@ export class ExportService {
       insurancePolicies: [],
       familyRecipes: [],
       familyMedications: [],
-      contributors: []
+      authorizedUsers: []
     };
 
     try {
@@ -1956,7 +1956,7 @@ export class ExportService {
             }
           }
 
-          assets.contributors = memberships.map((m: any) => ({
+          assets.authorizedUsers = memberships.map((m: any) => ({
             id: m.id,
             firstName: nameByUserId[m.user_id]?.first,
             lastName: nameByUserId[m.user_id]?.last,
