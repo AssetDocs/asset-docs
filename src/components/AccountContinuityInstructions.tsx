@@ -45,11 +45,11 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
 
       const { data: la } = await supabase
         .from('legacy_admins')
-        .select('legacy_admin_user_id, designation_role, designation_priority')
+        .select('legacy_admin_user_id')
         .eq('account_id', accountId)
         .eq('status', 'active')
-        .order('designation_priority', { ascending: true })
-        .order('assigned_at', { ascending: true });
+        .order('assigned_at', { ascending: true })
+        .limit(1);
       if (la?.length) {
         const ids = la.map((row: any) => row.legacy_admin_user_id);
         const { data: profs } = await supabase
@@ -59,8 +59,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
         const profileMap = new Map((profs || []).map((p: any) => [p.user_id, p]));
         setLegacyAdminNames(la.map((row: any) => {
           const prof = profileMap.get(row.legacy_admin_user_id);
-          const name = `${prof?.first_name || ''} ${prof?.last_name || ''}`.trim() || 'Authorized user';
-          return row.designation_role === 'secondary' ? `${name} (secondary)` : name;
+          return `${prof?.first_name || ''} ${prof?.last_name || ''}`.trim() || 'Authorized user';
         }));
       } else {
         setLegacyAdminNames([]);
