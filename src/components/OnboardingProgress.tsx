@@ -29,7 +29,7 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ inline = false 
   const [hasVaultEncryption, setHasVaultEncryption] = useState(false);
   const [hasPasswordEntries, setHasPasswordEntries] = useState(false);
   const [hasDocuments, setHasDocuments] = useState(false);
-  const [hasRecoveryDelegate, setHasRecoveryDelegate] = useState(false);
+  const [hasLegacyAdmin, setHasLegacyAdmin] = useState(false);
 
   // Check localStorage on mount
   useEffect(() => {
@@ -79,7 +79,7 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ inline = false 
       const hasLegacyData = legacyLocker && (legacyLocker.full_legal_name || legacyLocker.executor_name);
       setHasVaultData(!!hasLegacyData);
       setHasVaultEncryption(legacyLocker?.is_encrypted ?? false);
-      setHasRecoveryDelegate(!!legacyLocker?.delegate_user_id);
+      setHasLegacyAdmin(!!legacyLocker?.delegate_user_id);
 
       // Check for password catalog entries
       const { data: passwords } = await supabase
@@ -135,7 +135,7 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ inline = false 
   const advancedSteps: Step[] = [
     { label: 'Enable Secure Vault Protection', completed: hasVaultEncryption },
     { label: 'Add Password Catalog & Legacy Locker Details', completed: hasVaultData && hasPasswordEntries },
-    { label: 'Assign a Legacy Admin', completed: hasRecoveryDelegate },
+    { label: 'Assign a Legacy Admin', completed: hasLegacyAdmin },
   ];
   const advancedComplete = advancedSteps.every(s => s.completed);
 

@@ -36,9 +36,19 @@ export type TransferScope =
   | 'closure'
   | 'export';
 
+// Scopes an admin may still execute. 'temporary' (Temporary Stewardship) and
+// 'archive' (Archive Custodian) are retired outcomes — labels are retained for
+// historical records only and must not be selectable.
+export const ACTIVE_TRANSFER_SCOPES: TransferScope[] = [
+  'memorialization',
+  'preservation',
+  'closure',
+  'export',
+];
+
 export const SCOPE_LABEL: Record<TransferScope, string> = {
-  temporary: 'Temporary Continuity Access',
-  archive: 'Archive Custodian Access',
+  temporary: 'Temporary Continuity Access (retired)',
+  archive: 'Archive Custodian Access (retired)',
   memorialization: 'Memorialize Account',
   preservation: 'Activate Preservation Mode',
   closure: 'Approve Account Closure',

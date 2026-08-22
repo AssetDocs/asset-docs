@@ -3,16 +3,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { SCOPE_LABEL, SCOPE_DESCRIPTION, type TransferScope } from './executionConstants';
+import { ACTIVE_TRANSFER_SCOPES, SCOPE_LABEL, SCOPE_DESCRIPTION, type TransferScope } from './executionConstants';
 
-const SCOPES: TransferScope[] = [
-  'temporary',
-  'archive',
-  'memorialization',
-  'preservation',
-  'closure',
-  'export',
-];
+const SCOPES: TransferScope[] = ACTIVE_TRANSFER_SCOPES;
 
 const TransferScopeSelector: React.FC<{
   value: TransferScope | null;

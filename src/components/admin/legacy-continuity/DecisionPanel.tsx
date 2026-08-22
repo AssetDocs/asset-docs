@@ -2,9 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -16,7 +14,7 @@ import {
   DENIAL_REASONS, capabilitiesForRole, CAP_REQUIREMENT_HELP,
 } from './constants';
 import { toast } from '@/hooks/use-toast';
-import { AlertTriangle, Shield, KeyRound, Ban, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Shield, Ban, CheckCircle2 } from 'lucide-react';
 import { notifyContinuityEvent, eventForStatus } from '@/lib/continuityNotifications';
 
 
@@ -32,10 +30,6 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
   const [holdOpen, setHoldOpen] = useState(false);
   const [holdReason, setHoldReason] = useState('');
 
-  const [tempOpen, setTempOpen] = useState(false);
-  const [tempPerms, setTempPerms] = useState({ view_records: true, export_records: false, billing_management: false, user_management: false, account_settings: false });
-  const [tempExpires, setTempExpires] = useState('');
-  const [tempReason, setTempReason] = useState('');
 
   const [denyOpen, setDenyOpen] = useState(false);
   const [denyReason, setDenyReason] = useState('');
@@ -80,24 +74,6 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
     if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
     await logEvent(nowOn ? 'preservation_hold_applied' : 'preservation_hold_lifted', nowOn ? 'Preservation hold applied' : 'Preservation hold lifted', { reason: holdReason });
     setHoldOpen(false); setHoldReason(''); onChange();
-  };
-
-  const grantTemp = async () => {
-    if (!tempExpires) { toast({ title: 'Expiration date required', variant: 'destructive' }); return; }
-    if (!tempReason.trim()) { toast({ title: 'Internal reason required', variant: 'destructive' }); return; }
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from('continuity_temporary_access').insert({
-      request_id: caseData.id, legacy_admin_id: caseData.requested_by_user_id,
-      account_holder_id: caseData.account_id, account_id: caseData.account_id,
-      granted_by: u.user?.id, permissions: tempPerms,
-      starts_at: new Date().toISOString(), expires_at: new Date(tempExpires).toISOString(),
-      reason: tempReason,
-    });
-    if (error) { toast({ title: 'Failed to grant access', description: error.message, variant: 'destructive' }); return; }
-    await supabase.from('account_continuity_requests').update({ status: 'temporary_access_granted' }).eq('id', caseData.id);
-    await logEvent('temp_access_granted', `Temporary access granted (expires ${new Date(tempExpires).toLocaleString()})`, { permissions: tempPerms, expires_at: tempExpires, reason: tempReason });
-    toast({ title: 'Temporary access granted' });
-    setTempOpen(false); setTempReason(''); setTempExpires(''); onChange();
   };
 
   const denyCase = async () => {
@@ -145,9 +121,6 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
         {caseData.preservation_hold ? 'Lift Preservation Hold' : 'Apply Preservation Hold'}
       </ActionBtn>
 
-      <ActionBtn cap="approve_temp_access" className="w-full justify-start" variant="outline" size="sm" onClick={() => setTempOpen(true)}>
-        <KeyRound className="h-3.5 w-3.5 mr-2" /> Grant Temporary Access
-      </ActionBtn>
 
 
 
@@ -204,37 +177,6 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setHoldOpen(false)}>Cancel</Button>
             <Button onClick={applyHold}>{caseData.preservation_hold ? 'Lift Hold' : 'Apply Hold'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Temporary access */}
-      <Dialog open={tempOpen} onOpenChange={setTempOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Grant Temporary Access</DialogTitle></DialogHeader>
-          <Alert><AlertDescription>Temporary access grants should be limited to the minimum access needed.</AlertDescription></Alert>
-          <div className="space-y-3">
-            <div>
-              <Label>Expiration date & time (required)</Label>
-              <Input type="datetime-local" value={tempExpires} onChange={(e) => setTempExpires(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Permissions</Label>
-              {Object.entries(tempPerms).map(([k, v]) => (
-                <label key={k} className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={!!v} onCheckedChange={(c) => setTempPerms({ ...tempPerms, [k]: !!c })} />
-                  <span className="capitalize">{k.replace(/_/g, ' ')}</span>
-                </label>
-              ))}
-            </div>
-            <div>
-              <Label>Internal reason (required)</Label>
-              <Textarea value={tempReason} onChange={(e) => setTempReason(e.target.value)} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setTempOpen(false)}>Cancel</Button>
-            <Button onClick={grantTemp}>Grant Access</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
