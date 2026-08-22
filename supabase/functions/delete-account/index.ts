@@ -487,8 +487,8 @@ Deno.serve(async (req) => {
     }
 
     // Account deletion is destructive — for self-deletion, require a FRESH
-    // MFA step-up (last 60s) if the user has MFA enrolled. Admin/contributor
-    // deletions skip this gate (governed by contributor-role check above).
+    // MFA step-up (last 60s) if the user has MFA enrolled. Third-party
+    // (target_account_id != caller) requests are rejected with 403 below.
     if (!isAdminDeletion && !isScheduledClosureDeletion && user) {
       const gate = await requireStepUp(supabaseAdmin, user.id, {
         fresh: true,
