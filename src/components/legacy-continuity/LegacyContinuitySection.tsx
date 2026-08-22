@@ -79,10 +79,11 @@ const LegacyContinuitySection: React.FC = () => {
             <p>You have been designated as the Legacy Admin for this account.</p>
             <p>
               If the account holder becomes temporarily unavailable, incapacitated, or has passed,
-              you may submit a continuity request for review, such as ownership transfer,
+              you may submit a continuity request for review, such as temporary continuity access,
               data export, preservation, or account closure as part of the account holder&apos;s
-              continuity plan.
+              continuity plan. Account ownership is not transferred through this process.
             </p>
+
             <p>
               Requests are manually reviewed and may require supporting documentation before any
               action is taken.

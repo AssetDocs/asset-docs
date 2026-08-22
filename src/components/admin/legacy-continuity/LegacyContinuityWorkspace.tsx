@@ -174,7 +174,7 @@ const LegacyContinuityWorkspace: React.FC = () => {
           <TabsTrigger value="active">Active Reviews</TabsTrigger>
           <TabsTrigger value="external">External Assistance</TabsTrigger>
           <TabsTrigger value="temp">Temporary Continuity Access</TabsTrigger>
-          <TabsTrigger value="transfers">Continuity Actions</TabsTrigger>
+          <TabsTrigger value="transfers">Historical Transfers</TabsTrigger>
           <TabsTrigger value="denied">Denied</TabsTrigger>
           <TabsTrigger value="archived">Archived</TabsTrigger>
           <TabsTrigger value="audit">
