@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
         <h3 style="color: #111827; margin: 24px 0 8px;">What's new</h3>
         <ul style="padding-left: 20px; margin: 0 0 16px;">
           <li>You are on record as ${escapeHtml(ownerName)}'s Legacy Admin for future continuity planning.</li>
-          <li>If they ever become unable to manage their account, you can submit a <strong>continuity request</strong> for review, such as ownership transfer, data export, preservation, memorialization, or account closure.</li>
+          <li>If they ever become unable to manage their account, you can submit a <strong>continuity request</strong> for review, such as temporary continuity access, data export, preservation, memorialization, or account closure. Account ownership is not transferred through this process.</li>
           <li>Every continuity request is manually reviewed by the Asset Safe team. Nothing happens automatically.</li>
         </ul>
 
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
       ``,
       `WHAT'S NEW:`,
       `- You are on record as ${ownerName}'s Legacy Admin for future continuity planning.`,
-      `- If they ever become unable to manage their account, you can submit a continuity request for review, such as ownership transfer, data export, preservation, memorialization, or account closure.`,
+      `- If they ever become unable to manage their account, you can submit a continuity request for review, such as temporary continuity access, data export, preservation, memorialization, or account closure. Account ownership is not transferred through this process.`,
       `- Every continuity request is manually reviewed by Asset Safe. Nothing happens automatically.`,
       ``,
       `You don't need to do anything right now. This designation is simply on file. ${ownerName} can change or remove it at any time.`,

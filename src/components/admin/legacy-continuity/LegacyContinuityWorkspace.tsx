@@ -132,8 +132,9 @@ const LegacyContinuityWorkspace: React.FC = () => {
           <h2 className="text-xl font-semibold">Continuity &amp; Preservation</h2>
           <p className="text-sm text-muted-foreground">
             Manual review workspace for Continuity &amp; Preservation cases. Asset Safe focuses on
-            continuity access and preservation, with manual review before ownership transfer, export,
-            or account closure. All decisions are recorded in the audit log.
+            continuity access, export, and preservation — account ownership is never transferred to
+            another person. All decisions are recorded in the audit log.
+
           </p>
         </div>
       </div>
@@ -173,7 +174,7 @@ const LegacyContinuityWorkspace: React.FC = () => {
           <TabsTrigger value="active">Active Reviews</TabsTrigger>
           <TabsTrigger value="external">External Assistance</TabsTrigger>
           <TabsTrigger value="temp">Temporary Continuity Access</TabsTrigger>
-          <TabsTrigger value="transfers">Continuity Actions</TabsTrigger>
+          <TabsTrigger value="transfers">Historical Transfers</TabsTrigger>
           <TabsTrigger value="denied">Denied</TabsTrigger>
           <TabsTrigger value="archived">Archived</TabsTrigger>
           <TabsTrigger value="audit">

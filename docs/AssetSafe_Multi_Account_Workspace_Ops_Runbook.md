@@ -135,4 +135,4 @@ Before launch, confirm:
 - Billing downgrade/AU over-limit behavior is documented before any plan limit is enforced.
 - Owner activity visibility is account-scoped.
 - Admin cross-workspace audit review requires an approved reason.
-- Continuity ownership transfer remains separate from ordinary owner-requested transfer.
+- Continuity does not transfer ownership at all (retired 2026-08-22). Owner-requested account reassignment below is a manual operations process only.

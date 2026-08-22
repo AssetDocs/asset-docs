@@ -16,9 +16,9 @@ import {
   DENIAL_REASONS, capabilitiesForRole, CAP_REQUIREMENT_HELP,
 } from './constants';
 import { toast } from '@/hooks/use-toast';
-import { AlertTriangle, Shield, KeyRound, ArrowRightLeft, Ban, CheckCircle2 } from 'lucide-react';
-import OwnershipTransferWizard from './OwnershipTransferWizard';
+import { AlertTriangle, Shield, KeyRound, Ban, CheckCircle2 } from 'lucide-react';
 import { notifyContinuityEvent, eventForStatus } from '@/lib/continuityNotifications';
+
 
 const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () => void }> = ({ caseData, readOnly, onChange }) => {
   const { role } = useAdminRole();
@@ -41,7 +41,7 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
   const [denyReason, setDenyReason] = useState('');
   const [denyNotes, setDenyNotes] = useState('');
 
-  const [transferOpen, setTransferOpen] = useState(false);
+  
 
   const logEvent = async (event_type: string, desc: string, details: any = {}) =>
     supabase.rpc('log_continuity_event', {
@@ -149,9 +149,8 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
         <KeyRound className="h-3.5 w-3.5 mr-2" /> Grant Temporary Access
       </ActionBtn>
 
-      <ActionBtn cap="recommend_transfer" className="w-full justify-start" variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
-        <ArrowRightLeft className="h-3.5 w-3.5 mr-2" /> Start Ownership Transfer Review
-      </ActionBtn>
+
+
 
       <Separator />
 
@@ -258,12 +257,7 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
         </DialogContent>
       </Dialog>
 
-      <OwnershipTransferWizard
-        open={transferOpen}
-        onOpenChange={setTransferOpen}
-        caseData={caseData}
-        onChange={onChange}
-      />
+
     </div>
   );
 };

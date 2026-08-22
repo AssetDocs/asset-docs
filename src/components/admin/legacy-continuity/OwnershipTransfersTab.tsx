@@ -19,7 +19,13 @@ const OwnershipTransfersTab: React.FC<{ onOpenCase: (id: string) => void; refres
   return (
     <Card className="border-border mt-4">
       <CardContent className="p-4">
+        <p className="text-xs text-muted-foreground mb-3">
+          Historical record only. Ownership transfer was retired on 2026-08-22 — Asset Safe no longer
+          transfers an account to another person. These rows are retained for audit purposes and no new
+          reviews can be started.
+        </p>
         <div className="overflow-x-auto rounded-md border border-border">
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -36,8 +42,9 @@ const OwnershipTransfersTab: React.FC<{ onOpenCase: (id: string) => void; refres
             </TableHeader>
             <TableBody>
               {rows.length === 0 && (
-                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">No ownership transfers in review.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">No historical transfer records.</TableCell></TableRow>
               )}
+
               {rows.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell><Badge variant="outline" className={TRANSFER_STATUS_BADGE[r.status]}>{TRANSFER_STATUS_LABEL[r.status]}</Badge></TableCell>

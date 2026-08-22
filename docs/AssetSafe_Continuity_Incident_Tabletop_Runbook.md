@@ -8,7 +8,7 @@ Scope: tabletop drills for disputed death reports, competing executor requests, 
 
 1. Confirm reviewers can pause high-impact continuity actions before harm occurs.
 2. Confirm owner-protection controls work: dispute intake, legal-dispute freeze, conflict detection, audit trail, and senior-review freeze removal.
-3. Confirm evidence review is sufficient before export, preservation, memorialization, closure, or ownership transfer.
+3. Confirm evidence review is sufficient before export, preservation, memorialization, or closure.
 4. Confirm staff can explain the decision trail from admin UI, database records, and audit logs.
 
 ## Cadence
@@ -52,7 +52,7 @@ Expected response:
 
 1. Owner dispute is recorded on `account_continuity_requests`.
 2. A `legal_dispute` freeze is active in `continuity_account_freezes`.
-3. The case is blocked from export, closure, preservation, memorialization, and ownership transfer.
+3. The case is blocked from export, closure, preservation, and memorialization.
 4. Reviewer records owner-contact notes and evidence review notes.
 5. Reviewer resolves the dispute only with an outcome and internal resolution notes.
 6. Freeze remains active after dispute resolution until a senior reviewer removes it separately with a reason.
@@ -73,7 +73,7 @@ Expected response:
 2. Admin queue shows competing continuity requests.
 3. Execution remains blocked until reviewer records conflict resolution notes.
 4. Reviewer requests additional legal authority evidence from both parties as needed.
-5. Senior reviewer signs off before any high-impact action when the conflict involves export, ownership transfer, or closure.
+5. Senior reviewer signs off before any high-impact action when the conflict involves export or closure.
 
 Pass criteria:
 
@@ -115,7 +115,7 @@ Pass criteria:
 
 - Freeze removal is separate from dispute resolution.
 - Audit log explains the owner recovery decision.
-- No temporary access, export authorization, ownership transfer, closure, or memorialization remains active unless separately approved.
+- No temporary access, export authorization, closure, or memorialization remains active unless separately approved.
 
 ## Evidence To Capture
 
