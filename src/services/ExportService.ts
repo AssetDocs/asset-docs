@@ -465,7 +465,7 @@ export class ExportService {
     yPosition += lineHeight;
     pdf.text(`Medication List: ${assets.familyMedications.length}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Contributors: ${assets.contributors.length}`, 30, yPosition);
+    pdf.text(`Authorized Users: ${assets.contributors.length}`, 30, yPosition);
     yPosition += 20;
 
     // Properties section
@@ -929,7 +929,7 @@ export class ExportService {
       checkPageSpace(30);
       pdf.setFontSize(16);
       pdf.setFont(undefined, 'bold');
-      pdf.text('Contributors', 20, yPosition);
+      pdf.text('Authorized Users', 20, yPosition);
       yPosition += 10;
 
       assets.contributors.forEach((contributor, index) => {
