@@ -1,44 +1,47 @@
-# Codex Audit Response + Cleanup Plan
+# Cleanup Pass: Admin Access Copy, Deletion Banner, Stale Identifiers
 
-## Headline: the audit ran against a stale checkout
+Codex's three remaining findings are accepted with one important correction, then all three get fixed in a single cosmetic/copy pass. No authorization behavior changes.
 
-Current repo HEAD here is `ce8628e2` with a clean worktree (no uncommitted changes). Codex reports `1911dc1c`. Every commit carrying this work landed after that point:
+## Correction on the P2 finding
+
+`legacy_locker.allow_admin_access` is **not** dead. It is still enforced by a live policy on `legacy_locker`:
 
 ```text
-ce8628e2  Update plan
-6bb40778  Changes
-d8cf730c  Added legacy recovery policy
-b1787eac  Changes
-73244cc1  Update plan
+"Admins can view legacy lockers when permitted"
+  has_app_role(auth.uid(), 'admin') AND allow_admin_access = true
 ```
 
-Codex also cites line numbers that no longer exist: `ManageTab.tsx:818` (file is 779 lines), `SecureVault.tsx:95` / `:128` (no contributors fetch there), `AdminUsers.tsx:133`, `ExportService.ts:1930`. Codex should `git fetch && git pull` and re-run. Note also that Secure Vault lives at `src/components/SecureVault.tsx` and the locker at `src/components/LegacyLocker.tsx` — there is no `src/pages/SecureVault.tsx`.
+So the toggle really does control something: whether a **platform/support admin** (an `app_role = 'admin'` staff account) can read the owner's locker row. What is wrong is the wording. The card and its toasts say "Administrators (authorized user)", which is leftover contributor-era language and describes the wrong actor entirely. The column is also unrelated to the new Legacy Admin recovery policy, which is correct — recovery is gated by mirror match + active `legacy_admins` row + active grant, and deliberately ignores this flag.
 
-## Finding-by-finding verification against current HEAD
+Codex is right that `isManualAdminRestriction = false` at line 458 makes the branch at 479-487 unreachable dead code.
 
-| Codex finding | Actual state now |
-| --- | --- |
-| P1 — SecureVault fetches contributors, branches on `role === 'administrator'` | **Resolved.** No contributors query and no role branch remain. `fetchVaultStatus` reads only the user's own locker (`.eq('user_id', user.id)`) plus a delegate lookup (`.eq('delegate_user_id', user.id)`). The one surviving word "administrators" is UI copy at line 482. |
-| P1 — contributor-initiated deletion UI + "Only administrator contributors can delete accounts." | **Resolved.** `delete-account/index.ts` now documents the retirement inline and returns `403 "Only the account owner can delete this account"` for any third-party attempt; only owner self-deletion or the scheduled-closure sweeper proceeds. The contributor deletion UI is gone from `ManageTab.tsx`. |
-| P2 — `check-subscription` uses contributors | **Resolved.** Reads `account_memberships` with `status='active'` and `role <> 'owner'`, joined to `accounts.owner_user_id`. |
-| P2 — `ExportService` uses contributors | **Resolved.** Sources active `account_memberships`; only the in-memory field name is still `contributors`. |
-| P2 — `AdminUsers` uses contributors | **Resolved.** Fetches `account_memberships` (all statuses, so revoked rows stay visible as historical) joined to `accounts`. Only local variable/tab identifiers still read `contributors`. |
-| P2 — no `assign_legacy_admin`, `revoke_legacy_admin_recovery_artifacts`, or the two policy names locally | **Present.** They live in `supabase/migrations/20260822180729_…`, `20260822181528_…`, `20260822211611_…`, `20260822213930_…` — all after Codex's HEAD. |
-| P3 — types model `wrapped_vault_key` as non-null | **Already regenerated.** `types.ts` shows `wrapped_vault_key: string \| null` (line 7921) and optional-nullable in Insert/Update. |
+Worth stating in the UI: even when the flag is on, vault contents stay end-to-end encrypted, so a support admin sees the row, not the decrypted secrets.
 
-## Genuinely remaining items (all cosmetic or Stage 4 scope)
+## Changes
 
-1. `ManageTab.tsx` lines 327, 685, 691, 692 — owner-facing copy still says "administrator has requested to delete your account". That banner is now only reachable through the legacy `account_deletion_requests` path; the wording should say "an authorized user" or the request surface should be removed with Stage 4.
-2. `AdminUsers.tsx` — bucket field `contributors`, tab value `contributors`, and the `ContributorRecord` type name are stale identifiers behind correct data. Rename to `authorizedUsers` / `MembershipRecord`.
-3. `ExportService.ts` — `assets.contributors` field name, same cosmetic rename.
-4. `delete-account/index.ts` lines 756–761 — still deletes `contributors` rows during cleanup. Correct to keep until Stage 4 drops the table; remove in the same pass.
-5. Stage 3 / Stage 4 remain deliberately unstarted: the contributor invite edge functions (`invite-contributor`, `accept-contributor-invitation`, `complete-contributor-signup`), `has_contributor_access`, the `contributors` table with its four policies, and the `contributor_role` enum all still exist. Table holds 0 rows.
+**1. `src/components/SecureVault.tsx`**
+- Reword the "Admin Access Control" card to describe the real actor: Asset Safe support/platform staff, not authorized users. Retitle to "Support Staff Access" (or similar), and replace the body text with a statement that turning it off blocks support-staff record access, and that vault contents remain end-to-end encrypted either way.
+- Fix the two toast messages in `handleAdminAccessToggle` to match.
+- Keep the toggle, the column write, and the owner-only visibility condition unchanged.
+- Delete the dead `isManualAdminRestriction` constant and its unreachable branch, keeping only the "Authorized Users cannot access the account owner's encrypted vault" message.
 
-## Proposed next step (optional, pick one)
+**2. `src/components/ManageTab.tsx`** — replace "administrator" in the owner-facing deletion-request banner and toast (lines 327, 685, 691, 692) with wording that matches the current model: an authorized user can no longer delete the account, so the banner should describe a legacy pending request and state that only the owner can complete a deletion. The banner stays, since old `account_deletion_requests` rows may exist.
 
-- **Cosmetic-only pass:** rename the stale `contributors` identifiers in `AdminUsers.tsx` and `ExportService.ts`, and fix the "administrator" deletion copy in `ManageTab.tsx`. No behavior change, makes the next audit read clean.
-- **Or hold** until you decide on Stage 3/4, and do the renames inside that pass so the audit surface changes once instead of twice.
+**3. `src/components/admin/AdminUsers.tsx`** — rename `ContributorRecord` to `MembershipRecord`, the bucket field `contributors` to `authorizedUsers`, and the tab value `contributors` to `authorized-users`. Display strings already read "Authorized Users".
 
-## Technical note for the reviewer
+**4. `src/services/ExportService.ts`** — rename the `assets.contributors` field to `assets.authorizedUsers` and update the interface plus the three read sites (PDF summary count, section render, initializer).
 
-Nothing in this work is "deployed remotely but absent from the repo." The four migrations are committed files in `supabase/migrations/`, the edge function sources are committed under `supabase/functions/`, and the frontend edits are committed under `src/`. The divergence is purely that the reviewing checkout is behind `origin/main`.
+## Out of scope
+
+- No RLS, function, trigger, or grant changes.
+- No touching the Legacy Admin recovery path, `vault_delegate_grants`, or the mirror.
+- Stage 3 (contributor invite edge functions) and Stage 4 (drop the `contributors` table, `has_contributor_access`, `contributor_role` enum) remain unstarted; `delete-account`'s contributor cleanup deletes stay until Stage 4.
+- `AccountContext`'s legacy aliases (`useContributor`, `ContributorProvider`, `isContributor`) are load-bearing across many files; renaming them is a separate, larger refactor.
+
+## Verification
+
+- Typecheck and build.
+- Owner view: the reworded support-access card renders, the toggle still persists `allow_admin_access` both ways.
+- Authorized User view on an encrypted owner vault: still sees the single "Access Restricted" message.
+- Admin CRM: Authorized Users tab still lists the same rows and counts, including the revoked historical membership.
+- Export: authorized-user count and section still populate from active `account_memberships`.
