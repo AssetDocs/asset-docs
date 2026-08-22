@@ -246,7 +246,6 @@ Key RPCs:
 - `remove_account_freeze`
 - `set_memorialized_mode`
 - `bypass_waiting_period`
-- `compute_continuity_readiness`
 - `enforce_continuity_execution_guard`
 - `create_continuity_snapshot`
 - `revoke_continuity_access`
@@ -272,12 +271,11 @@ Recommended default SLAs:
 | Closure waiting period | 30 calendar days unless legally bypassed | Ownership administrator |
 | Recovery Delegate owner grace | owner-configured 7-30 days | Automated sweeper + owner response |
 
-Owner heartbeat policy:
+Retired features (2026-08-22):
 
-- Owner heartbeat is optional and owner-configured from Continuity Preferences.
-- Supported cadences are 30, 60, 90, 180, or 365 days.
-- A missed heartbeat is an admin-review signal only. It does not automatically trigger continuity, grant access, export data, memorialize, preserve, close, or transfer an account.
-- Heartbeat due/overdue cases are available through `get_continuity_heartbeat_report`.
+- Continuity Preferences (temporary incapacity, permanent incapacity, and death event options), Legacy Continuity Readiness scoring, the Annual Review Reminder, and the Continuity Heartbeat have all been removed from the product. The `legacy_locker` columns `continuity_preferences`, `continuity_preferences_version`, `continuity_preferences_reviewed_at`, and `continuity_annual_reminder` and the function `compute_continuity_readiness` were dropped.
+- Asset Safe does not monitor wellbeing, determine incapacity or death, or interpret inactivity as a continuity concern. Every continuity action remains an evidence-based, manually reviewed admin decision.
+- What remains user-facing is Legacy Instructions on the Legacy Locker tab: Legacy Admin designation, a stored account preference (`legacy_locker.continuity_preference`, human-read only, no automation consumes it), and notes for family or support. These are stored for reference and do not trigger access, transfer, or other actions.
 
 ## 9. Launch Gaps
 
@@ -290,7 +288,7 @@ Owner heartbeat policy:
 
 ### P1 first 30 days
 
-5. Optional owner heartbeat policy exists on `legacy_locker`; missed check-ins are review signals only and do not trigger continuity actions automatically.
+5. Retired (2026-08-22): owner heartbeat check-ins. Asset Safe does not interpret account silence as a continuity signal.
 6. In-app ops reporting exists for unresolved owner disputes, external assistance backlog age, high-risk external assistance, and overdue continuity reviews.
 7. Secondary Legacy Admin UX is implemented: `legacy_admins` supports active primary/secondary designations with one active primary per account.
 
@@ -304,6 +302,6 @@ Owner heartbeat policy:
 
 1. Should owner dispute resolution for export, closure, and ownership transfer require second-reviewer signoff before freeze removal?
 2. Should conflict resolution require a second reviewer for ownership transfer, closure, or export cases?
-3. Should missed owner heartbeats generate email reminders or remain admin-review signals only?
+3. Should `execute_ownership_transfer` be retired? It is currently orphaned (no frontend or edge-function caller).
 4. Which seeded evidence requirements need counsel-approved wording or second-reviewer signoff before launch?
 5. Who is allowed to bypass the 30-day continuity closure waiting period, and what evidence is mandatory?
