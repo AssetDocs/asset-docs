@@ -1,77 +1,50 @@
-# Legacy Admin ↔ delegate_user_id Mirror Integrity
+# Close the Legacy Admin recovery read path and harden revoked grants
 
-## Root cause (verified before any change)
+Two narrow gaps remain from the mirror-integrity pass. Both are backend-only. Nothing about Authorized User permissions, eligibility rules, the approval workflow, or the vault cryptography changes.
 
-Live state, single active Legacy Admin account `35f0a6a4…`:
+## Confirmed current state (verified this turn)
 
-- owner `2e62a796…`, Legacy Admin `4df74d1f…`, assigned `2026-05-24 16:09`
-- `legacy_locker` row for that owner: **does not exist at all** (no row, not a NULL column on an existing row)
+- `legacy_locker` has exactly four SELECT/write policies: owner (`auth.uid() = user_id`) and an app-admin read gated on `allow_admin_access`. There is **no** path for an approved Legacy Admin to read the owner's row, so `DelegateVault.tsx` fails at its final read.
+- `vault_delegate_grants` delegate read policy is `Delegate reads own grants` → `auth.uid() = delegate_user_id`, with no status condition.
+- `vault_delegate_grants.wrapped_vault_key` is `text NOT NULL`, so today it is impossible to null out key material on revoke.
+- There is **no expiry column** on `vault_delegate_grants` (columns: id, legacy_locker_id, owner_user_id, delegate_user_id, wrapped_vault_key, delegate_key_version, recovery_request_id, status, issued_at, revoked_at, timestamps). Grace-period timing lives on `recovery_requests.grace_period_ends_at`, which governs the approval flow, not grant validity. So no expiry term goes in the policies.
+- Grants are inserted only by the `issue-delegate-vault-grant` edge function (service role); there is no client INSERT policy. That stays as-is.
+- The single grant-revocation path in the database is `revoke_legacy_admin_recovery_artifacts(owner, admin)`, called by `assign_legacy_admin` (reassignment), `clear_legacy_admin`, and the `enforce_legacy_admin_eligibility` trigger on `account_memberships` (covers downgrade, revocation, removal). No edge function touches the grants table. Centralizing key destruction in that one helper covers every path.
+- Existing data: `vault_delegate_grants` has 0 rows, so the one-time cleanup of revoked-rows-with-keys is expected to touch 0 rows. It will still be run and reported.
 
-So the mismatch is not stale data and not a pre-RPC assignment. `assign_legacy_admin` does write the mirror
-(`UPDATE public.legacy_locker SET delegate_user_id = _user_id WHERE user_id = v_owner`), but that owner has never
-created a Secure Vault / Legacy Locker row, so the update matched zero rows and silently no-opped.
+## Join keys for the new policy
 
-Enforcement that already exists and was confirmed:
+```text
+vault_delegate_grants.legacy_locker_id -> legacy_locker.id
+vault_delegate_grants.owner_user_id    -> legacy_locker.user_id
+legacy_locker.user_id                  -> accounts.owner_user_id
+accounts.id                            -> legacy_admins.account_id
+legacy_admins.legacy_admin_user_id     -> auth.uid()  (status = 'active')
+legacy_locker.delegate_user_id         -> auth.uid()  (system-maintained mirror)
+```
 
-| Guarantee | Status |
-|---|---|
-| assign sets mirror (when locker row exists) | present in `assign_legacy_admin` |
-| clear nulls mirror | present in `clear_legacy_admin` |
-| reassign revokes prior grants/requests before new admin activates | present via `revoke_legacy_admin_recovery_artifacts` |
-| AU downgrade/revoke clears designation + mirror + artifacts | present in `enforce_legacy_admin_eligibility` trigger |
-| locker row created later seeds current Legacy Admin | present: `BEFORE INSERT trg_seed_legacy_locker_legacy_admin` |
-| direct client writes to `delegate_user_id` blocked | present: `trg_validate_legacy_locker_delegate` (trusted only via `app.legacy_admin_sync` or service role) |
-| mismatch fails closed | present: `submit-recovery-request` requires active `legacy_admins` row **and** `delegate_user_id = caller` |
+## Migration
 
-## Defect found in the seeding path (the one real fix)
+1. New SELECT policy `Legacy admin reads owner locker during active recovery` on `legacy_locker`, for role `authenticated`, requiring **all** of: mirror match (`delegate_user_id = auth.uid()`), an active `legacy_admins` row for `auth.uid()` on the account owning that locker, and an active `vault_delegate_grants` row whose `legacy_locker_id` is that locker, `owner_user_id` is the locker owner, and `delegate_user_id = auth.uid()`. Owner and app-admin policies are untouched. Because the predicate is re-evaluated per query, clearing/reassigning Legacy Admin, downgrading or revoking the AU, or revoking the grant each cut the read off immediately.
+2. `ALTER TABLE public.vault_delegate_grants ALTER COLUMN wrapped_vault_key DROP NOT NULL` so key material can be destroyed while the audit row survives.
+3. Replace `Delegate reads own grants` with a status-scoped version: `auth.uid() = delegate_user_id AND status = 'active'`. Owner read, owner update, and audit paths are unchanged; no rows are deleted.
+4. Update `revoke_legacy_admin_recovery_artifacts` to also set `wrapped_vault_key = NULL` alongside `status = 'revoked'`, `revoked_at = now()`. Keeps id, owner/delegate ids, status, `delegate_key_version`, `recovery_request_id`, and all timestamps intact. This is the shared helper the three callers already use, so no logic is duplicated.
+5. One-time cleanup: null `wrapped_vault_key` on any row already `status = 'revoked'` with a non-null key. Active grants untouched.
 
-Triggers fire in name order: `trg_seed_…` runs before `trg_validate_…`.
-The seed trigger sets `NEW.delegate_user_id` from the active Legacy Admin, then the validate trigger sees
-`TG_OP = 'INSERT'` with a non-NULL `delegate_user_id` and no trust flag and raises
-`Secure Vault recovery participant is system-maintained`.
+## Verification (database/authorization level, in a self-rolling-back harness)
 
-Consequence: for exactly this account's situation — active Legacy Admin, no locker row yet — the owner's first
-client-side Secure Vault creation **fails hard**, and the mirror can never be seeded. This is the reason the gap is
-not self-healing.
+Negative set — each must return zero rows for the owner's locker: Full Access AU who is not Legacy Admin; Read Only AU; active Legacy Admin with no grant; former Legacy Admin; Legacy Admin with a revoked grant; mirror mismatch; Legacy Admin of a different account; arbitrary authenticated user.
 
-Smallest fix: make the validate trigger treat a value that equals the account's current active Legacy Admin as
-system-maintained (allowed) on INSERT, and on UPDATE keep rejecting any client-driven change. No relaxation of the
-general rule: arbitrary client values, self-assignment, and client-driven UPDATEs still fail closed.
+Positive set: before a grant is issued the Legacy Admin sees nothing; after an active grant exists the Legacy Admin can read exactly that one locker row and their own grant row; after revocation the locker read and the grant read both return nothing and `wrapped_vault_key` is NULL while the row remains.
 
-## Work in this pass
+Reassignment A→B: A's designation removed, A's requests revoked, A's grant revoked with key nulled, A loses both reads, mirror points to B, and B has no locker access until a fresh request/approval/grant completes.
 
-1. **Migration** (schema/function only):
-   - Rewrite `validate_legacy_locker_delegate` so an untrusted INSERT is allowed only when
-     `NEW.delegate_user_id` equals the active `legacy_admins.legacy_admin_user_id` for the owner's account
-     (and still `<> user_id`); any other untrusted value or any untrusted UPDATE change still raises `42501`.
-   - Harden `assign_legacy_admin`: after the mirror UPDATE, if no locker row exists, record that in the activity
-     log details (`mirror_pending: true`) so the deferred-seed case is visible instead of silent.
-2. **Repair pass** (data): reconcile every account with exactly one active `legacy_admins` row whose existing
-   locker row has NULL or divergent `delegate_user_id`, using `legacy_admins` as sole source of truth, and NULL any
-   `delegate_user_id` on lockers whose account has no active Legacy Admin. Given current data this repairs **0
-   rows** — the only affected account has no locker row, which the fixed seed path now covers on creation. The
-   repair statement is still run so the invariant is asserted, and the result reported.
-3. **Verification queries**: for every account, active Legacy Admin vs `delegate_user_id` equality; no stale
-   pointer without an active designation; no `delegate_user_id = user_id`.
-4. **Reassignment test** (A → B) executed at the database layer against a scratch owner/AU pair, not the live
-   account: confirm A's open `recovery_requests` become `revoked`, A's `vault_delegate_grants` become `revoked`,
-   mirror flips to B, `legacy_locker.recovery_status` resets, and A's stale grant stays unusable.
-5. **Recovery-path and negative tests**: exercise the authorization predicates that `submit-recovery-request` and
-   the delegate-vault RLS use, for each case — Read Only AU, Full Access AU who is not Legacy Admin, revoked
-   former Legacy Admin, mismatched mirror, stale grant from a previous Legacy Admin, expired request, direct client
-   `delegate_user_id` write, owner self-designation, Legacy Admin of a different account. Each must fail closed.
-6. **Report**: root cause, rows repaired, enforcement added, assign/clear/reassign/downgrade behavior,
-   recovery-path results, negative-test results, and remaining gaps.
+All harness writes are rolled back, exactly as in the previous pass.
 
-## Testing limitation to state up front
+## Manual browser test to hand back
 
-This project uses an external, unmanaged Supabase instance, so no browser session can be minted for an AU — a
-click-through end-to-end recovery run in the preview is not available. The recovery flow will therefore be validated
-at the authorization layer (the exact predicates the edge function and RLS evaluate, plus the wrap/grant row
-transitions) with each state transition documented, and any step that can only be confirmed by a human clicking as
-the Legacy Admin will be listed explicitly as owner-verified rather than claimed as passed.
+Lovable cannot mint owner and Legacy Admin sessions for this project (external/unmanaged Supabase), so the end-to-end UI run stays manual. The plan's report will hand back the ordered step list: owner signs in and confirms the designation, creates/unlocks the vault, Legacy Admin signs in and confirms ordinary vault access is denied, initiates recovery, owner approves, acknowledgment/grace steps complete, owner unlocks once more so the grant is issued, Legacy Admin opens the delegated vault, then the owner revokes/clears and the Legacy Admin confirms access is gone. No browser E2E success will be claimed unless actually executed.
 
 ## Out of scope
 
-Authorized User permissions, Secure Vault encryption and passphrase behavior, continuity export, memorialization,
-closure, and the dormant contributors infrastructure. No change to the active Legacy Admin row or AU roles.
+AU permissions and roles, `account_memberships`, invitations, dormant contributors infrastructure, Continuity Export, memorialization, closure, vault encryption format, passphrase derivation, recovery keypair crypto, and Legacy Admin eligibility rules.
