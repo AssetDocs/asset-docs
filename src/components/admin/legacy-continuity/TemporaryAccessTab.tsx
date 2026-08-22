@@ -57,6 +57,10 @@ const TemporaryAccessTab: React.FC<{ onOpenCase: (id: string) => void; refreshKe
   return (
     <Card className="border-border mt-4">
       <CardContent className="p-4">
+        <p className="text-xs text-muted-foreground mb-3">
+          Temporary Stewardship is retired. New grants can no longer be issued; this list is a
+          historical record of past grants and remains available so existing access can be revoked.
+        </p>
         <div className="overflow-x-auto rounded-md border border-border">
           <Table>
             <TableHeader>
@@ -72,7 +76,7 @@ const TemporaryAccessTab: React.FC<{ onOpenCase: (id: string) => void; refreshKe
             </TableHeader>
             <TableBody>
               {rows.length === 0 && (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No temporary access grants.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No temporary access grants on record.</TableCell></TableRow>
               )}
               {rows.map((r) => {
                 const s = effectiveStatus(r);
