@@ -1,44 +1,41 @@
-# Stage 2A — Admin CRM repoint to account_memberships
+# Stage 2B — Remove contributor-based deletion, repoint remaining live reads
 
-Scope: `src/components/admin/AdminUsers.tsx` only. No database changes, no other components, no Stage 2B/3/4 work. The `legacy_locker.delegate_user_id` mirror gap stays untouched.
+Scope: the frontend/edge reads of the legacy `contributors` table that affect live behavior, plus removal of the contributor-initiated account-deletion path. Out of scope: Stage 3 (invite pipeline: `invite-contributor`, `accept-contributor-invitation`, `complete-contributor-signup`, `SignupLegacy`, `CreatePassword` prefill), Stage 4 (drop `has_contributor_access`, the table, the enum). The `legacy_locker.delegate_user_id` mirror gap stays untouched. No database migration in this stage.
 
-## How the CRM derives relationships today (documented before change)
+## Explicit mapping decision per check (no blanket administrator → full_access)
 
-`loadData()` builds three things:
+| # | Location | Current contributor check | Replacement mapping |
+|---|---|---|---|
+| 1 | `ManageTab.tsx` `checkIfContributor` | accepted `contributors` row → `isContributor`; `role === 'administrator'` unlocks "Delete Managed Account" + deletion-request card | AU identity comes from `useAccount()` (`isFullAccess`/`isReadOnly`, already `account_memberships`-derived). Deletion of another person's account maps to **nobody** — card, `handleAdminDeleteAccount`, `submit-deletion-request` call, and `pendingDeletionRequest` state removed. Owner-only delete stays exactly as is. |
+| 2 | `delete-account` edge, `isAdminDeletion` branch | administrator contributor may delete the owner's account | **Nobody.** Branch removed; the function keeps self-deletion and the `isScheduledClosureDeletion` service path unchanged. Contributor-row cleanup at the end (lines ~843-848) is **kept** so residual rows still get wiped. |
+| 3 | `submit-deletion-request` edge | administrator contributor creates a deletion request | **Nobody.** Function's authorization branch becomes a hard 403 (function left deployed but inert) — no caller remains after (1). |
+| 4 | `check-subscription` edge | accepted contributor inherits the owner's entitlement | **Full Access AU and Read Only AU**, via active `account_memberships` → `accounts.owner_user_id` → owner `entitlements`. Same inheritance outcome, current source of truth. This is the one place where read-only AUs must keep inheriting the plan. |
+| 5 | `request-account-closure` / `reverse-account-closure` edges | email accepted contributors about scheduled/reversed closure | **All active non-owner AUs** on the account, addressed via the AU's `profiles`/membership email. Notification-only; recipient set is the same people. |
+| 6 | `ExportService.ts` owner export | lists accepted contributors in the export PDF | **Active `account_memberships` non-owner rows** (name from `profiles`, role label Full Access / Read Only). Section heading becomes "Authorized Users". |
+| 7 | `ProtectionScore.tsx` realtime channel on `contributors` | refresh metrics on contributor change | **`account_memberships`** filtered by the owner's `account_id`. Purely a refresh trigger. |
+| 8 | `AdminContributorPlanInfo.tsx` (rendered for Full Access AU in Settings → Profile) | lists accepted contributors of the owner's account | **Active `account_memberships`** for the same account, Full Access / Read Only labels. Subscription block unchanged. |
+| 9 | `AccountHeader.tsx` | reads contributors to set owner name/badge | Component renders an empty `<div>` and is imported nowhere. **Delete the file.** |
+| 10 | `AdminDatabase.tsx` table-stats list | read-only `contributors` row count | **Unchanged**, per your instruction. |
+| 11 | `SecureVault.tsx` copy line ("Viewers and limited-access contributors never have access…") | wording only | Reworded to Read Only / Authorized User vocabulary. No logic. |
+| 12 | `AccountSettings.tsx`, `ActivityLog.tsx`, `subscriptionFeatures.ts`, admin flowcharts | the word "contributor" in labels/copy | Left alone in this stage except where it appears in a section I already touch; copy sweep belongs with Stage 3/4. |
 
-1. **Users tab** — all `profiles` rows, merged with `entitlements` (authoritative plan/status), `subscribers` (email fallback), and auth emails from the `admin-get-user-emails` edge function. AU status per user comes from `auMembershipMap` (first active non-owner `account_memberships` row whose owner has an active/trialing entitlement), falling back to a legacy `contributors` record. Fields set: `isContributor`, `contributorRole`, `ownerEmail`, `ownerName`, `ownerAccountNumber`.
-2. **Authorized Users tab** — `ownersWithContributors`: owners are only bucketed when they have a profile AND an active/trialing entitlement (`ensureOwner`). Legacy `contributors` rows are pushed first; then active `account_memberships` rows are pushed, skipped when `contributor_user_id` or email already matches a contributor row (the de-dupe merge). Rows render AU name, AU account #, email, role badge, status, owner, owner account #, invited (`created_at`), accepted (`accepted_at`).
-3. Gifts, payment events, support access reviews — untouched.
+## Non-regression requirements
 
-Constraints observed: only `status = 'active'` memberships are fetched today, so revoked AUs never appear. Role badges already normalize both vocabularies (`full_access`/`administrator` → FULL AU, `read_only`/`viewer` → VIEW AU). Legacy Admin is not displayed in this component at all (it lives in the admin legacy-continuity surfaces, and `legacy_admins` has no admin-role SELECT policy), so nothing about Legacy Admin display changes here.
+- Owner: every tab, action, delete-own-account flow, and entitlement identical.
+- Full Access AU: same tabs/actions, still inherits the owner's plan, still **no** Secure Vault access, still not able to delete the owner's account (it never could via `account_memberships`; the contributor path that could is being removed).
+- Read Only AU: same restricted view, still inherits the owner's plan.
+- Legacy Admin: row, eligibility, recovery-request flow untouched.
+- `account_memberships` rows, roles, statuses, invite acceptance untouched. No renaming of `full_access` / `read_only`.
+- Admin CRM (Stage 2A result) untouched.
 
-## Changes
+## Verification
 
-1. **Fetch memberships without the status filter**, selecting `id, account_id, user_id, role, status, email, created_at, accepted_at, revoked_at` plus `accounts!inner(owner_user_id, account_name)`. This adds revoked/pending rows for historical visibility.
-2. **Rebuild the Authorized Users tab purely from `accounts` + `account_memberships` + `profiles`.** One row per membership row, keyed by membership `id` (structurally impossible to duplicate). Fields:
-   - AU name / account # from the AU's `profiles` row; email from `subscribers` → auth emails → membership `email` column.
-   - Role from the membership enum; status from the membership `status` (`active`, `revoked`, …).
-   - Invited = membership `created_at`; Accepted = `accepted_at`.
-   - Owner bucket derived from `accounts.owner_user_id`, same `ensureOwner` gating as today (profile exists + active/trialing entitlement) so account and owner counts are unchanged.
-3. **Users tab AU derivation**: keep preferring an active non-owner membership (unchanged behavior); when none is active, fall back to the most recent non-active membership so a revoked AU is still shown attached to its owner instead of falling back to `contributors`. Remove the `contributorMap` / contributors fallback.
-4. **Role labels**: extend the badge helper to emit the explicit `Full Access` / `Read Only` labels and drop the `administrator` / `contributor` / `viewer` branches once the contributors read is gone. Status badge treats `active` (and legacy `accepted`) as the default variant, revoked as destructive-secondary.
-5. **Remove the `contributors` fetch, `ContributorRecord`-based merge, and de-dupe logic** — only after the validation below passes. Internal state names may keep their current spelling to keep the diff tight.
-6. `AdminDatabase.tsx` keeps `contributors` in its table-stats list as a read-only count. No change.
-
-## Validation (side-by-side, before removing the contributors merge)
-
-Because `contributors` currently holds **0 rows**, the legacy merge contributes nothing today — so the before/after row sets must match exactly except for the intentional addition of non-active memberships. Checks run against the live database and the rendered admin panel:
-
-- Owner accounts present in the Authorized Users tab before == after (owner set and count).
-- Full Access AU `4df74d1f…` still attached to owner `2e62a796…` on account `35f0a6a4…`, labeled Full Access.
-- Read Only AU `119929b9…` still listed, labeled Read Only.
-- The revoked `full_access` membership on account `35082a28…` now appears with status `revoked` (new, historical — the only intended delta).
-- Users tab total row count == `profiles` row count, unchanged; AU-flagged user count unchanged for active AUs.
-- No duplicate AU rows: distinct membership `id` count == rendered row count.
-- Legacy Admin surfaces (legacy-continuity admin panel) render exactly as before — not touched.
-
-Verification will be done with a database query for the expected row set plus a browser pass over the admin panel's Users and Authorized Users tabs.
+1. SQL: for the active AU `4df74d1f…` and read-only AU `119929b9…`, confirm the new membership→owner→entitlement join returns the same owner plan the contributor path would have (contributors has 0 rows, so today it returns nothing — the new path is strictly a fix, and this is the one intended behavior delta: AUs now correctly inherit).
+2. SQL: closure-notification recipient set (active non-owner memberships per account) matches the AU list shown in Admin → Authorized Users.
+3. Confirm zero `from('contributors')` reads remain outside the invite pipeline (Stage 3), `delete-account` cleanup, and `AdminDatabase` stats.
+4. Confirm no remaining caller of `submit-deletion-request`, and no UI surface offering deletion of someone else's account.
+5. Typecheck clean; owner/AU click-through on your side (external Supabase blocks authenticated browser checks here).
 
 ## Stop point
 
-Report the before/after table and the one intended delta. No Stage 2B, 3, or 4 work without a new approval.
+Report the per-check mapping outcome and the one intended delta (AU plan inheritance now actually resolves). No Stage 3 or Stage 4 work without a new approval.
