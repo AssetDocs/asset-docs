@@ -1062,9 +1062,22 @@ const AdminUsers = () => {
                                 {renderAuthorizedUserRoleBadge(c.role)}
                               </TableCell>
                               <TableCell>
-                                <Badge variant={c.status === 'accepted' ? 'default' : 'secondary'}>
-                                  {c.status}
+                                <Badge
+                                  variant={
+                                    c.status === 'active' || c.status === 'accepted'
+                                      ? 'default'
+                                      : c.status === 'revoked'
+                                      ? 'destructive'
+                                      : 'secondary'
+                                  }
+                                >
+                                  {c.status === 'active' || c.status === 'accepted'
+                                    ? 'Active'
+                                    : c.status === 'revoked'
+                                    ? 'Revoked (historical)'
+                                    : c.status}
                                 </Badge>
+
                               </TableCell>
                               <TableCell className="font-medium">
                                 {owner.ownerName || 'Unknown Owner'}
