@@ -2,6 +2,18 @@
 
 Scope: the frontend/edge reads of the legacy `contributors` table that affect live behavior, plus removal of the contributor-initiated account-deletion path. Out of scope: Stage 3 (invite pipeline: `invite-contributor`, `accept-contributor-invitation`, `complete-contributor-signup`, `SignupLegacy`, `CreatePassword` prefill), Stage 4 (drop `has_contributor_access`, the table, the enum). The `legacy_locker.delegate_user_id` mirror gap stays untouched. No database migration in this stage.
 
+## Pre-check result — Full Access AU has no Secure Vault access (verified, read-only)
+
+Ran before proposing implementation, as required.
+
+- **Every vault query in `SecureVault.tsx` is self-scoped.** `fetchVaultStatus` reads `legacy_locker` with `.eq('user_id', user.id)` and, separately, `.eq('delegate_user_id', user.id)`. Nothing queries by the *owner's* id or the active `account_id`, so a Full Access AU can only ever load their own vault row or a row where they are the designated Legacy Admin.
+- **RLS confirms it at the database layer.** `legacy_locker`, `legacy_locker_files`, `legacy_locker_folders`, `legacy_locker_voice_notes`, `voice_note_attachments`, and `trust_information` now have exactly one SELECT policy each: `auth.uid() = user_id`. The only extras are the admin-role policy on `legacy_locker` (`has_app_role(admin) AND allow_admin_access = true`) and `vault_delegate_grants`, scoped to `owner_user_id` / `delegate_user_id`. No membership- or role-based path exists.
+- **`canAccessEncryptedVault = isOwner || isFullAccess` is a UI gate on the user's *own* vault, not an authorization grant.** It only decides whether the "cannot access encrypted vaults" block screen renders; the data it would reveal is already restricted to `user_id = auth.uid()`. A Read Only AU gets the block screen; a Full Access AU does not — but with no owner-scoped query and no permissive RLS, there is nothing to retrieve or decrypt.
+- **Decryption is key-bound, not role-bound.** Unlock uses the owner's passphrase-derived key / `encryption_key_encrypted_for_user` wrapped for a specific user. AU role grants no key material.
+- **Recovery initiation stays Legacy Admin-only.** The recovery panel requires `isDelegate`, set solely by a `legacy_locker` row whose `delegate_user_id` is the current user; `submit-recovery-request` additionally cross-checks the `legacy_admins` mirror.
+- **No contradicting path found.** Two cosmetic defects noted, both no-ops today: line 44 destructures `isViewer`, `isContributorRole`, `contributorRole`, `isAdministrator` from `useAccount()`, none of which the context provides — so `isAdminBlockedFromVault` (line 446) is permanently `false` and the "viewer/limited" copy at line 494 reads from `undefined`. Stage 2B will clean these up as presentation-only fixes; `canAccessEncryptedVault` itself is left byte-identical so no gate widens or narrows.
+
+
 ## Explicit mapping decision per check (no blanket administrator → full_access)
 
 | # | Location | Current contributor check | Replacement mapping |
