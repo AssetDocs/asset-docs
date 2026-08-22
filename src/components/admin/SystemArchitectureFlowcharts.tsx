@@ -565,7 +565,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                 <Arrow />
                 <FlowNode type="process" label="Add Sensitive Info" sublabel="Accounts, wills, contacts" />
                 <Arrow />
-                <FlowNode type="process" label="Assign Recovery Delegate" sublabel="Trusted person" />
+                <FlowNode type="process" label="Assign Legacy Admin" sublabel="Full Access authorized user" />
                 <Arrow />
                 <FlowNode type="database" label="delegate_user_id" sublabel="References another user" />
                 <Arrow />

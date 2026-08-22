@@ -101,7 +101,7 @@ const SampleDashboard: React.FC = () => {
       { label: 'Upload Important Documents & Records', completed: false, phase: 2 },
       { label: 'Enable Secure Vault Protection', completed: false, phase: 3 },
       { label: 'Add Legacy Locker & Password Catalog Details', completed: false, phase: 3 },
-      { label: 'Assign a Recovery Delegate (inside the Secure Vault)', completed: false, phase: 3 },
+      { label: 'Assign a Legacy Admin', completed: false, phase: 3 },
     ];
     const completedCount = demoTasks.filter(t => t.completed).length;
     const progressPercent = Math.round((completedCount / demoTasks.length) * 100);
@@ -355,7 +355,7 @@ const SampleDashboard: React.FC = () => {
                   badge="Encrypted"
                   badgeIcon={<LockKeyhole className="h-3 w-3 text-emerald-600" />}
                   alertTitle="Legacy Locker"
-                  alertDescription="A password-protected vault for your most sensitive legacy information. Store estate planning documents, wills, trust details, executor instructions, and delegate access for loved ones. Only you and your designated recovery delegates can access this section."
+                  alertDescription="A password-protected vault for your most sensitive legacy information. Store estate planning documents, wills, trust details, executor instructions, and delegate access for loved ones. Only you and your designated Legacy Admin can access this section."
                 />
                 <DemoGridCard
                   icon={<Key className="h-6 w-6" />}

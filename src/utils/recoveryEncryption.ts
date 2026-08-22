@@ -1,6 +1,6 @@
 /**
  * Recovery encryption utilities for Legacy Locker dual-key encryption
- * Supports encryption for both user and recovery delegate
+ * Supports encryption for both user and Legacy Admin
  */
 
 const PBKDF2_ITERATIONS = 100000;

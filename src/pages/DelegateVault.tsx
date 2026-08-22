@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * DelegateVault — read-only view for a Recovery Delegate of an owner's
+ * DelegateVault — read-only view for a Legacy Admin of an owner's
  * encrypted Legacy Locker, after a vault grant has been issued.
  *
  * Flow:

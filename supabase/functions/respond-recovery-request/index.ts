@@ -129,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
     await supabaseClient.functions.invoke(emailFunction, {
       body: {
         delegateEmail: delegateUser?.email,
-        delegateName: `${delegateProfile?.first_name || ''} ${delegateProfile?.last_name || ''}`.trim() || 'Recovery Delegate',
+        delegateName: `${delegateProfile?.first_name || ''} ${delegateProfile?.last_name || ''}`.trim() || 'Legacy Admin',
         ownerName: `${ownerProfile?.first_name || ''} ${ownerProfile?.last_name || ''}`.trim() || 'User',
         legacyLockerId: recoveryRequest.legacy_locker_id,
         delegateUserId: recoveryRequest.delegate_user_id

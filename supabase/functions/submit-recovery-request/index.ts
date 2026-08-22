@@ -159,7 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: {
         ownerEmail: ownerUser?.email,
         ownerName: `${ownerProfile?.first_name || ''} ${ownerProfile?.last_name || ''}`.trim() || 'User',
-        delegateName: `${delegateProfile?.first_name || ''} ${delegateProfile?.last_name || ''}`.trim() || 'Recovery Delegate',
+        delegateName: `${delegateProfile?.first_name || ''} ${delegateProfile?.last_name || ''}`.trim() || 'Legacy Admin',
         gracePeriodDays,
         requestReason: reason
       }
