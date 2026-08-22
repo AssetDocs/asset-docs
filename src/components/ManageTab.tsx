@@ -684,14 +684,15 @@ const ManageTab: React.FC = () => {
               return (
                 <div key={request.id} className="space-y-3">
                   <p>
-                    An administrator has requested to delete your account.
+                    An authorized user submitted a legacy request to delete your account.
+                    Third-party account deletion is retired — only you, the account owner, can complete a deletion.
                     {request.reason && <><br /><strong>Reason:</strong> {request.reason}</>}
                   </p>
                   <p className="text-sm">
                     <Clock className="inline h-4 w-4 mr-1" />
                     {daysRemaining > 0
-                      ? `You have ${daysRemaining} day(s) to respond before the administrator can proceed.`
-                      : 'The grace period has expired. The administrator can now proceed.'}
+                      ? `You have ${daysRemaining} day(s) to respond. This request is kept on record only.`
+                      : 'The grace period has expired. This request remains on record only.'}
                   </p>
                   <div className="flex gap-2">
                     <Button variant="destructive" size="sm" onClick={() => handleRespondDeletionRequest(request.id, 'reject')}>
