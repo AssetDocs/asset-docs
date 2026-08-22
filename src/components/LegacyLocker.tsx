@@ -147,7 +147,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   const [isContributor, setIsContributor] = useState(false);
   const [contributorCheckDone, setContributorCheckDone] = useState(false);
   const [contributors, setContributors] = useState<any[]>([]);
-  const [selectedDelegateId, setSelectedDelegateId] = useState<string | null>(null);
+  // Read-only: grace period is configured on the owner's vault record and shown in the recovery dialog.
   const [gracePeriodDays, setGracePeriodDays] = useState(14);
   const [showRecoveryRequestDialog, setShowRecoveryRequestDialog] = useState(false);
   const [isDelegate, setIsDelegate] = useState(false);
@@ -460,7 +460,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
 
       if (data) {
         setIsEncrypted(data.is_encrypted);
-        setSelectedDelegateId(data.delegate_user_id);
         setGracePeriodDays(data.recovery_grace_period_days || 14);
         setHasPendingRequest(data.recovery_status === 'pending');
         
@@ -704,8 +703,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
       const payload = {
         user_id: user.id,
         is_encrypted: isEncrypted,
-        delegate_user_id: selectedDelegateId,
-        recovery_grace_period_days: gracePeriodDays,
         ...dataToSave,
       };
 
