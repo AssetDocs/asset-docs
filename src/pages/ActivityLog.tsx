@@ -83,7 +83,7 @@ const ActivityLog: React.FC = () => {
                   </TabsTrigger>
                   <TabsTrigger value="contributor" className="text-xs px-2 py-2">
                     <Users className="h-3 w-3 mr-1" />
-                    Contributors
+                    Authorized Users
                     <span className="ml-1 text-muted-foreground">({categoryCounts.contributor})</span>
                   </TabsTrigger>
                   <TabsTrigger value="vault" className="text-xs px-2 py-2">

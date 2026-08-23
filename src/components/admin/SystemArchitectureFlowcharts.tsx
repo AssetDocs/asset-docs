@@ -430,10 +430,10 @@ const SystemArchitectureFlowcharts: React.FC = () => {
         </div>
       </FlowChart>
 
-      {/* Contributor/Trusted Contact Flow */}
+      {/* Authorized User Flow */}
       <FlowChart
-        title="Trusted Contact (Contributor) Flow"
-        description="Inviting, accepting, and managing account contributors"
+        title="Authorized User Flow"
+        description="Inviting, accepting, and managing Authorized Users"
         icon={<Users className="h-5 w-5 text-cyan-600" />}
       >
         <div className="p-4 bg-muted/30 rounded-lg overflow-x-auto">
@@ -442,9 +442,9 @@ const SystemArchitectureFlowcharts: React.FC = () => {
             <div className="flex items-start gap-6">
               <div className="flex flex-col items-center flex-1">
                 <Badge className="bg-blue-100 text-blue-800 mb-4">Account Owner Actions</Badge>
-                <FlowNode type="start" label="Owner opens Contributors Tab" sublabel="/account/access-activity" />
+                <FlowNode type="start" label="Owner opens Authorized Users Tab" sublabel="/account/access-activity" />
                 <Arrow />
-                <FlowNode type="process" label="Add Contributor Form" sublabel="Email, Name, Role" />
+                <FlowNode type="process" label="Add Authorized User Form" sublabel="Email, Name, Role" />
                 <Arrow />
                 <FlowNode type="api" label="send-contributor-invitation" sublabel="Edge Function" />
                 <Arrow />
@@ -460,7 +460,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
               </div>
               
               <div className="flex flex-col items-center flex-1">
-                <Badge className="bg-green-100 text-green-800 mb-4">Contributor Actions</Badge>
+                <Badge className="bg-green-100 text-green-800 mb-4">Authorized User Actions</Badge>
                 <FlowNode type="start" label="Clicks Email Link" sublabel="/auth?mode=contributor" />
                 <Arrow />
                 
@@ -494,7 +494,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
               
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-slate-50 p-3 rounded-lg border border-slate-300">
-                  <Badge variant="outline" className="bg-slate-200 mb-2">Viewer</Badge>
+                  <Badge variant="outline" className="bg-slate-200 mb-2">Read Only</Badge>
                   <ul className="text-xs text-slate-600 space-y-1">
                     <li>• View properties</li>
                     <li>• View photos/videos</li>
@@ -503,21 +503,21 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                   </ul>
                 </div>
                 <div className="bg-blue-50 p-3 rounded-lg border border-blue-300">
-                  <Badge variant="outline" className="bg-blue-200 mb-2">Contributor</Badge>
+                  <Badge variant="outline" className="bg-blue-200 mb-2">Full Access</Badge>
                   <ul className="text-xs text-blue-600 space-y-1">
-                    <li>• All Viewer permissions</li>
+                    <li>• All Read Only permissions</li>
                     <li>• Upload photos/videos</li>
                     <li>• Add documents</li>
                     <li>• Add inventory items</li>
                   </ul>
                 </div>
                 <div className="bg-purple-50 p-3 rounded-lg border border-purple-300">
-                  <Badge variant="outline" className="bg-purple-200 mb-2">Administrator</Badge>
+                  <Badge variant="outline" className="bg-purple-200 mb-2">Legacy Admin</Badge>
                   <ul className="text-xs text-purple-600 space-y-1">
-                    <li>• All Contributor permissions</li>
-                    <li>• Manage properties</li>
-                    <li>• Delete files</li>
-                    <li>• Request recovery/deletion</li>
+                    <li>• One per account</li>
+                    <li>• Chosen from active Full Access AUs</li>
+                    <li>• No standing Secure Vault access</li>
+                    <li>• Recovery only via approved process</li>
                   </ul>
                 </div>
               </div>
@@ -525,7 +525,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
               <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
                 <span className="font-semibold text-green-800 text-sm">Subscription Inheritance:</span>
                 <p className="text-xs text-green-700 mt-1">
-                  Contributors automatically inherit the account owner's subscription tier, storage quota, and feature access.
+                  Authorized Users automatically inherit the account owner's subscription tier, storage quota, and feature access.
                   Checked via <code className="bg-white px-1 rounded">check-subscription</code> edge function.
                 </p>
               </div>
