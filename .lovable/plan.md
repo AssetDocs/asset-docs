@@ -1,28 +1,28 @@
-# Next AU Cleanup Pass
+# Remaining User-Visible AU Terminology Cleanup
 
-## Priority 1 — Fix PeopleActivityCard runtime bug
+Most of the approved copy changes are already present in the working tree (ActivityLog tab reads "Authorized Users", subscriptionFeatures descriptions, AdminContributorPlanInfo badges, LegacyLocker notice, FAQAccordion, Features, DemoLegacyLocker, SampleDashboard). What remains are a few admin-facing labels and descriptive strings.
 
-`src/components/PeopleActivityCard.tsx` renders `loadingContributors` and `contributors` (lines ~175-206) while state is `loadingUsers` / `authorizedUsers`. Replace the stale render references with the current variables. No query, permission, or membership logic changes. Then attempt removing `// @ts-nocheck`; if it exposes unrelated errors, keep it and report.
+## Changes
 
-## Priority 2 — User-visible terminology only
+**src/components/admin/SystemInfrastructure.tsx**
+- Rename the edge-function category label `Contributors` to `Authorized Users` (list entries + the badge color map key), keeping function names (`send-contributor-invitation`, etc.) unchanged since those are real deployed function identifiers.
+- Reword purposes: "Invite contributors to account" to "Invite Authorized Users to account"; "Accept contributor invite" to "Accept Authorized User invite"; delegate rows reworded to Legacy Admin recovery notifications/acknowledgment.
+- Email row `type: 'Contributor Invite'` to `'Authorized User Invite'` (function name unchanged).
 
-- `subscriptionFeatures.ts` — `contributor_roles.description` → "Invite authorized users (spouse, adult child, planner) to your account". Keep `CONTRIBUTOR_LIMITS` / `getContributorLimit` / `checkContributorLimit` identifiers.
-- `ActivityLog.tsx` — tab label "Contributors" → "Authorized Users"; description and info copy reworded. Keep `action_category === 'contributor'` filter values.
-- `ActivityLogList.tsx` — "By contributor:" → "By authorized user:"; visible labels for `contributor`/`contributor_access` cases reworded. Keep case keys.
-- `AccountSettings.tsx` — role label "Contributor Access" → "Full Access", "Viewer Access" → "Read Only"; comment wording. Keep `isContributorRole` alias and `AdminContributorPlanInfo` import.
-- `FAQAccordion.tsx` — 4 copy spots: trusted contacts/contributors → Authorized Users; encryption Q&A reworded so only owner or approved Legacy Admin can unlock.
-- `LegacyLocker.tsx` — encryption notices: "Contributors will not be able to view…" → "Authorized Users cannot view encrypted data…"; unencrypted variant → "Authorized Users with access can view this data."
-- `DemoLegacyLocker.tsx` — bullet → "Control whether Authorized Users can access this information".
-- `SampleDashboard.tsx` — two demo strings: "Invite contributors" → "Invite Authorized Users".
-- Admin `SystemInfrastructure.tsx` — role text "(viewer/contributor/administrator)" → "(Read Only / Full Access)"; premium copy "Contributor roles" → "Authorized User roles". Keep edge-function names, categories, and dormant-table rows as-is.
-- Admin `SystemArchitectureFlowcharts.tsx` — flow titles/labels and the role matrix relabeled to Authorized User / Read Only / Full Access, with continuity nodes described as Legacy Admin. Keep function names, `contributors` table node, `has_contributor_access()`, `contributor_role` references (dormant Stage 3/4 infrastructure documentation).
+**src/components/admin/SystemArchitectureFlowcharts.tsx**
+- Keep all technical node labels that name real artifacts (`send-contributor-invitation`, `contributors table`, `has_contributor_access()`, `contributor_role enum`, `ContributorContext.tsx`, `/auth?mode=contributor`) exactly as-is.
+- Update descriptive prose only: the vault section description and legend text change "delegate recovery system" / "Delegate" wording to Legacy Admin, stated as available only through the approved recovery process, with no standing Secure Vault access.
 
-Note: `src/components/Features.tsx` does not exist; no equivalent contributor copy found in `FeaturesList.tsx`/`FeaturesSection.tsx` — will confirm during the scan.
+**src/components/admin/legacy-continuity/constants.ts**
+- "Requires Continuity Administrator permission." to "Requires Legacy Admin permission." for the three gated actions (copy only).
 
-## Explicitly unchanged
+**src/pages/AccountSettings.tsx**
+- Header subtitle keeps the same meaning; no role-name change needed (already "Read Only Access" / "Full Access"). No edit unless the "Viewing ..." string is judged confusing — leaving it as-is.
 
-AU permissions, `account_memberships`, Full Access / Read Only behavior, Legacy Admin eligibility & recovery, Secure Vault RLS, encryption/passphrase behavior, deletion authorization, export behavior. Internal aliases retained: `OwnerWithContributors`, `ownersWithContributors`, `contributorSearchTerm`, iterator names, `has_contributors`, plus dormant `contributors` table, `contributor_role`, `has_contributor_access`, contributor invite/signup edge functions.
+## Out of scope (unchanged)
+Internal identifiers and dormant infrastructure: `OwnerWithContributors`, `ownersWithContributors`, `contributorSearchTerm`, `isContributor*`, `useContributor`, `ContributorProvider`, `hasContributors`, `has_contributors`, `CONTRIBUTOR_LIMITS`, `getContributorLimit`, `checkContributorLimit`, action/event keys (`contributor`, `contributor_access`, `contributor_invite`, `contributor_remove`), `contributors` table, `contributor_role`, `has_contributor_access()`, contributor invite/signup edge functions, legacy auth/signup pages.
+
+No permission, RLS, `account_memberships`, Legacy Admin recovery, Secure Vault, deletion authorization, or export behavior changes.
 
 ## Verification
-
-Typecheck (`tsgo`), production build, confirm PeopleActivityCard has no `contributors`/`loadingContributors` render refs, repo-wide scan for remaining user-visible contributor-era terminology, report retained internal/dormant terminology separately, and return the new origin/main commit SHA.
+`bunx tsgo` typecheck, `bun run build`, grep to confirm the replaced strings, then report the new `origin/main` SHA once the platform sync advances past `473788f3618c863d596427d07709c655dc19ee2d`.
