@@ -34,7 +34,7 @@ const HomeFAQ: React.FC = () => {
     },
     {
       question: "Can I share access with family members or professionals?",
-      answer: "Yes! You can invite trusted contacts with different permission levels: administrator (full access), contributor (can add/edit content), or viewer (read-only access). This is perfect for sharing with family, estate planners, or insurance agents."
+      answer: "Yes! You can invite trusted contacts as Authorized Users with either Full Access or Read Only permission levels. This is perfect for sharing with family, estate planners, or insurance agents."
     },
     {
       question: "What makes Asset Safe different from other home inventory apps?",
