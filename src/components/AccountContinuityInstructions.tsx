@@ -196,6 +196,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
           </Button>
         </div>
       </CardContent>
+      )}
     </Card>
   );
 };
