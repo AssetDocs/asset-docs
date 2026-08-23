@@ -28,6 +28,8 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
   const [loading, setLoading] = useState(false);
   const [legacyAdminNames, setLegacyAdminNames] = useState<string[]>([]);
   const [requestCount, setRequestCount] = useState(0);
+  // Presentation only: collapsed on each fresh page load, not persisted.
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !accountId) return;
