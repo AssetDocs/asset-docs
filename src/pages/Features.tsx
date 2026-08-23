@@ -174,7 +174,7 @@ const Features: React.FC = () => {
               <FeatureCategory title="Security & Access">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FeatureCard icon={KeyRound} title="Password and Accounts Catalog" description="Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data." />
-                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access." />
+                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Full Access or Read Only." />
                   <FeatureCard 
                     title="Voice Notes" 
                     description="Add voice recordings to capture sentimental value, historical significance, and important details that photos can't convey."
@@ -250,7 +250,7 @@ const Features: React.FC = () => {
               <FeatureCategory title="Security & Access">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FeatureCard icon={KeyRound} title="Password and Accounts Catalog" description="Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data." />
-                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access." />
+                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Full Access or Read Only." />
                   <FeatureCard 
                     title="Voice Notes" 
                     description="Record important details about personal belongings, their history, and emotional significance for comprehensive documentation."
@@ -301,7 +301,7 @@ const Features: React.FC = () => {
               <FeatureCategory title="Security & Access">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FeatureCard icon={KeyRound} title="Password and Accounts Catalog" description="Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data." />
-                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access." />
+                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Full Access or Read Only." />
                   <FeatureCard 
                     title="Voice Notes" 
                     description="Capture business asset history, operational details, and critical information that supplements visual documentation."
@@ -352,7 +352,7 @@ const Features: React.FC = () => {
               <FeatureCategory title="Security & Access">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FeatureCard icon={KeyRound} title="Password and Accounts Catalog" description="Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data." />
-                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access." />
+                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Full Access or Read Only." />
                   <FeatureCard 
                     title="Voice Notes" 
                     description="Record property maintenance history, tenant interactions, and important property details for comprehensive records."

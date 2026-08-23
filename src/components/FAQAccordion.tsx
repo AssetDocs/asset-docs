@@ -81,7 +81,7 @@ const FAQAccordion: React.FC = () => {
                             <td className="py-2">Prevent unauthorized purchases or changes</td>
                           </tr>
                           <tr className="border-b">
-                            <td className="py-2 pr-4">Adding trusted contacts or contributors</td>
+                            <td className="py-2 pr-4">Adding Authorized Users</td>
                             <td className="py-2 pr-4">✔️</td>
                             <td className="py-2">Ensure only approved people gain access</td>
                           </tr>
@@ -314,10 +314,10 @@ const FAQAccordion: React.FC = () => {
 
                 <AccordionItem value="encrypt-9" className="border-b-0">
                   <AccordionTrigger className="text-base font-medium">
-                    Does encryption affect other contributors on my account?
+                    Does encryption affect Authorized Users on my account?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    No. Contributors and admins still have access to the standard areas of your Asset Safe account. Encryption applies only to your private Legacy Locker data—and only the owner or an approved Legacy Admin can unlock it.
+                    No. Authorized Users keep their normal access to the standard areas of your Asset Safe account. Encryption applies only to your private Legacy Locker data. Only the account owner can normally unlock the Secure Vault; a designated Legacy Admin may gain recovery access only through the approved recovery process.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -421,7 +421,7 @@ const FAQAccordion: React.FC = () => {
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>Only you can edit the information</li>
                 <li>Trustees and Executors (if invited by you) may have read-only access</li>
-                <li>Other Contributors do not see this section unless you allow it</li>
+                <li>Authorized Users do not see this section unless you allow it</li>
               </ul>
               <p className="mt-3">Your privacy settings are always in your control.</p>
             </AccordionContent>

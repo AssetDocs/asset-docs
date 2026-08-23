@@ -830,8 +830,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
             <Alert className="mb-4">
               <AlertDescription>
                 {isEncrypted 
-                  ? 'This information is encrypted and only accessible with your vault passphrase. Contributors will not be able to view encrypted data.'
-                  : 'This information is not encrypted. Contributors with access can view this data.'}
+                  ? 'This information is encrypted and only accessible with your vault passphrase. No Authorized User can view encrypted data.'
+                  : 'This information is not encrypted, but Legacy Locker content stays limited to you as the account owner (or a Legacy Admin through the approved recovery process).'}
               </AlertDescription>
             </Alert>
           )}

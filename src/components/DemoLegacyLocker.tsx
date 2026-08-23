@@ -40,7 +40,7 @@ const DemoLegacyLocker = () => {
             <ul className="list-disc ml-6 mt-2 space-y-1">
               <li>Store your will and testament information securely</li>
               <li>Choose to encrypt data with a master password</li>
-              <li>Control whether contributors can access this information</li>
+              <li>Control whether Authorized Users can access this information</li>
               <li>Document executor, guardian, and beneficiary information</li>
             </ul>
           </AlertDescription>

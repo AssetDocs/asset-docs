@@ -121,7 +121,7 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   },
   contributor_roles: {
     name: 'Authorized Users',
-    description: 'Invite contributors (spouse, adult child, planner) to your account',
+    description: 'Invite Authorized Users (spouse, adult child, planner) to your account',
     requiredTier: 'standard',
     fallbackMessage: 'Subscribe to invite authorized users.'
   },
