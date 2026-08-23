@@ -293,8 +293,8 @@ export const CAP_REQUIREMENT_HELP: Record<AdminCap, string> = {
   apply_preservation_hold: 'Requires Senior Reviewer permission.',
   approve_temp_access: 'Requires Senior Reviewer permission.',
   senior_approve_transfer: 'Requires Senior Reviewer permission.',
-  execute_transfer: 'Requires Continuity Administrator permission.',
-  revoke_temp_access: 'Requires Continuity Administrator permission.',
-  archive: 'Requires Continuity Administrator permission.',
+  execute_transfer: 'Requires Continuity Administrator authorization.',
+  revoke_temp_access: 'Requires Continuity Administrator authorization.',
+  archive: 'Requires Continuity Administrator authorization.',
 };
 
