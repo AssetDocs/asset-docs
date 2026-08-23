@@ -172,16 +172,16 @@ const PeopleActivityCard: React.FC<PeopleActivityCardProps> = ({ onNavigate }) =
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {loadingContributors ? (
+                  {loadingUsers ? (
                     <div className="animate-pulse h-8 bg-muted rounded" />
-                  ) : contributors.length === 0 ? (
+                  ) : authorizedUsers.length === 0 ? (
                     <p className="text-xs text-muted-foreground italic">No authorized users yet</p>
                   ) : (
                     <>
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                           <UserPlus className="h-3 w-3 mr-1" />
-                          {contributors.length} user{contributors.length !== 1 ? 's' : ''}
+                          {authorizedUsers.length} user{authorizedUsers.length !== 1 ? 's' : ''}
                         </Badge>
                         {acceptedCount > 0 && (
                           <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
@@ -195,15 +195,15 @@ const PeopleActivityCard: React.FC<PeopleActivityCardProps> = ({ onNavigate }) =
                         )}
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {contributors.slice(0, 3).map(c => (
+                        {authorizedUsers.slice(0, 3).map(c => (
                           <span key={c.id} className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
                             {getRoleIcon(c.role)}
                             {c.first_name || 'User'} · {c.role}
                           </span>
                         ))}
-                        {contributors.length > 3 && (
+                        {authorizedUsers.length > 3 && (
                           <span className="text-[11px] text-muted-foreground px-2 py-0.5">
-                            +{contributors.length - 3} more
+                            +{authorizedUsers.length - 3} more
                           </span>
                         )}
                       </div>
