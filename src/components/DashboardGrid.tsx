@@ -17,7 +17,7 @@ import AssetValuesSection from '@/components/AssetValuesSection';
 import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 import {
   FolderOpen,
-  Key,
+
   Shield,
   
   Heart,
