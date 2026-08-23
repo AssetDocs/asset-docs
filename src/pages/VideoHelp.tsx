@@ -151,6 +151,9 @@ const VideoHelp: React.FC = () => {
               Learn how to use Asset Safe with our comprehensive video tutorials. 
               From getting started to advanced features, we'll guide you through every step.
             </p>
+            <div className="mt-6 inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-4 py-2 rounded-lg font-semibold">
+              Coming Soon
+            </div>
           </div>
 
           {/* Tutorial Categories */}
