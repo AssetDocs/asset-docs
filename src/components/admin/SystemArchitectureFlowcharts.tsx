@@ -546,7 +546,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
       {/* Legacy Locker Flow */}
       <FlowChart
         title="Legacy Locker & Recovery Flow"
-        description="Secure document vault with delegate recovery system"
+        description="Secure document vault with Legacy Admin recovery available only through the approved recovery process"
         icon={<Lock className="h-5 w-5 text-amber-600" />}
       >
         <div className="p-4 bg-muted/30 rounded-lg overflow-x-auto">
@@ -577,7 +577,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
               {/* Recovery Flow */}
               <div className="flex flex-col items-center">
                 <Badge className="bg-rose-100 text-rose-800 mb-4">Recovery Request Flow</Badge>
-                <FlowNode type="start" label="Delegate initiates recovery" />
+                <FlowNode type="start" label="Legacy Admin initiates recovery" />
                 <Arrow />
                 <FlowNode type="api" label="submit-recovery-request" />
                 <Arrow />
@@ -598,7 +598,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                     <Arrow />
                     <FlowNode type="email" label="send-recovery-approved-email" />
                     <Arrow />
-                    <FlowNode type="process" label="Delegate gains access" />
+                    <FlowNode type="process" label="Legacy Admin gains recovery access" />
                   </div>
                   <div className="flex flex-col items-center">
                     <Badge variant="outline" className="mb-2 text-red-600">Rejected</Badge>
@@ -619,11 +619,11 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                 </div>
                 <div>
                   <strong className="text-slate-700">Storage:</strong>
-                  <p className="text-slate-600">Only encrypted blobs stored in database. Encryption key encrypted for user & delegate.</p>
+                  <p className="text-slate-600">Only encrypted blobs stored in database. Encryption key encrypted for the owner and, for continuity, the assigned Legacy Admin.</p>
                 </div>
                 <div>
                   <strong className="text-slate-700">Recovery:</strong>
-                  <p className="text-slate-600">Delegate's key share + grace period approval = access to decrypted data.</p>
+                  <p className="text-slate-600">Legacy Admin key share + owner approval after the grace period = time-limited recovery access. No standing Secure Vault access.</p>
                 </div>
               </div>
             </div>

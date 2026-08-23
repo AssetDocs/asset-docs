@@ -132,12 +132,12 @@ const edgeFunctions = [
   // Legacy Locker Recovery
   { name: 'check-grace-period-expiry', category: 'Recovery', purpose: 'Legacy Locker grace period check', status: 'active', verifyJwt: false },
 
-  // Contributors & Delegates
-  { name: 'send-contributor-invitation', category: 'Contributors', purpose: 'Invite contributors to account', status: 'active', verifyJwt: true },
-  { name: 'accept-contributor-invitation', category: 'Contributors', purpose: 'Accept contributor invite', status: 'active', verifyJwt: true },
-  { name: 'send-delegate-access-email', category: 'Contributors', purpose: 'Notify delegate of access', status: 'active', verifyJwt: false },
-  { name: 'acknowledge-delegate-access', category: 'Contributors', purpose: 'Delegate acknowledgment', status: 'active', verifyJwt: true },
-  { name: 'notify-visitor-access', category: 'Contributors', purpose: 'Notify on visitor access grant', status: 'active', verifyJwt: true },
+  // Authorized Users & Legacy Admin
+  { name: 'send-contributor-invitation', category: 'Authorized Users', purpose: 'Invite Authorized Users to account', status: 'active', verifyJwt: true },
+  { name: 'accept-contributor-invitation', category: 'Authorized Users', purpose: 'Accept Authorized User invite', status: 'active', verifyJwt: true },
+  { name: 'send-delegate-access-email', category: 'Authorized Users', purpose: 'Notify Legacy Admin of approved recovery access', status: 'active', verifyJwt: false },
+  { name: 'acknowledge-delegate-access', category: 'Authorized Users', purpose: 'Legacy Admin recovery acknowledgment', status: 'active', verifyJwt: true },
+  { name: 'notify-visitor-access', category: 'Authorized Users', purpose: 'Notify on Read Only access grant', status: 'active', verifyJwt: true },
 
   // Recovery & Deletion Requests
   { name: 'submit-recovery-request', category: 'Recovery', purpose: 'Submit account recovery request', status: 'active', verifyJwt: true },
@@ -223,8 +223,8 @@ const emailTypes = [
   { type: 'Payment Receipt', function: 'send-payment-receipt', status: 'active', template: 'React Email' },
   
   { type: 'Gift Notification', function: 'send-gift-email', status: 'active', template: 'Resend' },
-  { type: 'Contributor Invite', function: 'send-contributor-invitation', status: 'active', template: 'Resend' },
-  { type: 'Delegate Access', function: 'send-delegate-access-email', status: 'active', template: 'Resend' },
+  { type: 'Authorized User Invite', function: 'send-contributor-invitation', status: 'active', template: 'Resend' },
+  { type: 'Legacy Admin Recovery Access', function: 'send-delegate-access-email', status: 'active', template: 'Resend' },
   { type: 'Security Alert', function: 'send-security-alert', status: 'active', template: 'Resend' },
   { type: 'Contact Form', function: 'send-contact-email', status: 'active', template: 'Resend' },
   { type: 'Feedback', function: 'send-feedback-email', status: 'active', template: 'Resend' },
@@ -253,7 +253,7 @@ const getCategoryColor = (category: string) => {
     'Gifts': 'bg-purple-500/10 text-purple-700 border-purple-200',
     'Payments': 'bg-emerald-500/10 text-emerald-700 border-emerald-200',
     'Trials': 'bg-amber-500/10 text-amber-700 border-amber-200',
-    'Contributors': 'bg-cyan-500/10 text-cyan-700 border-cyan-200',
+    'Authorized Users': 'bg-cyan-500/10 text-cyan-700 border-cyan-200',
     'Recovery': 'bg-rose-500/10 text-rose-700 border-rose-200',
     'Storage': 'bg-indigo-500/10 text-indigo-700 border-indigo-200',
     'Data': 'bg-teal-500/10 text-teal-700 border-teal-200',
