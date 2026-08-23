@@ -536,7 +536,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
         <div className="mt-4 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
           <span className="font-semibold text-cyan-800 text-sm">Key Database Objects:</span>
           <div className="flex flex-wrap gap-2 mt-2">
-            {['contributors', 'has_contributor_access()', 'contributor_role enum', 'ContributorContext.tsx'].map(item => (
+            {['contributors', 'has_contributor_access()', 'contributor_role enum', 'account_memberships table'].map(item => (
               <Badge key={item} variant="outline" className="text-xs font-mono bg-white">{item}</Badge>
             ))}
           </div>
