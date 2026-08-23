@@ -53,7 +53,7 @@ const AccountSettings: React.FC = () => {
   const { isReadOnly: isViewer, isFullAccess: isContributorRole, ownerName } = useAccount();
   const { unreadCount, markAllRead } = useUnreadNotifications();
 
-  // Restricted tabs for viewers and contributors
+  // Restricted tabs for Read Only and Full Access authorized users
   const restrictedTabs = ['manage', 'security', 'notifications', 'privacy'];
 
   // Check if user has restricted access
@@ -106,8 +106,8 @@ const AccountSettings: React.FC = () => {
   };
 
   const getRoleLabel = () => {
-    if (isViewer) return "Viewer Access";
-    if (isContributorRole) return "Contributor Access";
+    if (isViewer) return "Read Only Access";
+    if (isContributorRole) return "Full Access";
     return "";
   };
 

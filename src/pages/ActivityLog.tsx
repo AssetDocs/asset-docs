@@ -66,7 +66,7 @@ const ActivityLog: React.FC = () => {
                 Filter by Category
               </CardTitle>
               <CardDescription>
-                View activity by type: uploads, contributor access, vault changes, and more
+                View activity by type: uploads, Authorized User access, vault changes, and more
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -118,7 +118,7 @@ const ActivityLog: React.FC = () => {
                 <div className="text-sm">
                   <p className="font-medium text-foreground mb-1">About Activity Logs</p>
                   <p className="text-muted-foreground">
-                    This log tracks actions by you and any trusted contacts (contributors) who have access to your account. 
+                    This log tracks actions by you and any Authorized Users who have access to your account. 
                     All activity is time-stamped and organized for your security and peace of mind.
                   </p>
                 </div>

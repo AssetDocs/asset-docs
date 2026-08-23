@@ -77,7 +77,7 @@ const SampleDashboard: React.FC = () => {
               <span className="text-[10px] font-medium leading-tight">Properties</span>
             </button>
             <button
-              onClick={() => showDemoAlert('Access & Activity', 'Invite contributors and monitor all account activity with a detailed log.')}
+              onClick={() => showDemoAlert('Access & Activity', 'Invite Authorized Users and monitor all account activity with a detailed log.')}
               className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
               title="Access & Activity"
             >
@@ -426,7 +426,7 @@ const SampleDashboard: React.FC = () => {
                   actionLabel="Manage Access & Activity"
                   color="blue"
                   alertTitle="Access & Activity"
-                  alertDescription="Invite contributors (family members, professionals) to your account with role-based permissions. Monitor all account activity with a detailed log of uploads, edits, logins, and access events."
+                  alertDescription="Invite Authorized Users (family members, professionals) to your account with Full Access or Read Only permissions. Monitor all account activity with a detailed log of uploads, edits, logins, and access events."
                 />
 
                 {/* Emergency Instructions collapsible bar */}

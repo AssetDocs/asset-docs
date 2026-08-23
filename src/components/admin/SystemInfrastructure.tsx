@@ -581,7 +581,7 @@ const SystemInfrastructure = () => {
                   <div className="p-4 border rounded-lg bg-amber-50/50 border-amber-200">
                     <h5 className="font-medium mb-2 text-amber-800">4. Authorized Users (Trusted Contacts) — Premium Only</h5>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Standard users cannot add or manage Authorized Users. Premium users can create, invite, and assign roles (viewer/contributor/administrator).
+                      Standard users cannot add or manage Authorized Users. Premium users can create, invite, and assign roles (Full Access / Read Only).
                     </p>
                     <p className="text-sm text-muted-foreground">
                       <strong>Implementation:</strong> All trusted_contacts routes + table writes require premium flag.
@@ -591,7 +591,7 @@ const SystemInfrastructure = () => {
                   <div className="p-4 border rounded-lg bg-amber-50/50 border-amber-200">
                     <h5 className="font-medium mb-2 text-amber-800">5. Vault Sharing / Emergency Access — Premium Only</h5>
                     <p className="text-sm text-muted-foreground">
-                      Standard users cannot share vault contents. Premium unlocks: Emergency access sharing, Executor continuity workflows, and Contributor roles.
+                      Standard users cannot share vault contents. Premium unlocks: Emergency access sharing, Executor continuity workflows, and Authorized User roles.
                     </p>
                   </div>
                 </div>
@@ -660,7 +660,7 @@ const SystemInfrastructure = () => {
                     </TableRow>
                     <TableRow>
                       <TableCell className="font-medium">Restrict Authorized Users</TableCell>
-                      <TableCell className="text-sm">Block all contributors CRUD unless premium</TableCell>
+                      <TableCell className="text-sm">Block all Authorized User CRUD unless premium</TableCell>
                       <TableCell><Badge className="bg-green-100 text-green-800">Done</Badge></TableCell>
                     </TableRow>
                     <TableRow>

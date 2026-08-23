@@ -202,7 +202,7 @@ const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, isLoading }) =>
                   </p>
                   {log.actor_name && (
                     <p className="text-xs text-orange-600 mt-0.5">
-                      By contributor: {log.actor_name}
+                      By authorized user: {log.actor_name}
                     </p>
                   )}
                 </div>
