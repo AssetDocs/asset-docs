@@ -1,28 +1,42 @@
-# Remaining User-Visible AU Terminology Cleanup
+# Secure Vault Dashboard Simplification
 
-Most of the approved copy changes are already present in the working tree (ActivityLog tab reads "Authorized Users", subscriptionFeatures descriptions, AdminContributorPlanInfo badges, LegacyLocker notice, FAQAccordion, Features, DemoLegacyLocker, SampleDashboard). What remains are a few admin-facing labels and descriptive strings.
+UI/navigation only. No changes to encryption, passphrase flow, RLS, permissions, data, or vault logic.
 
-## Changes
+## 1. Dashboard: one Secure Vault destination
 
-**src/components/admin/SystemInfrastructure.tsx**
-- Rename the edge-function category label `Contributors` to `Authorized Users` (list entries + the badge color map key), keeping function names (`send-contributor-invitation`, etc.) unchanged since those are real deployed function identifiers.
-- Reword purposes: "Invite contributors to account" to "Invite Authorized Users to account"; "Accept contributor invite" to "Accept Authorized User invite"; delegate rows reworded to Legacy Admin recovery notifications/acknowledgment.
-- Email row `type: 'Contributor Invite'` to `'Authorized User Invite'` (function name unchanged).
+In `src/components/DashboardGrid.tsx`, inside the existing pale-yellow (amber) Secure Vault container:
 
-**src/components/admin/SystemArchitectureFlowcharts.tsx**
-- Keep all technical node labels that name real artifacts (`send-contributor-invitation`, `contributors table`, `has_contributor_access()`, `contributor_role enum`, `ContributorContext.tsx`, `/auth?mode=contributor`) exactly as-is.
-- Update descriptive prose only: the vault section description and legend text change "delegate recovery system" / "Delegate" wording to Legacy Admin, stated as available only through the approved recovery process, with no standing Secure Vault access.
+- Remove the two `DashboardGridCard`s (Legacy Locker, Digital Access).
+- Keep the amber wrapper and its `ENCRYPTED / NOT ENCRYPTED` badge (existing `useVaultEncryptionStatus` logic unchanged).
+- Add one full-width card:
+  - Title: Secure Vault
+  - Description: "Your most private information, protected in one encrypted space."
+  - Secondary descriptor line: "Legacy Locker · Digital Access"
+  - CTA: "Open Secure Vault"
+- CTA opens the existing vault tab (`/account?tab=legacy-locker`) via the current `rememberAndOpen` helper, so resume-activity tracking keeps working.
 
-**src/components/admin/legacy-continuity/constants.ts**
-- "Requires Continuity Administrator permission." to "Requires Legacy Admin permission." for the three gated actions (copy only).
+Resulting upper hierarchy: Asset Documentation | Knowledge Hub, then full-width Secure Vault, then the existing rows (Documentation Checklist, MFA, Asset Values, Emergency Instructions, export/download/report).
 
-**src/pages/AccountSettings.tsx**
-- Header subtitle keeps the same meaning; no role-name change needed (already "Read Only Access" / "Full Access"). No edit unless the "Viewing ..." string is judged confusing — leaving it as-is.
+## 2. Landing page title audit
 
-## Out of scope (unchanged)
-Internal identifiers and dormant infrastructure: `OwnerWithContributors`, `ownersWithContributors`, `contributorSearchTerm`, `isContributor*`, `useContributor`, `ContributorProvider`, `hasContributors`, `has_contributors`, `CONTRIBUTOR_LIMITS`, `getContributorLimit`, `checkContributorLimit`, action/event keys (`contributor`, `contributor_access`, `contributor_invite`, `contributor_remove`), `contributors` table, `contributor_role`, `has_contributor_access()`, contributor invite/signup edge functions, legacy auth/signup pages.
+In `src/pages/Account.tsx`, the vault tab headers currently read "Legacy Locker" and "Digital Access" as parent page titles. Change both vault tab entries in `getSectionConfig()` to:
 
-No permission, RLS, `account_memberships`, Legacy Admin recovery, Secure Vault, deletion authorization, or export behavior changes.
+- Title: Secure Vault
+- Subtitle: "Legacy Locker · Digital Access — your encrypted space."
+
+Legacy Locker and Digital Access remain the internal collapsible sections rendered by `SecureVault` (unchanged component and internal navigation). The `password-catalog` tab keeps working for existing deep links; only its heading presentation changes.
+
+## 3. Legacy Instructions collapsed by default
+
+`AccountContinuityInstructions` (rendered above `SecureVault` on the vault tab) currently renders fully expanded. Wrap its existing card body in a collapsible section:
+
+- Header row stays visible and clearly labeled ("Legacy Instructions") with a chevron toggle.
+- Default state: collapsed on page load; user can expand.
+- Fields, save behavior, Legacy Admin references, request counts, and permissions untouched — presentation state only.
 
 ## Verification
-`bunx tsgo` typecheck, `bun run build`, grep to confirm the replaced strings, then report the new `origin/main` SHA once the platform sync advances past `473788f3618c863d596427d07709c655dc19ee2d`.
+
+- Only one Secure Vault destination on the dashboard, full width, amber/encrypted treatment intact.
+- "Open Secure Vault" lands on the existing Secure Vault experience with both Legacy Locker and Digital Access sections available.
+- Legacy Instructions renders collapsed and expands on click; saving still works.
+- Typecheck (`bunx tsgo`) and production build pass.
