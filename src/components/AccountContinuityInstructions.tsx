@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Crown, FileText, Lock } from 'lucide-react';
+import { ChevronDown, Crown, FileText, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
@@ -28,6 +28,8 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
   const [loading, setLoading] = useState(false);
   const [legacyAdminNames, setLegacyAdminNames] = useState<string[]>([]);
   const [requestCount, setRequestCount] = useState(0);
+  // Presentation only: collapsed on each fresh page load, not persisted.
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     if (!user || !accountId) return;
@@ -105,18 +107,33 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Legacy Instructions
-        </CardTitle>
-        <CardDescription>
-          Leave guidance for the people you trust if you are ever unable to manage your account yourself.
-          These instructions are stored for reference and do not automatically trigger account access,
-          transfer, or other actions.
-        </CardDescription>
+      <CardHeader className="p-0">
+        <button
+          type="button"
+          onClick={() => setIsOpen((open) => !open)}
+          aria-expanded={isOpen}
+          aria-controls="legacy-instructions-content"
+          className="w-full text-left p-6 flex items-start justify-between gap-3 hover:bg-muted/30 transition-colors rounded-t-lg"
+        >
+          <span className="space-y-1.5">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Legacy Instructions
+            </CardTitle>
+            <CardDescription>
+              Leave guidance for the people you trust if you are ever unable to manage your account yourself.
+              These instructions are stored for reference and do not automatically trigger account access,
+              transfer, or other actions.
+            </CardDescription>
+          </span>
+          <ChevronDown
+            className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isOpen ? '' : '-rotate-90'}`}
+            aria-hidden="true"
+          />
+        </button>
       </CardHeader>
-      <CardContent className="space-y-4">
+      {isOpen && (
+      <CardContent id="legacy-instructions-content" className="space-y-4">
         <div className="rounded-md border p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Crown className="h-4 w-4 text-amber-600" />
@@ -181,6 +198,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
           </Button>
         </div>
       </CardContent>
+      )}
     </Card>
   );
 };
