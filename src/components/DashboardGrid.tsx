@@ -188,12 +188,12 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           <div className="p-4">
             <DashboardGridCard
               icon={<Shield className="h-6 w-6" />}
-              title="Secure Vault"
+              title="Legacy Locker - Digital Access"
               description="Your most private information, protected in one encrypted space."
               tags={['Legacy Locker', 'Digital Access']}
-              actionLabel="Open Secure Vault"
+              actionLabel="Open Legacy Locker - Digital Access"
               actionIcon={<Shield className="h-4 w-4" />}
-              onClick={() => rememberAndOpen('legacy-locker', 'legacy_locker_opened', 'Open Secure Vault')}
+              onClick={() => rememberAndOpen('legacy-locker', 'legacy_locker_opened', 'Open Legacy Locker - Digital Access')}
               color="yellow"
             />
           </div>
