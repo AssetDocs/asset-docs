@@ -184,31 +184,18 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
             </span>
           </div>
 
-          {/* Secure Vault Cards */}
+          {/* Secure Vault — single destination */}
           <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <DashboardGridCard
-                icon={<Shield className="h-6 w-6" />}
-                title="Legacy Locker"
-                description="Guidance and access when you can't be there."
-                tags={['Instructions', 'Access', 'Recovery']}
-                actionLabel="Open Legacy Locker"
-                actionIcon={<Shield className="h-4 w-4" />}
-                onClick={() => rememberAndOpen('legacy-locker', 'legacy_locker_opened', 'Complete Legacy Locker details')}
-                color="yellow"
-              />
-
-              <DashboardGridCard
-                icon={<Key className="h-6 w-6" />}
-                title="Digital Access"
-                description="Your most private information, fully encrypted."
-                tags={['Websites', 'Logins', 'Sensitive Data']}
-                actionLabel="Open Digital Access"
-                actionIcon={<Key className="h-4 w-4" />}
-                onClick={() => rememberAndOpen('password-catalog', 'digital_access_opened', 'Open Digital Access')}
-                color="yellow"
-              />
-            </div>
+            <DashboardGridCard
+              icon={<Shield className="h-6 w-6" />}
+              title="Secure Vault"
+              description="Your most private information, protected in one encrypted space."
+              tags={['Legacy Locker', 'Digital Access']}
+              actionLabel="Open Secure Vault"
+              actionIcon={<Shield className="h-4 w-4" />}
+              onClick={() => rememberAndOpen('legacy-locker', 'legacy_locker_opened', 'Open Secure Vault')}
+              color="yellow"
+            />
           </div>
         </div>
 
