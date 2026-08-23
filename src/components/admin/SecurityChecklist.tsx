@@ -102,7 +102,7 @@ const checklistData: ChecklistSection[] = [
       },
       {
         id: 'role-access',
-        title: 'Test per-role access controls (Viewer/Contributor/Admin)',
+        title: 'Test per-role access controls (Read Only / Full Access / Owner)',
         whatToVerify: 'Permissions match role level',
         howToVerify: 'Login as each role and attempt uploads/edits/deletes',
         passCriteria: 'Users only see and modify what they are allowed to',
