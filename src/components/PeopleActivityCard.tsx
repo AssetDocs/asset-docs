@@ -94,8 +94,8 @@ const PeopleActivityCard: React.FC<PeopleActivityCardProps> = ({ onNavigate }) =
               id: m.id,
               role: m.role,
               status: m.status,
-              first_name: profile?.first_name || null,
-              last_name: profile?.last_name || null,
+              first_name: (profile as any)?.first_name || null,
+              last_name: (profile as any)?.last_name || null,
             };
           })
         );
