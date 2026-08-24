@@ -45,7 +45,9 @@ Three prominent cards mirroring `DashboardGrid`:
 
 **Knowledge Hub** — grouped as People (VIP Contacts, Trusted Professionals, Medication List) · Notes & Family (Written Notes, Voice Notes, Family Traditions & Recipes, Memory Safe) · Home & Property Details (Important Locations, Paint Codes, Upgrades & Repairs, Source Websites) · Planning (Smart Calendar). No "Family Archive", no "Insights & Tools", no standalone Quick Notes.
 
-**Secure Vault** — parent section containing Digital Access · Legacy Locker · Legacy Instructions · Legacy Admin, plus the retained What It Is / What It's Not / Why It Matters block. "What It's Not" expands to disclaim will, estate plan, attorney, financial advisor, and banking-credential storage.
+**Secure Vault** — parent section containing Digital Access · Legacy Locker · Legacy Instructions · Legacy Admin, plus the retained What It Is / What It's Not / Why It Matters block.
+
+"What It's Not" uses your precise wording verbatim: *"Asset Safe is not a bank, password manager for financial institutions, financial advisor, will, estate plan, or substitute for legal advice."* Followed by the existing companion-resource sentence.
 
 **Access, Preparedness & Security** — Authorized Users (Full Access / Read Only, stated as *account-level* access, and that Authorized Users do not get Secure Vault access) · Emergency Instructions · MFA · Encrypted Secure Vault · Secure cloud storage.
 
