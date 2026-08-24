@@ -45,13 +45,17 @@ Three prominent cards mirroring `DashboardGrid`:
 
 **Knowledge Hub** — grouped as People (VIP Contacts, Trusted Professionals, Medication List) · Notes & Family (Written Notes, Voice Notes, Family Traditions & Recipes, Memory Safe) · Home & Property Details (Important Locations, Paint Codes, Upgrades & Repairs, Source Websites) · Planning (Smart Calendar). No "Family Archive", no "Insights & Tools", no standalone Quick Notes.
 
-**Secure Vault** — parent section containing Digital Access · Legacy Locker · Legacy Instructions · Legacy Admin, plus the retained What It Is / What It's Not / Why It Matters block. "What It's Not" expands to disclaim will, estate plan, attorney, financial advisor, and banking-credential storage.
+**Secure Vault** — parent section containing Digital Access · Legacy Locker · Legacy Instructions · Legacy Admin, plus the retained What It Is / What It's Not / Why It Matters block.
+
+"What It's Not" uses your precise wording verbatim: *"Asset Safe is not a bank, password manager for financial institutions, financial advisor, will, estate plan, or substitute for legal advice."* Followed by the existing companion-resource sentence.
 
 **Access, Preparedness & Security** — Authorized Users (Full Access / Read Only, stated as *account-level* access, and that Authorized Users do not get Secure Vault access) · Emergency Instructions · MFA · Encrypted Secure Vault · Secure cloud storage.
 
 **No duplicate cards.** Per your note, Export Account Archive and Download All Files live **only** in Asset Documentation. The Preparedness group instead carries a one-line cross-reference on portability ("Your records stay portable — see Export Account Archive above"), not a second card. Every feature name appears as a card exactly once across the four sections.
 
-**Storage figure is read, not hardcoded.** The canonical source is `SUBSCRIPTION_FEATURES.unlimited_storage.description` in `src/config/subscriptionFeatures.ts:166` — currently `"25 GB Secure Storage Included (+25 GB add-ons available)"`, which `CompletePricing.tsx:57` already renders verbatim. The Features page will import and render that same string rather than restating the number in prose, so a plan change updates all three surfaces at once and this page cannot fossilize. The surrounding sentence stays figure-free ("Files are stored encrypted in transit and at rest on managed cloud infrastructure, operated under SOC 2–aligned practices."). Same approach for unlimited properties, sourced from the same config.
+**Storage figure is read, not hardcoded.** The canonical source is `SUBSCRIPTION_FEATURES.unlimited_storage.description` in `src/config/subscriptionFeatures.ts:166` — currently `"25 GB Secure Storage Included (+25 GB add-ons available)"`, which `CompletePricing.tsx` already renders verbatim. The Features page imports and renders that same string rather than restating the number in prose, so a plan change updates both surfaces at once and this page cannot fossilize. Same approach for unlimited properties, sourced from the same config.
+
+**Security wording stays modest.** Per your note, the storage/security card body is your phrasing: *"Files are protected in transit and at rest using managed cloud infrastructure and security practices aligned with recognized industry standards."* No certification language in the headline claim. The explicit "SOC 2–aligned practices" phrase is used **once** on the page, in a single secondary line under the security group — not in a card headline, not repeated per audience, and never as "SOC 2 compliant" / "certified".
 
 Sections default **open**, not collapsed.
 
@@ -107,3 +111,7 @@ Rationale: the route is already public and indexable, so `noindex` leaves a dead
 ## 12. Verification
 
 `tsgo` typecheck + production build, then a written report covering: final hero copy · the three primary sections · retired terms removed · current terms used · unsupported claims removed · each of the four tabs reviewed · industries merged/trimmed · Secure Vault ⊃ Digital Access + Legacy Locker made explicit · Knowledge Hub and Asset Documentation terminology matched to the dashboard · no standalone Quick Notes · no tenant-sharing or portal claims · `/features-list` disposition · same-family wording adjusted · exact files changed · confirmation that no backend, security, or business logic was touched.
+
+**Label-parity check (your third refinement).** Before the config is treated as authoritative, every `name` in `featuresContent.ts` is grepped against the live in-app string in source — the dashboard/hub components and `subscriptionFeatures.ts`, not the audit notes. Any name with no source match is either corrected to the real label or removed. The report includes the resulting name → source-file table so a stale label cannot be silently baked in.
+
+Confirmed present in source at plan time: `Asset Documentation`, `Knowledge Hub`, `Photos & Videos`, `Documents & Records`, `Post Damage Report`, `Asset Values`, `Export Account Archive`, `Download All Files`, `Documentation Checklist`, `High-Value Items`, `Manual Entry Item`, `Property Profiles`, `Emergency Instructions`, `Authorized Users`, `Legacy Instructions`, `Contacts`, `VIP Contacts`, `Trusted Professionals`, `Medication List`, `Notes`, `Written Notes`, `Voice Notes`, `Family Traditions & Recipes`, `Memory Safe`, `Important Locations`, `Paint Codes`, `Upgrades & Repairs`, `Source Websites`, `Smart Calendar`. Knowledge Hub group headings match the in-app ones exactly: People & Care · Notes & Family · Property & Household · Planning.

@@ -224,7 +224,7 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="legacy-3">
             <AccordionTrigger className="text-lg font-medium">What kind of information can I store in the Legacy Locker?</AccordionTrigger>
             <AccordionContent>
-              You can store a wide range of personal and informational content, including written messages, executor or guardian details, asset notes, property information, wish statements, financial account summaries, passwords, voice recordings, photos, videos, and uploaded documents—anything that adds clarity and context to your plans.
+              You can store a wide range of personal and informational content, including written messages, executor or guardian details, asset notes, property information, wish statements, notes about everyday accounts and services, voice recordings, photos, videos, and uploaded documents—anything that adds clarity and context to your plans.
             </AccordionContent>
           </AccordionItem>
           
@@ -290,7 +290,7 @@ const FAQAccordion: React.FC = () => {
                     Does Asset Safe ever see or store my encryption password?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    No. Asset Safe uses a zero-knowledge encryption architecture. That means we never see, store, or have access to your encryption keys or vault contents. Only you—and your approved Legacy Admin when necessary—can decrypt your Legacy Locker.
+                    No. Your Secure Vault passphrase is never sent to us or stored on our servers, and vault contents are encrypted before they leave your device. If you lose the passphrase, we cannot recover the contents for you. The only other way vault contents can be decrypted is through an approved Legacy Admin request — access you designate, that is granted rather than standing, and that you can revoke at any time.
                   </AccordionContent>
                 </AccordionItem>
 

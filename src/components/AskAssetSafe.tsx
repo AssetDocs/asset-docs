@@ -38,11 +38,11 @@ const KNOWLEDGE_BASE = {
   },
   legacyLocker: {
     keywords: ['legacy locker', 'estate', 'inheritance', 'will', 'beneficiary', 'trusted', 'family', 'after death', 'passing'],
-    response: `**Legacy Locker** is a secure vault for life's most important information:\n\n**What You Can Store:**\n• Account passwords and access codes\n• Insurance policy details\n• Attorney and advisor contacts\n• Final wishes and instructions\n• Personal messages to loved ones\n\n**Key Features:**\n• End-to-end encryption\n• Trusted delegate access\n• Recovery request system\n• Grace period protection\n\n**It's NOT:**\n• A replacement for legal documents\n• A way to bypass probate\n• Shared until you grant access\n\nLearn more on our [Legacy Locker page](/legacy-locker-info).`
+    response: `**Legacy Locker** lives inside **Secure Vault**, an encrypted space for life's most important information:\n\n**What You Can Store:**\n• Access details for everyday accounts and services\n• Insurance policy details\n• Attorney and advisor contacts\n• Final wishes and instructions\n• Personal messages to loved ones\n\n**Key Features:**\n• Encrypted with a passphrase only you know\n• Optional Legacy Admin who can request access — approval-based, not standing access\n• Revocable at any time\n\n**It's NOT:**\n• A bank, a password manager for financial institutions, or a financial advisor\n• A will, an estate plan, or a substitute for legal advice\n• Shared until you grant access\n\nLearn more on our [Legacy Locker page](/legacy-locker-info).`
   },
   security: {
     keywords: ['secure', 'security', 'privacy', 'encryption', 'safe', 'protected', 'data'],
-    response: `Asset Safe uses enterprise-grade security:\n\n**Encryption:**\n• 256-bit AES encryption\n• Data encrypted in transit and at rest\n• Client-side encryption for Legacy Locker\n\n**Infrastructure:**\n• AWS cloud storage\n• SOC 2 compliant\n• GDPR ready\n• Regular security audits\n\n**Access Control:**\n• Two-factor authentication\n• Permission-based sharing\n• Audit logs for all access\n\nYour data is never sold or shared with third parties.`
+    response: `Asset Safe uses enterprise-grade security:\n\n**Encryption:**\n• 256-bit AES encryption\n• Data encrypted in transit and at rest\n• Client-side encryption for Legacy Locker\n\n**Infrastructure:**\n• Managed cloud storage\n• SOC 2–aligned practices\n• Regular security reviews\n\n**Access Control:**\n• Two-factor authentication\n• Permission-based sharing\n• Audit logs for all access\n\nYour data is never sold or shared with third parties.`
   },
   howItWorks: {
     keywords: ['how does it work', 'how it works', 'what is', 'explain', 'overview', 'about'],
