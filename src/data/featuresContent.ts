@@ -297,7 +297,7 @@ export const featureSections: FeatureSection[] = [
             name: 'Legacy Admin',
             description:
               'Optionally designate one person who can request vault access when it is genuinely needed. Access is granted, not standing — requests are approval-based, and you can revoke the designation at any time.',
-            source: 'src/components/admin/legacy-continuity/OwnerRiskPanel.tsx',
+            source: 'src/pages/AcknowledgeAccess.tsx',
           },
         ],
       },
@@ -334,16 +334,17 @@ export const featureSections: FeatureSection[] = [
             name: 'Two-Factor Authentication',
             description:
               'Add a second step at sign-in, with recovery codes you generate and keep yourself.',
-            source: 'src/components/MFADropdown.tsx',
+            source: 'src/components/TOTPSetup.tsx',
           },
           {
-            name: 'Encrypted Secure Vault',
+            name: 'Secure Vault passphrase encryption',
             description:
               'Secure Vault contents are encrypted with a passphrase you set. If you lose that passphrase, Asset Safe cannot recover the contents for you.',
-            source: 'src/hooks/useVaultEncryptionStatus.ts',
+            // Capability, not a dashboard card label.
+            source: 'src/lib/vaultKey.ts',
           },
           {
-            name: 'Secure cloud storage',
+            name: '25 GB Secure Storage',
             description:
               'Files are protected in transit and at rest using managed cloud infrastructure and security practices aligned with recognized industry standards.',
             source: 'src/config/subscriptionFeatures.ts',
