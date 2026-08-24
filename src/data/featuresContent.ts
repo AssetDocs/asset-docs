@@ -10,6 +10,12 @@
  * results, regulatory compliance, or "end-to-end"/"zero-knowledge" encryption.
  */
 
+import { SUBSCRIPTION_FEATURES } from '@/config/subscriptionFeatures';
+
+/** Canonical storage allowance strings — never restate the GB figure in copy. */
+export const storageAllowanceName = SUBSCRIPTION_FEATURES.unlimited_storage.name;
+export const storageAllowanceDescription = SUBSCRIPTION_FEATURES.unlimited_storage.description;
+
 export interface FeatureItem {
   /** Exact in-app label. */
   name: string;
@@ -344,9 +350,8 @@ export const featureSections: FeatureSection[] = [
             source: 'src/lib/vaultKey.ts',
           },
           {
-            name: '25 GB Secure Storage',
-            description:
-              'Files are protected in transit and at rest using managed cloud infrastructure and security practices aligned with recognized industry standards.',
+            name: storageAllowanceName,
+            description: `${storageAllowanceDescription}. Files are protected in transit and at rest using managed cloud infrastructure and security practices aligned with recognized industry standards.`,
             source: 'src/config/subscriptionFeatures.ts',
           },
         ],
