@@ -35,9 +35,9 @@ Three prominent cards mirroring `DashboardGrid`:
 
 | Card | Tagline | Note |
 |---|---|---|
-| Asset Documentation | "Claim-ready proof for your home and belongings." | property, belongings, photos, videos, receipts, documents, values, improvements, claim-supporting records |
-| Knowledge Hub | "Everyday life, organized and protected." | contacts, notes, medications, household/property details, reminders, family info, memories |
-| Secure Vault | "A single encrypted space for digital access and legacy planning." | explicit "Contains Digital Access and Legacy Locker" — amber accent to match the dashboard |
+| Asset Documentation | "Organized proof of your property, assets, and records." | Cross-audience wording, per your preference — the dashboard's "claim-ready proof for your home and belongings" is narrower than landlords/businesses need. Dashboard parity is preserved where it matters: the destination *name* and every feature name inside it match exactly. |
+| Knowledge Hub | "Everyday life, organized and protected." | Exact dashboard phrase; already audience-neutral |
+| Secure Vault | "A single encrypted space for digital access and legacy planning." | Exact dashboard phrase; explicit "Contains Digital Access and Legacy Locker" — amber accent to match the dashboard |
 
 ## 4. Rebuilt feature sections (described once, for everyone)
 
