@@ -73,7 +73,8 @@ Dropped: Healthcare, Financial Services, Aviation & Marine, Manufacturing, Educa
 
 ## 8. Same-family copy alignment (terminology only)
 
-- `src/components/AskAssetSafe.tsx` — "SOC 2 compliant" → "SOC 2–aligned practices"; "End-to-end encryption" → client-side encryption wording; "Trusted delegate access" → "Legacy Admin access (approval-based)"; "Account passwords and access codes" scoped away from financial credentials.
+- `src/components/AskAssetSafe.tsx` — "SOC 2 compliant" → "SOC 2–aligned practices"; "End-to-end encryption" → client-side encryption wording; "Account passwords and access codes" scoped away from financial credentials.
+  - **Legacy Admin wording is browse-free.** Per your note, the replacement will not imply a Legacy Admin can open and read the vault at will. Before writing the copy I'll re-read the actual path (`SecureVault.tsx` grant issuance, `delegateGrants.ts`, the recovery-request flow, and the Legacy Admin SELECT policy added earlier) and describe only what it permits: an optional single designee who can **submit a request** for vault access, which is approval-based, gated on an active designation and an active grant, revocable at any time, and destroys the wrapped key material on revoke. Phrasing will be along the lines of "an optional designee who can request access when it is genuinely needed — access is granted, not standing." If the code shows anything narrower than that, the copy narrows with it.
 - `src/components/FAQAccordion.tsx:290-294` — replace "zero-knowledge encryption architecture" and the absolute "never have access to your vault contents" with accurate passphrase wording that acknowledges the approval-based Legacy Admin path.
 - `src/components/HomeFAQ.tsx` — align encryption and Authorized Users wording with the new Features page.
 - `src/pages/Index.tsx` — align the homepage Legacy Locker FAQ entry to the Secure Vault parent framing.
