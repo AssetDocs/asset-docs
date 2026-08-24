@@ -402,8 +402,8 @@ const Features: React.FC = () => {
               
               <div className="bg-white p-6 rounded-lg shadow border">
                 <MapPin className="h-8 w-8 text-brand-blue mb-3" />
-                <h3 className="text-lg font-semibold mb-2">Property Options</h3>
-                <p className="text-gray-600 text-sm">We offer 3 property profiles on our homeowner plan and unlimited property profiles on our professional plan.</p>
+                <h3 className="text-lg font-semibold mb-2">Unlimited Properties</h3>
+                <p className="text-gray-600 text-sm">We offer unlimited property entries - which allows you to document your personal home, vacation home, and any rental properties you may have.</p>
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow border">
