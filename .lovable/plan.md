@@ -83,7 +83,9 @@ Dropped: Healthcare, Financial Services, Aviation & Marine, Manufacturing, Educa
 
 **Chosen: rebuild as a legitimate customer-facing "All Features" index, driven by the same `featuresContent.ts` config.** Route and URL preserved, stays indexable.
 
-Rationale: the route is already public and indexable, so `noindex` leaves a dead page that still exists, and deleting it breaks any existing link. Rebuilding from shared data removes the two actual problems — the tech-stack disclosure (React/Supabase/Stripe/OpenAI/Google Maps) and the internal route map — while turning the page into a useful flat index that cannot drift from `/features`. The Technical and Workflow tabs are removed entirely.
+Rationale: the route is already public and indexable, so `noindex` leaves a dead page that still exists, and deleting it breaks any existing link. Rebuilding from shared data removes the two actual problems — the tech-stack disclosure (React/Supabase/Stripe/OpenAI/Google Maps) and the internal route map — while turning the page into a useful index that cannot drift from `/features`. The Technical and Workflow tabs are removed entirely.
+
+**Deliberately simpler than `/features`.** Per your note, this is a flat index, not a second marketing page: destination heading → group heading → feature **name only**, as a compact list. It renders the `name` fields from `featuresContent.ts` and does **not** render the `description` fields, so there is no second copy of the long descriptions and therefore no second editorial surface to keep in sync. Each destination heading links back to the corresponding section on `/features` for the full explanation. One short intro line, no hero, no audience tabs, no industries, no CTA banner.
 
 ## 10. SEO
 
