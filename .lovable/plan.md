@@ -47,7 +47,11 @@ Three prominent cards mirroring `DashboardGrid`:
 
 **Secure Vault** — parent section containing Digital Access · Legacy Locker · Legacy Instructions · Legacy Admin, plus the retained What It Is / What It's Not / Why It Matters block. "What It's Not" expands to disclaim will, estate plan, attorney, financial advisor, and banking-credential storage.
 
-**Access, Preparedness & Security** — Authorized Users (Full Access / Read Only, stated as *account-level* access, and that Authorized Users do not get Secure Vault access) · Emergency Instructions · Export Account Archive · MFA · Encrypted Secure Vault · Secure cloud storage (25 GB included, expandable in 25 GB blocks, SOC 2–aligned practices).
+**Access, Preparedness & Security** — Authorized Users (Full Access / Read Only, stated as *account-level* access, and that Authorized Users do not get Secure Vault access) · Emergency Instructions · MFA · Encrypted Secure Vault · Secure cloud storage.
+
+**No duplicate cards.** Per your note, Export Account Archive and Download All Files live **only** in Asset Documentation. The Preparedness group instead carries a one-line cross-reference on portability ("Your records stay portable — see Export Account Archive above"), not a second card. Every feature name appears as a card exactly once across the four sections.
+
+**Storage figure is read, not hardcoded.** The canonical source is `SUBSCRIPTION_FEATURES.unlimited_storage.description` in `src/config/subscriptionFeatures.ts:166` — currently `"25 GB Secure Storage Included (+25 GB add-ons available)"`, which `CompletePricing.tsx:57` already renders verbatim. The Features page will import and render that same string rather than restating the number in prose, so a plan change updates all three surfaces at once and this page cannot fossilize. The surrounding sentence stays figure-free ("Files are stored encrypted in transit and at rest on managed cloud infrastructure, operated under SOC 2–aligned practices."). Same approach for unlimited properties, sourced from the same config.
 
 Sections default **open**, not collapsed.
 
