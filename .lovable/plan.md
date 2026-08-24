@@ -35,9 +35,9 @@ Three prominent cards mirroring `DashboardGrid`:
 
 | Card | Tagline | Note |
 |---|---|---|
-| Asset Documentation | "Claim-ready proof for your home and belongings." | property, belongings, photos, videos, receipts, documents, values, improvements, claim-supporting records |
-| Knowledge Hub | "Everyday life, organized and protected." | contacts, notes, medications, household/property details, reminders, family info, memories |
-| Secure Vault | "A single encrypted space for digital access and legacy planning." | explicit "Contains Digital Access and Legacy Locker" — amber accent to match the dashboard |
+| Asset Documentation | "Organized proof of your property, assets, and records." | Cross-audience wording, per your preference — the dashboard's "claim-ready proof for your home and belongings" is narrower than landlords/businesses need. Dashboard parity is preserved where it matters: the destination *name* and every feature name inside it match exactly. |
+| Knowledge Hub | "Everyday life, organized and protected." | Exact dashboard phrase; already audience-neutral |
+| Secure Vault | "A single encrypted space for digital access and legacy planning." | Exact dashboard phrase; explicit "Contains Digital Access and Legacy Locker" — amber accent to match the dashboard |
 
 ## 4. Rebuilt feature sections (described once, for everyone)
 
@@ -47,7 +47,11 @@ Three prominent cards mirroring `DashboardGrid`:
 
 **Secure Vault** — parent section containing Digital Access · Legacy Locker · Legacy Instructions · Legacy Admin, plus the retained What It Is / What It's Not / Why It Matters block. "What It's Not" expands to disclaim will, estate plan, attorney, financial advisor, and banking-credential storage.
 
-**Access, Preparedness & Security** — Authorized Users (Full Access / Read Only, stated as *account-level* access, and that Authorized Users do not get Secure Vault access) · Emergency Instructions · Export Account Archive · MFA · Encrypted Secure Vault · Secure cloud storage (25 GB included, expandable in 25 GB blocks, SOC 2–aligned practices).
+**Access, Preparedness & Security** — Authorized Users (Full Access / Read Only, stated as *account-level* access, and that Authorized Users do not get Secure Vault access) · Emergency Instructions · MFA · Encrypted Secure Vault · Secure cloud storage.
+
+**No duplicate cards.** Per your note, Export Account Archive and Download All Files live **only** in Asset Documentation. The Preparedness group instead carries a one-line cross-reference on portability ("Your records stay portable — see Export Account Archive above"), not a second card. Every feature name appears as a card exactly once across the four sections.
+
+**Storage figure is read, not hardcoded.** The canonical source is `SUBSCRIPTION_FEATURES.unlimited_storage.description` in `src/config/subscriptionFeatures.ts:166` — currently `"25 GB Secure Storage Included (+25 GB add-ons available)"`, which `CompletePricing.tsx:57` already renders verbatim. The Features page will import and render that same string rather than restating the number in prose, so a plan change updates all three surfaces at once and this page cannot fossilize. The surrounding sentence stays figure-free ("Files are stored encrypted in transit and at rest on managed cloud infrastructure, operated under SOC 2–aligned practices."). Same approach for unlimited properties, sourced from the same config.
 
 Sections default **open**, not collapsed.
 
@@ -69,7 +73,8 @@ Dropped: Healthcare, Financial Services, Aviation & Marine, Manufacturing, Educa
 
 ## 8. Same-family copy alignment (terminology only)
 
-- `src/components/AskAssetSafe.tsx` — "SOC 2 compliant" → "SOC 2–aligned practices"; "End-to-end encryption" → client-side encryption wording; "Trusted delegate access" → "Legacy Admin access (approval-based)"; "Account passwords and access codes" scoped away from financial credentials.
+- `src/components/AskAssetSafe.tsx` — "SOC 2 compliant" → "SOC 2–aligned practices"; "End-to-end encryption" → client-side encryption wording; "Account passwords and access codes" scoped away from financial credentials.
+  - **Legacy Admin wording is browse-free.** Per your note, the replacement will not imply a Legacy Admin can open and read the vault at will. Before writing the copy I'll re-read the actual path (`SecureVault.tsx` grant issuance, `delegateGrants.ts`, the recovery-request flow, and the Legacy Admin SELECT policy added earlier) and describe only what it permits: an optional single designee who can **submit a request** for vault access, which is approval-based, gated on an active designation and an active grant, revocable at any time, and destroys the wrapped key material on revoke. Phrasing will be along the lines of "an optional designee who can request access when it is genuinely needed — access is granted, not standing." If the code shows anything narrower than that, the copy narrows with it.
 - `src/components/FAQAccordion.tsx:290-294` — replace "zero-knowledge encryption architecture" and the absolute "never have access to your vault contents" with accurate passphrase wording that acknowledges the approval-based Legacy Admin path.
 - `src/components/HomeFAQ.tsx` — align encryption and Authorized Users wording with the new Features page.
 - `src/pages/Index.tsx` — align the homepage Legacy Locker FAQ entry to the Secure Vault parent framing.
@@ -78,7 +83,9 @@ Dropped: Healthcare, Financial Services, Aviation & Marine, Manufacturing, Educa
 
 **Chosen: rebuild as a legitimate customer-facing "All Features" index, driven by the same `featuresContent.ts` config.** Route and URL preserved, stays indexable.
 
-Rationale: the route is already public and indexable, so `noindex` leaves a dead page that still exists, and deleting it breaks any existing link. Rebuilding from shared data removes the two actual problems — the tech-stack disclosure (React/Supabase/Stripe/OpenAI/Google Maps) and the internal route map — while turning the page into a useful flat index that cannot drift from `/features`. The Technical and Workflow tabs are removed entirely.
+Rationale: the route is already public and indexable, so `noindex` leaves a dead page that still exists, and deleting it breaks any existing link. Rebuilding from shared data removes the two actual problems — the tech-stack disclosure (React/Supabase/Stripe/OpenAI/Google Maps) and the internal route map — while turning the page into a useful index that cannot drift from `/features`. The Technical and Workflow tabs are removed entirely.
+
+**Deliberately simpler than `/features`.** Per your note, this is a flat index, not a second marketing page: destination heading → group heading → feature **name only**, as a compact list. It renders the `name` fields from `featuresContent.ts` and does **not** render the `description` fields, so there is no second copy of the long descriptions and therefore no second editorial surface to keep in sync. Each destination heading links back to the corresponding section on `/features` for the full explanation. One short intro line, no hero, no audience tabs, no industries, no CTA banner.
 
 ## 10. SEO
 
