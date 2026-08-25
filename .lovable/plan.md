@@ -37,29 +37,33 @@ Immutability guard (`BEFORE UPDATE ... FOR EACH ROW`):
 - When status becomes `completed`, set `completed_at = now()` if the caller did not supply it; `completed_at` cannot be cleared or changed afterward.
 - Service role is held to the same transition rules — this is evidence, not operational state.
 
-## `expires_at` semantics — decide explicitly
+## Consistency CHECK on completion
 
-Today nothing expires anything: the column would be a timestamp the table renders in an "Expires" column, and no code or job reads it. That is a misleading UI if left as is. Two options:
+Table-level: `CHECK ((status = 'logged' AND completed_at IS NULL) OR (status = 'completed' AND completed_at IS NOT NULL))` — a logged row can never carry a completion timestamp, and a completed row can never lack one.
 
-- **Option A (recommended, simplest):** treat `expires_at` as the declared review window and make the UI honest — label it "Review window ends" and render an "Expired" indicator when `expires_at < now()` and status is still `logged`. No status mutation, no cron. The record stays a pure log of a declared window.
-- **Option B:** add a real mechanism — a scheduled sweep that transitions stale `logged` rows to `completed` (or a third `expired` status, which would mean widening the status CHECK and the UI badge/gate). This adds a cron job and a service-role transition path to maintain.
+## `expires_at` semantics — decided
 
-I will implement Option A unless you choose B, since the record is a log rather than an access grant — nothing is actually unlocked that expiry would need to revoke.
+`expires_at` is metadata only: the declared review window. No cron, no automatic status mutation.
+- Label the column "Review window ends" in the Support Access tab.
+- Show an "Expired" indicator when `expires_at < now()` and status is still `logged`.
+- A review closes only when an operator clicks Complete.
 
-## Canonical record vs. duplication into `audit_logs`
+## Canonical record — decided
 
-Recommendation: **`support_access_reviews` is the canonical forensic record for this event; do not duplicate the row.** It carries fields (`reason`, `target_account_number`, `access_scope`, review window, completion) that `audit_logs`' generic shape would flatten into `metadata`, and duplication creates two sources that can diverge. What I will add instead is a single cross-reference entry in `audit_logs` (action `support_access_review_logged`, resource type `support_access_reviews`, resource id = the review id, no reason text copied) so an operator scanning the central admin audit trail sees that the event happened and where the detail lives. That keeps one authoritative copy plus discoverability. Say the word if you'd rather have no `audit_logs` entry at all.
+`support_access_reviews` is the canonical forensic record. On insert, add **one minimal cross-reference row** in `audit_logs` (existing shape: `user_id`, `action`, `table_name`, `record_id`):
+- `action = 'support_access_review_logged'`, `table_name = 'support_access_reviews'`, `record_id = <review id>`, `user_id = auth.uid()`.
+- No reason, scope, or target details copied into `old_values` / `new_values`.
 
 ## Frontend changes (narrow)
 
-- `console.error` the full backend error object (for diagnostics), but keep the visible `window.alert` generic — no Postgres/RLS text in the UI.
+- `console.error` the full backend error object for diagnostics; keep the visible `window.alert` generic — no Postgres/RLS text in the UI.
 - Check and log the error on the Support Access read in `loadData()` so a backend failure stops masquerading as an empty list.
-- Update the `SupportAccessReview` status handling/labels to match `logged` / `completed`, and (Option A) the expiry column wording plus an expired indicator.
+- Align status handling/labels to `logged` / `completed`, rename the Expires column to "Review window ends", and render the Expired indicator.
 
 ## Verification
 
-- Log a review from Users → Support, confirm the row appears and Complete transitions it.
-- Negative tests via SQL: attempt to edit `reason`, attempt `completed -> logged`, attempt a delete, attempt insert with a mismatched `admin_user_id` — each must be rejected.
-- Run the Supabase linter, `tsgo`, and a production build.
+- Log a review from Users → Support; confirm the row appears and Complete transitions it with a completion timestamp.
+- Negative SQL tests, each must be rejected: edit `reason`; `completed -> logged`; delete a row; insert with mismatched `admin_user_id`; insert `logged` with a `completed_at`; set `completed` without `completed_at`.
+- Supabase linter, `tsgo` typecheck, production build.
 
-Nothing about encryption, vault access, or existing RLS elsewhere changes.
+No changes to vault, encryption, or any RLS outside this new table.
