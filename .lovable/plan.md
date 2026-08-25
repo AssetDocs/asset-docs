@@ -1,96 +1,39 @@
-# Refresh the Public “About Asset Safe” Page
+# Fix: "Could not log support access review."
 
-Copy and presentation refresh only for `/about`. No backend, Auth, billing, dashboard, product architecture, or route changes.
+## Audit result
 
----
+The error is not a permissions or validation problem — the table the feature writes to does not exist.
 
-## Goal
+- `src/components/admin/AdminUsers.tsx` → `logSupportAccessReview()` inserts into `support_access_reviews`.
+- A schema query confirms there is **no** `support_access_reviews` table in the `public` schema, so every insert fails and the alert fires.
+- The same tab's read (`loadData()`, fetch of `support_access_reviews`) fails silently because its error is never checked, so the Support Access tab just renders "No support access reviews logged" instead of surfacing the real cause.
+- The UI expects these columns: `id, admin_user_id, target_user_id, target_email, target_account_number, reason, access_scope, status, expires_at, completed_at, created_at`.
 
-Update the About page so it tells the current Asset Safe story: a place to document what you own, organize what you need to know, protect what is private, and be better prepared — without narrowing the narrative to home inventory or insurance claims.
+## Plan
 
-## Scope
+### 1. Create the missing table (migration)
+`public.support_access_reviews` with the columns the UI already expects:
+- `id uuid pk default gen_random_uuid()`
+- `admin_user_id uuid not null`, `target_user_id uuid not null`
+- `target_email text`, `target_account_number text`
+- `reason text not null`
+- `access_scope text not null default 'read_only_support_context'`
+- `status text not null default 'active'`
+- `expires_at timestamptz not null default now() + interval '24 hours'`
+- `completed_at timestamptz`, `created_at timestamptz not null default now()`
+- index on `created_at desc`
 
-- **In scope**: `src/pages/About.tsx` copy, value-card titles/descriptions, CTA, Mission section, closing quote, SEO metadata, and minor layout/spacing adjustments needed for the revised copy.
-- **Out of scope**: Dashboard, Features page, Knowledge Hub, Secure Vault behavior, Auth, MFA, Authorized Users, gifts, billing, Stripe, Supabase, RLS, storage, subscriptions, schema, Edge Functions, pricing, legal pages, and any new routes.
+Grants + RLS in the required order (create → grant → enable RLS → policies):
+- `GRANT SELECT, INSERT, UPDATE ON ... TO authenticated;` and `GRANT ALL ... TO service_role;` (no `anon` grant)
+- Policies restricted to the admin/owner workspace via the existing `has_owner_workspace_access()` helper: select, insert (also requiring `admin_user_id = auth.uid()`), and update (to mark reviews completed).
+- Immutability guard: no delete policy, so entries are append-only and can only be transitioned to completed.
 
-## Changes
+### 2. Frontend hardening (small, no behavior change)
+- Check and log the error on the Support Access read in `loadData()` so a backend failure is visible instead of showing an empty state.
+- Include the returned error message in the alert text so future failures are self-diagnosing.
 
-### 1. Opening story
+### 3. Verify
+- Re-run the flow: enter a support reason from Users → Support → Log, confirm the row appears in the Support Access tab, and confirm "Complete" transitions the row to completed.
+- Run the Supabase linter and a production build.
 
-Replace the insurance-only framing with broader, human copy.
-
-New opening:
-- Lead: *“Asset Safe was built around a simple idea: the things you value, the information you rely on, and the memories you want to preserve should be easier to organize and protect.”*
-- Include brand line: *“Everything you love. Protected in one place.”*
-- Acknowledge the full scope in a few lines: property/asset documentation, important records, everyday household information, contacts and notes, memories, preparedness information, and sensitive legacy/digital-access information.
-- Remove the italic “Insurance pays for what you can prove / Asset Safe helps you prove it.”
-
-### 2. Three value cards
-
-Keep the three-card layout and visual style, update titles and descriptions.
-
-| Card | Title | Description |
-|---|---|---|
-| 1 | **Document What Matters** | Keep photos, receipts, records, values, and property details organized so important documentation is easier to find when you need it. |
-| 2 | **Keep Life Organized** | Bring contacts, notes, reminders, household details, and meaningful family information together in one organized place. |
-| 3 | **Protect What’s Private** | Keep sensitive digital-access and legacy information protected inside your Secure Vault. |
-
-Keep existing circular icons unless a natural swap is needed. Keep card colors: brand-blue, teal-500, blue-600 backgrounds.
-
-### 3. CTA
-
-Replace “Start Your Documentation” with **“Get Started”**, linking to `/pricing` (existing approved CTA route).
-
-### 4. “Our Mission” rewrite
-
-Replace the property-documentation-only mission with:
-
-- Heading: **Our Mission**
-- Body: *“Asset Safe exists to make preparedness simpler. We help people organize the property, records, information, and memories they may need today — and make sure important details are easier to find when they matter most.”*
-- Second paragraph: *“From documenting belongings and maintaining household knowledge to preparing for emergencies and preserving important instructions, Asset Safe brings the details of everyday life together in one organized place.”*
-
-No disaster-prevention, reimbursement-guarantee, professional-advice-replacement, access-guarantee, or ownership-transfer claims.
-
-### 5. Closing quote
-
-Replace the disaster-loss quote with:
-
-*“Being prepared isn’t only about what happens after something goes wrong. It’s about knowing the information that matters is already organized when you need it.”*
-
-### 6. Terminology
-
-Use current product labels only where they appear naturally: Asset Documentation, Knowledge Hub, Secure Vault, Legacy Locker, Digital Access, Authorized Users, Emergency Instructions.
-
-Do not use retired terminology: Family Archive, Insights & Tools, Password and Accounts Catalog, Quick Notes as standalone, administrator/contributor/viewer roles.
-
-### 7. Security language
-
-Use restrained wording only: protected, organized, encrypted Secure Vault, private information. No zero-knowledge, end-to-end encryption, SOC 2 compliant, or absolute inaccessibility claims.
-
-### 8. SEO metadata
-
-Update `SEOHead` props in `About.tsx`:
-- Title: keep as “About Asset Safe” or slightly broader if it improves clarity.
-- Description: broaden from “help people organize and protect assets, important information, records, and memories” to reflect documentation, organization, and preparedness, while keeping the route/canonical at `https://getassetsafe.com/about`.
-- Keywords: refresh to include preparedness, household information, secure vault, legacy planning, digital access, and similar current terms.
-
-### 9. Audience breadth
-
-Ensure the copy reads naturally for homeowners, renters, landlords, small businesses, and individuals/families. Do not assume every user owns a house, has children, is planning an estate, or is filing an insurance claim.
-
-### 10. Layout
-
-Preserve the existing compact structure: H1 heading, intro block, three value cards, primary CTA, Mission section, closing quote. Only adjust spacing if revised copy makes it necessary.
-
-## Verification
-
-After implementation, report:
-- Final opening copy
-- Final three value-card titles and descriptions
-- Final CTA label and destination
-- Final Mission copy
-- Final closing statement
-- Updated SEO title/description/keywords if changed
-- Exact files changed
-- `tsgo` typecheck and production build result
-- Confirmation that no backend/product logic was touched
+Nothing about encryption, vault access, or existing RLS elsewhere changes.
