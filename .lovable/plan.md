@@ -1,117 +1,96 @@
-# Modernize the Public Features Page
+# Refresh the Public “About Asset Safe” Page
 
-Public UI/copy only. No dashboard, Auth, MFA, RLS, storage, billing, gift, Stripe, subscription, schema, Edge Function, retention, or encryption changes.
-
-Goal: `/features` teaches the same product structure users see after signing in — Asset Documentation, Knowledge Hub, Secure Vault.
+Copy and presentation refresh only for `/about`. No backend, Auth, billing, dashboard, product architecture, or route changes.
 
 ---
 
-## 1. New shared content config — `src/data/featuresContent.ts` (new file)
+## Goal
 
-All public feature copy moves into one readable config so the four audience tabs can never drift apart again. Exports:
+Update the About page so it tells the current Asset Safe story: a place to document what you own, organize what you need to know, protect what is private, and be better prepared — without narrowing the narrative to home inventory or insurance claims.
 
-- `heroContent` — headline, subhead, audience line
-- `primaryDestinations` — the three dashboard destinations
-- `featureSections` — Asset Documentation, Knowledge Hub, Secure Vault, Access/Preparedness/Security (each with named groups and items)
-- `secureVaultFraming` — What It Is / What It's Not / Why It Matters
-- `audiences` — 4 audiences, each with 5 focus areas that *reference* feature names rather than restating the catalog
-- `industries` — one trimmed list
-- `closingCta`
+## Scope
 
-Two rules written into the file header as comments:
-- Every `name` must match the in-app label exactly. Retired labels are named explicitly as forbidden.
-- Descriptions describe organization and preparation only — no guaranteed outcomes, compliance guarantees, credential storage, "end-to-end encryption", or "zero knowledge".
+- **In scope**: `src/pages/About.tsx` copy, value-card titles/descriptions, CTA, Mission section, closing quote, SEO metadata, and minor layout/spacing adjustments needed for the revised copy.
+- **Out of scope**: Dashboard, Features page, Knowledge Hub, Secure Vault behavior, Auth, MFA, Authorized Users, gifts, billing, Stripe, Supabase, RLS, storage, subscriptions, schema, Edge Functions, pricing, legal pages, and any new routes.
 
-## 2. Hero
+## Changes
 
-- H1: **"Everything you love. Protected in one place."**
-- Sub: "Asset Safe brings your property documentation, everyday information, and most private records together in one organized place."
-- Line: "Built for homeowners, renters, landlords, and small businesses."
-- CTAs: View Pricing (`/pricing`) + See how people use Asset Safe (`/scenarios`)
+### 1. Opening story
 
-## 3. Three-part product overview, directly below the hero
+Replace the insurance-only framing with broader, human copy.
 
-Three prominent cards mirroring `DashboardGrid`:
+New opening:
+- Lead: *“Asset Safe was built around a simple idea: the things you value, the information you rely on, and the memories you want to preserve should be easier to organize and protect.”*
+- Include brand line: *“Everything you love. Protected in one place.”*
+- Acknowledge the full scope in a few lines: property/asset documentation, important records, everyday household information, contacts and notes, memories, preparedness information, and sensitive legacy/digital-access information.
+- Remove the italic “Insurance pays for what you can prove / Asset Safe helps you prove it.”
 
-| Card | Tagline | Note |
+### 2. Three value cards
+
+Keep the three-card layout and visual style, update titles and descriptions.
+
+| Card | Title | Description |
 |---|---|---|
-| Asset Documentation | "Organized proof of your property, assets, and records." | Cross-audience wording, per your preference — the dashboard's "claim-ready proof for your home and belongings" is narrower than landlords/businesses need. Dashboard parity is preserved where it matters: the destination *name* and every feature name inside it match exactly. |
-| Knowledge Hub | "Everyday life, organized and protected." | Exact dashboard phrase; already audience-neutral |
-| Secure Vault | "A single encrypted space for digital access and legacy planning." | Exact dashboard phrase; explicit "Contains Digital Access and Legacy Locker" — amber accent to match the dashboard |
+| 1 | **Document What Matters** | Keep photos, receipts, records, values, and property details organized so important documentation is easier to find when you need it. |
+| 2 | **Keep Life Organized** | Bring contacts, notes, reminders, household details, and meaningful family information together in one organized place. |
+| 3 | **Protect What’s Private** | Keep sensitive digital-access and legacy information protected inside your Secure Vault. |
 
-## 4. Rebuilt feature sections (described once, for everyone)
+Keep existing circular icons unless a natural swap is needed. Keep card colors: brand-blue, teal-500, blue-600 backgrounds.
 
-**Asset Documentation** — Property Profiles · Photos & Videos · Documents & Receipts · Manual Entry Item · Asset Values · High-Value Items · Documentation Checklist · Post Damage Report · Export Account Archive · Download All Files
+### 3. CTA
 
-**Knowledge Hub** — grouped as People (VIP Contacts, Trusted Professionals, Medication List) · Notes & Family (Written Notes, Voice Notes, Family Traditions & Recipes, Memory Safe) · Home & Property Details (Important Locations, Paint Codes, Upgrades & Repairs, Source Websites) · Planning (Smart Calendar). No "Family Archive", no "Insights & Tools", no standalone Quick Notes.
+Replace “Start Your Documentation” with **“Get Started”**, linking to `/pricing` (existing approved CTA route).
 
-**Secure Vault** — parent section containing Digital Access · Legacy Locker · Legacy Instructions · Legacy Admin, plus the retained What It Is / What It's Not / Why It Matters block.
+### 4. “Our Mission” rewrite
 
-"What It's Not" uses your precise wording verbatim: *"Asset Safe is not a bank, password manager for financial institutions, financial advisor, will, estate plan, or substitute for legal advice."* Followed by the existing companion-resource sentence.
+Replace the property-documentation-only mission with:
 
-**Access, Preparedness & Security** — Authorized Users (Full Access / Read Only, stated as *account-level* access, and that Authorized Users do not get Secure Vault access) · Emergency Instructions · MFA · Encrypted Secure Vault · Secure cloud storage.
+- Heading: **Our Mission**
+- Body: *“Asset Safe exists to make preparedness simpler. We help people organize the property, records, information, and memories they may need today — and make sure important details are easier to find when they matter most.”*
+- Second paragraph: *“From documenting belongings and maintaining household knowledge to preparing for emergencies and preserving important instructions, Asset Safe brings the details of everyday life together in one organized place.”*
 
-**No duplicate cards.** Per your note, Export Account Archive and Download All Files live **only** in Asset Documentation. The Preparedness group instead carries a one-line cross-reference on portability ("Your records stay portable — see Export Account Archive above"), not a second card. Every feature name appears as a card exactly once across the four sections.
+No disaster-prevention, reimbursement-guarantee, professional-advice-replacement, access-guarantee, or ownership-transfer claims.
 
-**Storage figure is read, not hardcoded.** The canonical source is `SUBSCRIPTION_FEATURES.unlimited_storage.description` in `src/config/subscriptionFeatures.ts:166` — currently `"25 GB Secure Storage Included (+25 GB add-ons available)"`, which `CompletePricing.tsx` already renders verbatim. The Features page imports and renders that same string rather than restating the number in prose, so a plan change updates both surfaces at once and this page cannot fossilize. Same approach for unlimited properties, sourced from the same config.
+### 5. Closing quote
 
-**Security wording stays modest.** Per your note, the storage/security card body is your phrasing: *"Files are protected in transit and at rest using managed cloud infrastructure and security practices aligned with recognized industry standards."* No certification language in the headline claim. The explicit "SOC 2–aligned practices" phrase is used **once** on the page, in a single secondary line under the security group — not in a card headline, not repeated per audience, and never as "SOC 2 compliant" / "certified".
+Replace the disaster-loss quote with:
 
-Sections default **open**, not collapsed.
+*“Being prepared isn’t only about what happens after something goes wrong. It’s about knowing the information that matters is already organized when you need it.”*
 
-## 5. Audience tabs — narrative, not catalog
+### 6. Terminology
 
-Keep Homeowners / Renters / Businesses / Landlords. Each becomes ~5 focus areas explaining how the one platform serves that audience, each linking to the feature names it leans on. Homeowners: documentation, insurance preparation, home history, household knowledge, continuity. Renters: belongings, move-in/out, receipts, personal info, preparedness. Businesses: equipment/premises, records, maintenance, insurance support, operational reference — no consumer-family wording. Landlords: multiple properties, repairs/improvements, condition documentation, contractors/paint codes/locations, reminders + insurance support — **no tenant-sharing claim**.
+Use current product labels only where they appear naturally: Asset Documentation, Knowledge Hub, Secure Vault, Legacy Locker, Digital Access, Authorized Users, Emergency Instructions.
 
-## 6. Removals and corrections
+Do not use retired terminology: Family Archive, Insights & Tools, Password and Accounts Catalog, Quick Notes as standalone, administrator/contributor/viewer roles.
 
-Removed: Quick Notes card · duplicate Voice Notes card · Tenant Communication · Online Client Portal · "centralized management portal" · tenant-belongings tracking · CSV/unsupported export formats · "Join thousands of…" · "Court-ready documentation" · "faster claims processing and accurate settlements" · "Value Authentication" · unqualified regulatory-compliance claims · "financial account information" · "end-to-end encryption" · "Password and Accounts Catalog".
+### 7. Security language
 
-Renamed to current labels: Assets → Asset Documentation · Asset Valuation → Asset Values · Export Assets → Export Account Archive · Post Damage Documentation → Post Damage Report · Property Documentation → Asset Documentation · Manual Entry Items moved from Knowledge Hub to Asset Documentation.
+Use restrained wording only: protected, organized, encrypted Secure Vault, private information. No zero-knowledge, end-to-end encryption, SOC 2 compliant, or absolute inaccessibility claims.
 
-## 7. Industries — merged and trimmed
+### 8. SEO metadata
 
-Two overlapping sections (Industry Applications, Industries We Serve — 16 cards) collapse into one section of 8: Real Estate · Property Management · Insurance Documentation Support · Moving & Storage · Construction & Home Services · Legal & Estate Planning Support · Small Business · Art & Collectibles.
+Update `SEOHead` props in `About.tsx`:
+- Title: keep as “About Asset Safe” or slightly broader if it improves clarity.
+- Description: broaden from “help people organize and protect assets, important information, records, and memories” to reflect documentation, organization, and preparedness, while keeping the route/canonical at `https://getassetsafe.com/about`.
+- Keywords: refresh to include preparedness, household information, secure vault, legacy planning, digital access, and similar current terms.
 
-Dropped: Healthcare, Financial Services, Aviation & Marine, Manufacturing, Educational Institutions, Religious Organizations, Automotive — each carried compliance/clinical/credential inference risk disproportionate to its value. Insurance and Legal entries carry inline scoping sentences.
+### 9. Audience breadth
 
-## 8. Same-family copy alignment (terminology only)
+Ensure the copy reads naturally for homeowners, renters, landlords, small businesses, and individuals/families. Do not assume every user owns a house, has children, is planning an estate, or is filing an insurance claim.
 
-- `src/components/AskAssetSafe.tsx` — "SOC 2 compliant" → "SOC 2–aligned practices"; "End-to-end encryption" → client-side encryption wording; "Account passwords and access codes" scoped away from financial credentials.
-  - **Legacy Admin wording is browse-free.** Per your note, the replacement will not imply a Legacy Admin can open and read the vault at will. Before writing the copy I'll re-read the actual path (`SecureVault.tsx` grant issuance, `delegateGrants.ts`, the recovery-request flow, and the Legacy Admin SELECT policy added earlier) and describe only what it permits: an optional single designee who can **submit a request** for vault access, which is approval-based, gated on an active designation and an active grant, revocable at any time, and destroys the wrapped key material on revoke. Phrasing will be along the lines of "an optional designee who can request access when it is genuinely needed — access is granted, not standing." If the code shows anything narrower than that, the copy narrows with it.
-- `src/components/FAQAccordion.tsx:290-294` — replace "zero-knowledge encryption architecture" and the absolute "never have access to your vault contents" with accurate passphrase wording that acknowledges the approval-based Legacy Admin path.
-- `src/components/HomeFAQ.tsx` — align encryption and Authorized Users wording with the new Features page.
-- `src/pages/Index.tsx` — align the homepage Legacy Locker FAQ entry to the Secure Vault parent framing.
+### 10. Layout
 
-## 9. `/features-list` disposition
+Preserve the existing compact structure: H1 heading, intro block, three value cards, primary CTA, Mission section, closing quote. Only adjust spacing if revised copy makes it necessary.
 
-**Chosen: rebuild as a legitimate customer-facing "All Features" index, driven by the same `featuresContent.ts` config.** Route and URL preserved, stays indexable.
+## Verification
 
-Rationale: the route is already public and indexable, so `noindex` leaves a dead page that still exists, and deleting it breaks any existing link. Rebuilding from shared data removes the two actual problems — the tech-stack disclosure (React/Supabase/Stripe/OpenAI/Google Maps) and the internal route map — while turning the page into a useful index that cannot drift from `/features`. The Technical and Workflow tabs are removed entirely.
-
-**Deliberately simpler than `/features`.** Per your note, this is a flat index, not a second marketing page: destination heading → group heading → feature **name only**, as a compact list. It renders the `name` fields from `featuresContent.ts` and does **not** render the `description` fields, so there is no second copy of the long descriptions and therefore no second editorial surface to keep in sync. Each destination heading links back to the corresponding section on `/features` for the full explanation. One short intro line, no hero, no audience tabs, no industries, no CTA banner.
-
-## 10. SEO
-
-`/features` keeps its canonical URL, single H1, breadcrumb schema, and existing `SEOHead` usage. Title and description updated to the new positioning. No SSR or prerendering.
-
-## 11. Files changed
-
-| File | Change |
-|---|---|
-| `src/data/featuresContent.ts` | **New** — shared config |
-| `src/pages/Features.tsx` | Rewritten to render from config |
-| `src/components/FeaturesList.tsx` | Rebuilt as customer-facing All Features index |
-| `src/components/FeaturesSection.tsx` | **Deleted** — orphaned, imported nowhere |
-| `src/components/AskAssetSafe.tsx` | Copy only |
-| `src/components/FAQAccordion.tsx` | Copy only |
-| `src/components/HomeFAQ.tsx` | Copy only |
-| `src/pages/Index.tsx` | Copy only |
-
-## 12. Verification
-
-`tsgo` typecheck + production build, then a written report covering: final hero copy · the three primary sections · retired terms removed · current terms used · unsupported claims removed · each of the four tabs reviewed · industries merged/trimmed · Secure Vault ⊃ Digital Access + Legacy Locker made explicit · Knowledge Hub and Asset Documentation terminology matched to the dashboard · no standalone Quick Notes · no tenant-sharing or portal claims · `/features-list` disposition · same-family wording adjusted · exact files changed · confirmation that no backend, security, or business logic was touched.
-
-**Label-parity check (your third refinement).** Before the config is treated as authoritative, every `name` in `featuresContent.ts` is grepped against the live in-app string in source — the dashboard/hub components and `subscriptionFeatures.ts`, not the audit notes. Any name with no source match is either corrected to the real label or removed. The report includes the resulting name → source-file table so a stale label cannot be silently baked in.
-
-Confirmed present in source at plan time: `Asset Documentation`, `Knowledge Hub`, `Photos & Videos`, `Documents & Records`, `Post Damage Report`, `Asset Values`, `Export Account Archive`, `Download All Files`, `Documentation Checklist`, `High-Value Items`, `Manual Entry Item`, `Property Profiles`, `Emergency Instructions`, `Authorized Users`, `Legacy Instructions`, `Contacts`, `VIP Contacts`, `Trusted Professionals`, `Medication List`, `Notes`, `Written Notes`, `Voice Notes`, `Family Traditions & Recipes`, `Memory Safe`, `Important Locations`, `Paint Codes`, `Upgrades & Repairs`, `Source Websites`, `Smart Calendar`. Knowledge Hub group headings match the in-app ones exactly: People & Care · Notes & Family · Property & Household · Planning.
+After implementation, report:
+- Final opening copy
+- Final three value-card titles and descriptions
+- Final CTA label and destination
+- Final Mission copy
+- Final closing statement
+- Updated SEO title/description/keywords if changed
+- Exact files changed
+- `tsgo` typecheck and production build result
+- Confirmation that no backend/product logic was touched
