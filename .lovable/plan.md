@@ -1,103 +1,208 @@
 # Asset Safe SEO Phase 1 — Post-Implementation Verification Audit
 
-Audit only. No files were changed.
+Commit under audit: `753bd792c73046ebf87bf2cdd2a05b6b6cb1cdc7`
+
+Audit only. No project files were changed.
 
 ---
 
 ## A. Executive Result
 
-### **PHASE 1 REQUIRES CORRECTION — commit `68922a60` is not present in this environment, and none of the Phase 1 changes are present in the current source or on production.**
+### **PHASE 1 REQUIRES CORRECTION — one concrete defect, everything else PASSES**
 
-The audit cannot be completed as specified, and the reason is not a tooling limitation: **the Phase 1 implementation does not exist here.**
+The commit is present, is `HEAD`, and is on `origin/main`. Seventeen of eighteen gates PASS, including the two that could not previously be verified: hydrated metadata is clean on every route tested, and the `data-rh="true"` treatment works exactly as designed.
 
-- `git cat-file -t 68922a60472e761054e771fe7fae997bf908dc28` → `fatal: could not get object info`. The object is not in the repository at all.
-- `git ls-remote origin` → no ref anywhere on the remote contains that SHA.
-- Current `HEAD` is `9cfb94f9aa13f7dd9b4af779fe165d7efdd41db1` ("Update plan"). Recent history: `9cfb94f9`, `48876256`, `9416f99d`, `be2cecce`, `194a8938`, `bc309d91`, `cfafe8ee` ("Updated hero subheadline text"), `79294df7`.
-- Every Phase 1 artifact is verifiably **absent** from both the working tree and live production (evidence in section B).
+**The single defect:**
 
-This is a different situation from the earlier Codex round-trip, where the workspace was *ahead* of the audited commit and the changes were genuinely present. Here the changes are present in **neither** place. Codex's work was either committed to a repository that is not this project's remote, or never pushed.
+`/press-news/digital-documentation-guide` was added to the sitemap by this commit, but that route renders through an early-return branch in `PressNews.tsx` that contains **no `SEOHead`**. Measured in the hydrated DOM: **0 canonical, 0 robots, 0 description**, and the `<title>` is `Press & Insurance News | Asset Safe` — identical to `/press-news`. Phase 1 therefore submits to Google a URL with no canonical, no indexability directive, no description, and a title duplicating its parent.
 
-**No PASS can be issued for any gate.** Reporting per-gate results against source that lacks the implementation would produce eighteen false FAILs and imply the implementation is broken, when the actual finding is that it is not here.
+This is narrow and attributable: the missing `SEOHead` predates Phase 1, but adding the URL to the sitemap is what converts a low-exposure page into an advertised one, and section 5 of the audit spec explicitly requires every sitemap URL to self-reference its canonical and be indexable. It fails that requirement.
 
-**Required next step before this audit can run:** get commit `68922a60` pushed to this project's `origin`, or have the Phase 1 changes applied in this workspace. Then re-request the audit — every check in sections 2 through 14 is well-specified and executable once the code exists.
+Nothing else requires correction. No regression, no new type or lint error, no unintended change.
+
+**One operational note, not a defect:** production still serves the pre-Phase-1 build — `https://getassetsafe.com/sitemap.xml` returns 34 URLs and `/subscription-agreement` returns HTTP 200 with no redirect. Frontend changes require a publish. All verification below was performed against the workspace at `753bd792` (dev server, restarted to clear a stale module cache) plus a clean production build.
 
 ---
 
-## B. Commit Verification — **FAIL**
+## B. Commit Verification — **PASS**
 
 | Check | Result |
 |---|---|
-| `68922a60…` exists as a git object | **No** — `git cat-file` fatal error |
-| `68922a60…` reachable from any local branch | **No** |
-| `68922a60…` present on any `origin` ref | **No** — `git ls-remote` returned no match |
-| Current HEAD | `9cfb94f9aa13f7dd9b4af779fe165d7efdd41db1` |
-| Additional SEO changes beyond the target commit | **None** — no SEO-related change of any kind is present |
+| `753bd792…` exists as a git object | **Yes** (`git cat-file -t` → `commit`) |
+| Current `HEAD` | `753bd792c73046ebf87bf2cdd2a05b6b6cb1cdc7` |
+| On remote | **Yes** — `refs/heads/main` and `HEAD` both at `753bd792` |
+| Commit message | "Implement phase 1 SEO foundation" |
+| Author / date | Asset Safe, 2026-08-27 10:27:26 -0500 |
+| Diff scope | 36 files, +93 / −111 |
+| Additional SEO changes beyond this commit | **None** — no uncommitted SEO change in the working tree |
 
-### Direct evidence that Phase 1 is absent
+Preceding commits (`6d89775b`, `e305345e`, `9cfb94f9`) are plan-file and unrelated work. Nothing dirty is attributed to Phase 1.
 
-Each row is a Phase 1 deliverable checked against the current source and, where applicable, live production:
-
-| Phase 1 deliverable | Expected after Phase 1 | Actual now | Source |
-|---|---|---|---|
-| Remove `keywords` from static head | absent | **still present** | `index.html:9` |
-| Remove `robots` from static head | absent | **still present** (`index, follow`) | `index.html:11` |
-| Remove static canonical | absent | **still present** (`https://getassetsafe.com/`) | `index.html:12` |
-| `data-rh="true"` on static og/twitter tags | present on all | **absent on all** | `index.html:17-30` |
-| Remove `keywords` prop from `SEOHead` | absent | **still present** | `SEOHead.tsx:11,25,46` |
-| Homepage title | `Asset Safe — Document Your Property, Belongings & Records` | `Asset Safe` | `index.html:7`; live `/features` raw title also `Asset Safe` |
-| Sitemap URL count | 37 | **34** | local `public/sitemap.xml`; live sitemap also **34** |
-| `/features-list`, `/video-help`, `/account-assistance` removed from sitemap | absent | **all three still listed** | `sitemap.xml:6,27,50` |
-| 6 new sitemap URLs (5 blog + press-news guide) | present | **all six absent** | `sitemap.xml` |
-| Fabricated `lastmod` removed from non-blog entries | omitted | **`2026-07-12` still on 29 entries** | `sitemap.xml` |
-| `priceValidUntil` removed | absent | **still present in both schemas** | `structuredData.ts:51,116` |
-| `/ai-valuation-guide` broken link fixed | replaced with `/asset-documentation` | **still `navigate('/ai-valuation-guide')`** | `EducationalResources.tsx:81` |
-| `/partnership` H1 added | one `<h1>` | **no `<h1>` in the file** | `src/pages/Partnership.tsx` |
-| `/subscription-agreement` app-level redirect | redirects to `/terms` | **live returns HTTP 200, no redirect, no `Location`** | live curl |
-| `public/_redirects` reliance removed | file removed or superseded | **file unchanged**, still declares the inert 301 | `public/_redirects:2` |
-
-Fifteen independent deliverables, fifteen absent. This is conclusive rather than circumstantial.
+All 36 changed files are `index.html`, `public/sitemap.xml`, `src/App.tsx`, `src/components/SEOHead.tsx`, `src/components/Footer.tsx`, `src/components/EducationalResources.tsx`, `src/utils/structuredData.ts`, and 29 page components — presentation and metadata only.
 
 ---
 
-## C. Raw Metadata Results — **NOT ASSESSABLE**
+## C. Raw Metadata Results — **PASS (as specified for B1)**
 
-Cannot be evaluated against the Phase 1 implementation. What the current (pre-Phase-1) state shows, for reference only:
+Raw HTML from the dev server, all eleven routes, byte-identical head:
 
-Live `https://getassetsafe.com/features` raw HTML still emits `<title>Asset Safe</title>` — the homepage title on a non-homepage route. The static head still carries one canonical pointing at `/`, one `index, follow` robots directive, one `keywords` tag, and the homepage og/twitter set. This matches the pre-implementation baseline documented in the gate audit exactly, with zero movement.
+| Tag | Count | Value |
+|---|---|---|
+| `<title>` | 1 | `Asset Safe` |
+| description | **0** | removed from `index.html` |
+| canonical | **0** | removed |
+| robots | **0** | removed |
+| keywords | **0** | removed |
+| og:title / og:description / og:url / og:image / og:type / og:site_name / og:locale | 1 each | homepage values, all carrying `data-rh="true"` |
+| twitter:card / url / title / description / image | 1 each | homepage values, all carrying `data-rh="true"` |
 
-Because production still serves the pre-Phase-1 `index.html`, a hydrated-DOM inspection against the live site would measure the old defect, not the fix. Running it would produce a misleading "FAIL" attributed to Phase 1.
+Exactly the intended B1 end state. The four conflict-causing tags are gone from the static head, so no route can emit a competing canonical, description, robots directive, or keywords tag. The og/twitter set correctly remains as the non-JS social fallback.
 
-## D. Hydrated Metadata Results — **NOT ASSESSABLE**
+**Known and accepted B1 limitation:** raw HTML still carries the homepage title and homepage og/twitter values on every route. Fixing that is B2's job and B2 was deliberately not implemented. Not a defect.
 
-Same reason. The `data-rh="true"` treatment cannot be verified because the attribute has not been added to any static tag (`index.html:17-30`). There is nothing to observe.
+## D. Hydrated Metadata Results — **PASS**
 
-This remains the highest-priority verification and is fully executable — Playwright is available in this sandbox and can inspect the hydrated DOM for all ten routes, counting all fourteen tag types — as soon as the implementation is present.
+Playwright, hydrated DOM, ten specified routes plus `/subscription-agreement`. Counts were identical on every route:
 
-## E. Page Metadata Verification — **NOT ASSESSABLE**
+| Tag | Count | `data-rh` |
+|---|---|---|
+| `<title>` | **1** | `null` (Helmet mutates the existing element rather than adding one) |
+| description | **1** | `true` |
+| canonical | **1** | `true` |
+| robots | **1** | `true` |
+| **keywords** | **0** | — |
+| og:title / og:description / og:url / og:image / og:type | **1 each** | `true` |
+| twitter:title / twitter:description / twitter:image / twitter:card | **1 each** | `true` |
 
-None of the three approved titles is present in source. Note for the eventual re-audit: the title-composition expression at `SEOHead.tsx:34` conditionally appends `| Asset Safe`, and the approved homepage title contains the string "Asset Safe", so that branch will not append a suffix — but the *rendered* string must be confirmed empirically rather than reasoned about, exactly as the request specifies.
+Every PASS criterion met:
 
-## F. Noindex Verification — **NOT ASSESSABLE**
+- exactly one title — **yes**
+- exactly one description — **yes**
+- exactly one canonical — **yes**
+- zero keywords tags — **yes**, on all eleven routes
+- exactly one coherent OG set — **yes**
+- exactly one coherent Twitter set — **yes**
+- no stale homepage canonical on deeper routes — **yes**, every canonical self-references its own route
+- no stale homepage description on deeper routes — **yes**, every description is route-specific
 
-All three routes remain indexable. `/features-list` is still explicitly `noIndex={false}` in `App.tsx`; `/video-help` and `/account-assistance` still carry no `noIndex` on their main views. All three remain in the sitemap. `robots.txt` still carries `Allow: /features-list` (line 67) and `Allow: /video-help` (line 86) and no `Disallow` for any of the three — so the crawlability precondition is intact, but there is no `noindex` for a crawler to find.
+**`data-rh="true"` treatment behaves exactly as intended.** Helmet claimed all thirteen marked static tags on mount and replaced each with its own route-specific value. Critically, **no marked tag was removed without a replacement** — the specific failure mode of this technique. Every og/twitter tag is present post-hydration with route-correct content, e.g. on `/features` `og:title` resolves to `Features | Asset Safe` and `og:url` to `https://getassetsafe.com/features`, not the homepage values baked into `index.html`.
 
-## G. Sitemap Verification — **FAIL (unchanged)**
+### Caveat on how this was measured
 
-34 URLs live and local, not 37. The three noindex routes are present rather than absent. All six required additions are missing. Fabricated `2026-07-12` timestamps remain on the non-blog entries. The five blog entries that are listed do carry genuine dates from `Blog.tsx`. `robots.txt:95` still correctly declares `Sitemap: https://getassetsafe.com/sitemap.xml`.
+The first pass returned pre-Phase-1 values (old titles, `keywords` present). Cause: the dev server held a stale module graph from before the commit landed in the working tree — it was still serving the previous `SEOHead`, which no longer has a `keywords` prop at all. After restarting the dev server, results were consistent and correct. All figures above are from the post-restart run. Not a code defect; an environment artifact worth recording so the numbers are reproducible.
 
-## H. Internal-Link Verification — **NOT ASSESSABLE / unchanged**
+## E. Page Metadata Verification — **PASS**
 
-No Phase 1 link additions are present. Pricing still links only to `/terms` and `/legal`; Claims still has zero internal links; Legacy Locker still links only to `/pricing`; Footer still has no `/partnership` link. No new broken links were introduced, trivially, because no links were changed.
+Rendered values, read from the hydrated DOM, not from props.
 
-The pre-existing broken link is still live: `EducationalResources.tsx:81` → `/ai-valuation-guide`, one occurrence, undefined in the router, resolving to a soft 404 at HTTP 200. Its intended replacement `/asset-documentation` is a valid indexable route, but the swap has not been made.
+**Homepage** — `<title>` resolves to:
 
-## I. Structured-Data Verification — **FAIL (unchanged)**
+```
+Asset Safe — Document Your Property, Belongings & Records
+```
 
-`priceValidUntil: "2026-12-31"` remains at `structuredData.ts:51` (active `productSchema`, used by `/pricing` and `/gift`) and `:116` (dormant `softwareApplicationSchema`). No replacement date was introduced, correctly — but only because nothing was touched.
+Exact match. Description:
 
-Correctly-still-unchanged items: `softwareApplicationSchema` remains imported nowhere and therefore inert, so its `operatingSystem: "Web, iOS, Android"` (line 110) is not an enabled claim. No price centralization was performed — `18.99` remains hardcoded at `structuredData.ts:91` and `:114`.
+```
+Keep your property, belongings, records, and important information documented and organized in one secure place — ready whenever you need them.
+```
 
-`organizationSchema.sameAs` unchanged as required. Currently configured, reported without modification:
+Exact match. **No accidental `| Asset Safe` suffix** — the `SEOHead.tsx:34` expression short-circuits on `title.includes('Asset Safe')`. `og:title` and `twitter:title` resolve to the same full string, and the stale `browserTitle="Asset Safe"` / `socialTitle="Get Asset Safe"` overrides were removed. Visible hero unchanged: the single `<h1>` still reads "Everything you love. Protected in one place." — no hero copy is in the diff.
+
+**Pricing** — `<title>`:
+
+```
+Asset Safe Pricing | One Plan. Everything Included.
+```
+
+Exact match. `<h1>` remains `One Simple Plan. Everything Included.` and there is **exactly one `<h1>`** on the page. No storage figure appears in the SEO title or description. No pricing logic changed — the `Pricing.tsx` diff is the `SEOHead` block, a `Link` import, and one contextual paragraph; `18.99` and all Stripe/checkout code are untouched.
+
+**Legacy Locker** — `<title>`:
+
+```
+Legacy Locker | Digital Legacy & Important Instructions
+```
+
+Exact match. Description:
+
+```
+Organize important instructions and digital legacy information for the people you trust, alongside the records that can help provide continuity when needed.
+```
+
+Within approved boundaries. The retired `keywords` string containing `password storage` and `estate planning vault` was **removed**. The new copy introduces no password-manager claim, no financial-credential storage claim, no estate-planning-service claim, and no legal advice. Wording stays hedged ("can help provide continuity").
+
+## F. Noindex Verification — **PASS**
+
+| Route | Reachable | Content renders | robots (hydrated) | In sitemap | robots.txt |
+|---|---|---|---|---|---|
+| `/account-assistance` | Yes | Yes — `<h1>` "Continuity & Account Assistance" | **1 × `noindex, nofollow`** | **Absent** | Not disallowed |
+| `/video-help` | Yes | Yes | **1 × `noindex, nofollow`** | **Absent** | `Allow: /video-help` (line 86) |
+| `/features-list` | Yes | Yes — `<h1>` "All Features" | **1 × `noindex, nofollow`** | **Absent** | `Allow: /features-list` (line 67) |
+
+Exactly one robots directive on each, with no competing `index, follow` — possible only because the static `index.html` robots tag was removed. Ordering was respected: B1 and the noindex flips shipped in the same commit, so no intermediate contradictory state was ever deployed.
+
+`/account-assistance` was tested in its **main form state**, not the success state: the audited render carried the "Continuity & Account Assistance" H1 and the request form. The `noIndex` was added to the main-view `SEOHead` at `AccountAssistance.tsx:186`; the success-state block already had it.
+
+`/features-list` correctly had `noIndex={false}` deleted from its `RouteMeta` so it inherits the `true` default.
+
+## G. Sitemap Verification — **PASS on count and content; one URL fails the per-URL quality check**
+
+**Exactly 37 `<loc>` entries, 37 unique.** No duplicates.
+
+Three noindex routes **absent**: `/features-list`, `/video-help`, `/account-assistance`. All six required additions **present**:
+
+`/blog/estate-planning-digital-vault` · `/blog/insurance-claims-documentation` · `/blog/organizing-receipts-warranties` · `/blog/protecting-high-value-items` · `/blog/disaster-preparedness-checklist` · `/press-news/digital-documentation-guide`
+
+### Per-URL results (all 37 loaded and inspected)
+
+**36 of 37 PASS** — render real content, one self-referencing canonical, one `index, follow`, no soft 404, no unexpected redirect, canonical host `getassetsafe.com` throughout.
+
+**1 of 37 FAILS — `/press-news/digital-documentation-guide`:**
+
+| Measured | Value |
+|---|---|
+| canonical elements | **0** |
+| robots | **none** |
+| description | **none** |
+| `<title>` | `Press & Insurance News | Asset Safe` — same as `/press-news` |
+
+Root cause: `src/App.tsx:467` maps this path to `<PressNews />`, and `PressNews.tsx:329` early-returns a standalone article view when `location.pathname === '/press-news/digital-documentation-guide'`. That returned JSX block renders `Navbar`, the article card, and `Footer` — **but no `SEOHead`**. The title observed is the residue of the list view's Helmet render before the effect at line 319 selects the featured article; once the early-return branch takes over, Helmet unmounts its tags and nothing replaces them.
+
+The page is reachable and its content renders correctly, so this is a metadata defect, not a broken page.
+
+### lastmod handling — **PASS**
+
+Blog `lastmod` values come from genuine stored dates. Verified against `src/pages/Blog.tsx` and cross-checked against `src/pages/BlogPost.tsx` — the same ten dates appear in both, and each sitemap entry matches its post:
+
+`2026-02-01`, `2025-01-22`, `2025-01-20`, `2025-01-18`, `2025-01-15`, `2025-01-10`, `2025-01-05`, `2024-12-28`, `2024-12-20`, `2024-12-15`
+
+All 27 non-blog entries have `<lastmod>` **removed**. The fabricated `2026-07-12` no longer appears anywhere in the file. **No build date, deploy date, or current date was substituted** — the audit ran on 2026-08-27 and no `2026-08-27` value exists in the sitemap. `changefreq` and `priority` were left as-is, which is harmless.
+
+## H. Internal-Link Verification — **PASS**
+
+| Link | Present | Location |
+|---|---|---|
+| Pricing → `/features` | **Yes** | `Pricing.tsx:390` — "review the full Asset Safe feature set" |
+| Claims → `/photography-guide` | **Yes** | `Claims.tsx:97` — inside the photo-documentation block |
+| Resources → valid resource pages | **Yes** | `EducationalResources.tsx` now routes to `/photography-guide`, `/claims`, `/asset-documentation`, plus the in-page `documentation-checklist` anchor |
+| Footer → `/partnership` | **Yes** | `Footer.tsx:122` |
+| Legacy Locker → `/features` | **Yes** | `LegacyLockerInfo.tsx:85` — "secure records and vault features" |
+
+No broken link was introduced. `EducationalResources.tsx` was refactored from title-string comparison to a declarative `href` / `anchor` field per resource, which removes the class of bug that produced the original defect. All four targets (`/photography-guide`, `/claims`, `/asset-documentation`, and the anchor) are real.
+
+### `/ai-valuation-guide` defect resolution — **PASS**
+
+`rg "ai-valuation"` across `src/` and `public/` returns **zero occurrences**. It no longer exists as a public navigation target anywhere. The replacement `/asset-documentation` is a defined, indexable route that loads with title `Asset Documentation Types | Asset Safe` and a correct self-referencing canonical.
+
+## I. Structured-Data Verification — **PASS**
+
+- `priceValidUntil` **removed** from both `productSchema` (`structuredData.ts:51`) and `softwareApplicationSchema` (`:116`). Zero occurrences remain.
+- **No replacement date introduced** — the diff deletes the lines outright.
+- `softwareApplicationSchema` remains **unused/disabled** — imported nowhere.
+- **No unsupported iOS/Android claim was newly enabled.** Its `operatingSystem: "Web, iOS, Android"` is unchanged and still inert because the schema is not imported. `webApplicationSchema` still correctly declares `"operatingSystem": "Web Browser"`.
+- **No price centralization or refactoring performed** — `18.99` remains hardcoded at `structuredData.ts:91` and `:114`, as approved.
+
+`organizationSchema.sameAs` **left unchanged**, as required since social ownership was not confirmed. Currently configured, reported without modification:
 
 ```
 https://www.facebook.com/assetsafe
@@ -105,76 +210,109 @@ https://twitter.com/assetsafe
 https://www.linkedin.com/company/assetsafe
 ```
 
-These still disagree with the footer handles (`facebook.com/getassetsafe`, `x.com/AssetSafe`, `instagram.com/getassetsafe`), and Instagram is still absent from `sameAs`. Left alone pending ownership confirmation, as approved.
+These still differ from the footer handles (`facebook.com/getassetsafe`, `x.com/AssetSafe`, `instagram.com/getassetsafe`), and Instagram remains absent from `sameAs`. Correctly deferred.
 
-## J. Retired Route Verification — **FAIL**
+## J. Retired Route Verification — **PASS (client-side SPA navigation, not an HTTP redirect)**
 
-Live behavior of `https://getassetsafe.com/subscription-agreement`: **HTTP 200, empty `Location`, no redirect of any kind.** It is neither (A) an HTTP 301/302 nor (B) a client-side SPA navigation to `/terms` — it is the SPA shell resolving to the wildcard route and rendering NotFound at HTTP 200, i.e. a soft 404. The claimed application-level redirect is not deployed. `public/_redirects:2` still declares the 301 and remains inert on Lovable hosting.
+Implementation: `src/App.tsx:379` adds `<Route path="/subscription-agreement" element={<Navigate to="/terms" replace />} />`.
+
+Observed behavior on the workspace build: requesting `/subscription-agreement` ends at **`/terms`**. The Terms page renders correctly — `<h1>` "Asset Safe Terms and Conditions", title `Terms and Conditions | Asset Safe`, canonical `https://getassetsafe.com/terms`. It **no longer renders NotFound**. No redirect loop (`replace` also keeps it out of history).
+
+**Exact classification: (B) client-side SPA navigation.** The initial HTTP response is **200** serving the SPA shell; React Router then replaces the location. This is **not** an HTTP 301 or 302 — no `Location` header is sent, and `public/_redirects` remains inert on Lovable hosting.
+
+Practical consequence, stated plainly: for a JS-executing crawler this consolidates correctly, because the resulting page emits the `/terms` canonical. For a non-JS crawler it is a 200 response, so it is a soft redirect rather than a true one. Since `/subscription-agreement` is not in the sitemap and has no known inbound links, exposure is minimal — but it should not be described as an HTTP redirect. A real 301 would require hosting-level rules or B2-style static output.
 
 ## K. B2 Probe Result — **B2 REMAINS UNVERIFIED**
 
-Two independent blockers:
+The probe was not run. It requires creating `public/seo-probe/index.html`, building, and deploying to preview — a source-file write and a deployment, both outside audit-only scope. Deployment is also user-initiated, not something this audit can trigger.
 
-1. **Audit-only scope.** The probe requires creating `public/seo-probe/index.html`, a build, and a preview deployment. Plan/audit mode permits no source file writes and no state-changing commands. Deployment is also user-gated, not agent-initiated.
-2. **No Phase 1 baseline.** Even if the probe ran, its result would apply to a codebase that does not contain Phase 1, so pairing the two would be misleading.
+B2 was correctly **not implemented**: `vite.config.ts` has no prerender plugin and the build remains a bare `vite build`. Nothing regressed, and no partial B2 artifact was introduced.
 
-B2 was **not** implemented (no prerender plugin in `vite.config.ts`, build is still a bare `vite build`), which is correct — the gate audit deferred it pending this probe. Nothing regressed.
+The probe procedure stands unchanged and needs an explicit build-mode go-ahead: add the marker file on a branch, deploy to preview only, `curl` both `/seo-probe` and `/seo-probe/`, PASS only if `SEO-PROBE-OK` is returned instead of the SPA shell, then delete the file regardless of outcome.
 
-The probe procedure from the gate audit stands unchanged and remains the right gate: add the marker file on a branch, deploy to preview only, `curl` both `/seo-probe` and `/seo-probe/`, PASS only if the marker string is returned instead of the ~3068-byte SPA shell, then delete the file regardless of outcome. It needs an explicit build-mode approval to execute.
+## L. Build / Type / Lint Attribution — **PASS — no Phase 1-created errors**
 
-## L. Build / Type / Lint Attribution — **PRE-EXISTING (attribution certain)**
+| Check | Result |
+|---|---|
+| `vite build` | **PASS** — exit 0, built in 19.22s. Only the pre-existing chunk-size advisory. |
+| `tsc --noEmit -p tsconfig.app.json` | **PASS — zero errors.** No output at all. |
 
-Attribution is unambiguous here precisely because the Phase 1 commit is absent: any lint or TypeScript failure observable in this workspace is present at `9cfb94f9`, which does not contain Phase 1. Therefore the reported `npm run lint` failures and the `Navbar.tsx` handler type mismatch are **pre-existing** relative to `68922a60` and are **not** attributable to Phase 1.
+The previously reported `Navbar.tsx` handler type mismatch **does not reproduce** at this commit, and `Navbar.tsx` is **not in the Phase 1 diff** — so under either reading it is **pre-existing**, not introduced by Phase 1.
 
-The stronger claim — that Phase 1 introduced *no new* errors — cannot be made from here, since the commit's contents cannot be compiled. That specific sub-check must be re-run once the code is present. The project also permits relaxed TS settings and `@ts-nocheck` by standing policy, so pre-existing type noise is expected and is not a Phase 1 signal either way.
+Lint: any remaining `npm run lint` findings are **pre-existing**. Phase 1 touched 36 presentation files, and none of the reported broad-repository lint categories originate in them. The project also permits relaxed TS settings and `@ts-nocheck` by standing policy, so pre-existing lint noise is not a Phase 1 signal. Not fixed, per instructions.
 
-## M. Regression Check — **PASS (vacuously)**
+**No new TypeScript or lint error is attributable to Phase 1.**
 
-No file in the project has been modified by Phase 1, so there is categorically no regression to authentication, account access, Supabase, RLS, billing, Stripe, subscription pricing, subscription storage, Secure Vault, encryption, checkout, or gifting. `AuthContext`, `SubscriptionContext`, `vaultKey.ts`, `encryption.ts`, `recoveryEncryption.ts`, and all `supabase/functions/` are untouched.
+## M. Regression Check — **PASS**
 
-This PASS carries no information about the Phase 1 commit itself. It must be re-run against the real diff.
+Diff inspection of all 36 changed files. **Zero** files touching authentication, account access, Supabase, RLS, billing, Stripe, subscription pricing, subscription storage, Secure Vault, encryption, checkout, or gifting logic.
+
+`AuthContext`, `SubscriptionContext`, `AccountContext`, `StepUpContext`, `vaultKey.ts`, `encryption.ts`, `recoveryEncryption.ts`, `delegateGrants.ts`, `subscriptionFeatures.ts`, all `supabase/functions/`, and every migration are **untouched**.
+
+Two files whose names could look sensitive were checked line by line and are metadata-only:
+
+- `src/pages/Gift.tsx` — single deletion, the `keywords` prop. No gifting logic.
+- `src/pages/Pricing.tsx` — `SEOHead` block, a `Link` import, one contextual paragraph. No price, plan, or checkout change.
+
+`src/App.tsx` has exactly two changes: removing `noIndex={false}` from the `/features-list` route, and adding the `/subscription-agreement` → `/terms` `Navigate`. No protected-route, guard, or provider change.
 
 ---
 
 ## N. Findings Requiring Correction
 
-Exactly one, and it is procedural rather than a code defect:
+One, and it is narrow:
 
-1. **Commit `68922a60472e761054e771fe7fae997bf908dc28` is not present in this project's repository or on its remote, and none of its changes are present in the working tree or on production.** The Phase 1 implementation must be pushed to this project's `origin` (or applied in this workspace) before it can be verified.
+**1. `/press-news/digital-documentation-guide` is in the sitemap but emits no head metadata.**
 
-No code defects are attributable to the Phase 1 implementation, because no Phase 1 implementation is available to inspect. The fifteen absences in section B are evidence of a missing delivery, not of faulty work.
+- Route: `src/App.tsx:467` → `<PressNews />`
+- Cause: the early-return article branch at `src/pages/PressNews.tsx:329` renders `Navbar` / article card / `Footer` with **no `SEOHead`**
+- Measured hydrated DOM: 0 canonical, 0 robots, 0 description; `<title>` duplicates `/press-news`
+- Impact: an advertised sitemap URL with no canonical (so Google picks its own), no indexability directive, and a title identical to its parent — a duplicate-title signal between two indexable URLs
+- Fails audit spec section 5 ("canonical self-references correctly", "page is indexable")
+
+Not listed as defects, for the record: the raw-HTML homepage og/twitter fallback (intended B1 behavior, B2's job) and the client-side rather than HTTP `/subscription-agreement` redirect (accurately classified in section J, and the strongest option available without B2).
 
 ## O. Final Verdict
 
 ### **PHASE 1 REQUIRES CORRECTION**
 
-Phase 1 cannot be closed. The blocker is delivery, not quality: the implementation is unavailable in this environment and its quality is therefore unknown — neither confirmed good nor shown to be defective.
-
-Per-gate summary:
+One defect, one file, one missing component. Everything else is verified.
 
 | # | Gate | Result |
 |---|---|---|
-| 1 | Exact Phase 1 commit verified | **FAIL** — object absent locally and on remote |
-| 2 | Raw metadata clean | NOT ASSESSABLE |
-| 3 | Hydrated metadata clean | NOT ASSESSABLE |
-| 4 | Canonicals singular and self-referencing | NOT ASSESSABLE |
-| 5 | OG/Twitter singular after hydration | NOT ASSESSABLE |
-| 6 | Keywords removed | NOT ASSESSABLE (still present) |
-| 7 | Homepage metadata correct | NOT ASSESSABLE |
-| 8 | Pricing metadata correct | NOT ASSESSABLE |
-| 9 | Legacy Locker metadata correct | NOT ASSESSABLE |
-| 10 | Three noindex routes correct | NOT ASSESSABLE (still indexable) |
-| 11 | Sitemap contains exactly 37 correct URLs | **FAIL** — 34, unchanged |
-| 12 | Internal links correct | NOT ASSESSABLE (unchanged) |
-| 13 | Broken AI valuation link resolved | **FAIL** — still present |
-| 14 | Partnership H1 / inbound link correct | **FAIL** — no H1, still orphaned |
-| 15 | Structured-data cleanup correct | **FAIL** — `priceValidUntil` still present |
-| 16 | Retired `/subscription-agreement` handled | **FAIL** — live HTTP 200 soft 404 |
-| 17 | No Phase 1-created build/type errors | Pre-existing failures confirmed; Phase 1 delta NOT ASSESSABLE |
-| 18 | No auth/billing/vault regressions | **PASS** (vacuous) |
+| 1 | Exact Phase 1 commit verified | **PASS** |
+| 2 | Raw metadata clean | **PASS** |
+| 3 | Hydrated metadata clean | **PASS** |
+| 4 | Canonicals singular and self-referencing | **PASS** on all audited routes; **FAIL** on `/press-news/digital-documentation-guide` (0 canonicals) |
+| 5 | OG/Twitter singular after hydration | **PASS** |
+| 6 | Keywords removed | **PASS** — 0 on every route |
+| 7 | Homepage metadata correct | **PASS** |
+| 8 | Pricing metadata correct | **PASS** |
+| 9 | Legacy Locker metadata correct | **PASS** |
+| 10 | Three noindex routes correct | **PASS** |
+| 11 | Sitemap contains exactly 37 correct URLs | **PASS** on count/membership/lastmod; **FAIL** on per-URL quality for 1 of 37 |
+| 12 | Internal links correct | **PASS** |
+| 13 | Broken AI valuation link resolved | **PASS** |
+| 14 | Partnership H1 / inbound link correct | **PASS** |
+| 15 | Structured data cleanup correct | **PASS** |
+| 16 | Retired `/subscription-agreement` handled | **PASS** (client-side navigation, correctly classified) |
+| 17 | No Phase 1-created build/type errors | **PASS** |
+| 18 | No auth/billing/vault regressions | **PASS** |
 
 **B2: B2 REMAINS UNVERIFIED.**
 
-The FAILs at gates 11, 13, 14, 15, and 16 are the pre-Phase-1 baseline persisting, not new damage. They are the same defects the gate audit identified. Nothing was implemented, and nothing was fixed.
+### Partnership page (gate 14 detail)
 
-Nothing was changed. Push commit `68922a60` to this project's remote and re-request the audit; every check above is ready to execute against it.
+Exactly **one `<h1>`**: "Partnership Proposal: Asset Safe x RE/MAX". Implemented by changing `CardTitle` to `<h1>` at `Partnership.tsx:24-26` while keeping the same `text-3xl font-bold text-primary` classes — so the visual header is unchanged and not duplicated. The page now has a legitimate public inbound link from the site-wide footer (`Footer.tsx:122`), present on every page.
+
+### Robots.txt (audit section 11)
+
+`public/robots.txt` was **not modified** by this commit. None of `/account-assistance`, `/video-help`, or `/features-list` is disallowed — all three stay crawlable so Google can read the `noindex`. `Allow: /features-list` (line 67) and `Allow: /video-help` (line 86) are intact, and the sitemap declaration at line 95 still reads `Sitemap: https://getassetsafe.com/sitemap.xml`. Correct.
+
+### To close Phase 1
+
+Add a `SEOHead` to the `PressNews.tsx` early-return article branch with a canonical of `https://getassetsafe.com/press-news/digital-documentation-guide`, an article-specific title, and its own description. Alternatively, remove the URL from the sitemap. The first is preferable — the guide is genuine content and was added to the sitemap deliberately.
+
+After that fix, and once the changes are published to production, the verdict becomes **PHASE 1 VERIFIED — READY TO CLOSE, B2 DEFERRED**.
+
+Nothing was changed in this audit.
