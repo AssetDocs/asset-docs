@@ -4,11 +4,18 @@ import { CheckIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
+interface FeatureGroup {
+  title: string;
+  items: string[];
+}
+
 interface SubscriptionPlanProps {
   title: string;
   price: string;
   description: string;
   features: string[];
+  featureGroups?: FeatureGroup[];
+  featuresLead?: string;
   recommended?: boolean;
   buttonText?: string;
   onClick?: () => void;
@@ -22,6 +29,8 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
   price,
   description,
   features,
+  featureGroups,
+  featuresLead,
   recommended = false,
   buttonText = "Subscribe",
   onClick,
@@ -44,16 +53,40 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
         </div>
         <p className="text-muted-foreground mt-2">{description}</p>
       </CardHeader>
-      <CardContent className="flex-grow">
-        <ul className="space-y-3">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-start">
-              <CheckIcon className="h-5 w-5 text-brand-orange flex-shrink-0 mr-2" />
-              <span className="text-muted-foreground whitespace-pre-line">{feature}</span>
-            </li>
-          ))}
-        </ul>
+      <CardContent className="flex-grow text-left">
+        {featuresLead && (
+          <p className="text-sm font-medium text-foreground mb-5">{featuresLead}</p>
+        )}
+        {featureGroups && featureGroups.length > 0 ? (
+          <div className="space-y-5">
+            {featureGroups.map((group) => (
+              <div key={group.title}>
+                <h4 className="text-sm font-semibold text-foreground tracking-wide mb-1.5">
+                  {group.title}
+                </h4>
+                <ul className="space-y-1.5">
+                  {group.items.map((item) => (
+                    <li key={item} className="flex items-start">
+                      <CheckIcon className="h-4 w-4 text-brand-orange flex-shrink-0 mr-2 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {features.map((feature, index) => (
+              <li key={index} className="flex items-start">
+                <CheckIcon className="h-5 w-5 text-brand-orange flex-shrink-0 mr-2" />
+                <span className="text-muted-foreground whitespace-pre-line">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </CardContent>
+
       <CardFooter className="pt-4 flex-col items-stretch gap-0">
         {footer ? footer : (
           <Button

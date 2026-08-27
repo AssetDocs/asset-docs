@@ -143,22 +143,43 @@ const Pricing: React.FC = () => {
     }
   };
 
-  const unifiedFeatures = [
-    "Unlimited properties",
-    "25 GB Secure Storage Included",
-    "Photo, video & document uploads",
-    "Room-by-room inventory organization",
-    "Secure Vault (Legacy & Digital Access)",
-    "Legacy Locker (family continuity & instructions)",
-    "Authorized Users",
-    "Emergency Access Sharing",
-    "Voice notes, damage reports, exports",
-    "Memory Safe & Quick Notes",
-    "MFA, full web platform access",
-    "Family Archive",
-    "Property Profiles",
-    "Insights & Tools"
+  const unifiedFeatureGroups = [
+    {
+      title: "Asset Documentation",
+      items: [
+        "Unlimited properties",
+        "Photos, videos, receipts & documents",
+        "Asset values, high-value items & reports"
+      ]
+    },
+    {
+      title: "Knowledge Hub",
+      items: [
+        "Contacts, notes & household information",
+        "Smart Calendar, reminders & important records",
+        "Family information, memories & property details"
+      ]
+    },
+    {
+      title: "Secure Vault",
+      items: [
+        "Legacy Locker",
+        "Digital Access",
+        "Legacy Instructions & continuity planning"
+      ]
+    },
+    {
+      title: "Access & Security",
+      items: [
+        "Authorized Users",
+        "Emergency Instructions",
+        "MFA & account protection"
+      ]
+    }
   ];
+
+  const unifiedFeatures = unifiedFeatureGroups.flatMap((g) => g.items);
+
 
   const giftPlan = {
     title: "Gift – Asset Safe Plan",
@@ -260,6 +281,9 @@ const Pricing: React.FC = () => {
                     price={billingCycle === 'monthly' ? '$18.99' : '$189'}
                     description="No long-term contract. Cancel anytime."
                     features={unifiedFeatures}
+                    featureGroups={unifiedFeatureGroups}
+                    featuresLead="25 GB Secure Storage Included"
+
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                     recommended={true}
                     footer={!subscriptionStatus.subscribed ? (
