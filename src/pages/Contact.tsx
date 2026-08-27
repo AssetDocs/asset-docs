@@ -69,7 +69,6 @@ const Contact: React.FC = () => {
       <SEOHead
         title="Contact Asset Safe"
         description="Contact Asset Safe for product questions, account support, continuity assistance, or partnership inquiries."
-        keywords="contact asset safe, customer support, property documentation help, account support, partnership inquiry"
         canonicalUrl="https://getassetsafe.com/contact"
         structuredData={breadcrumbSchema([
           { name: 'Home', url: 'https://getassetsafe.com/' },

@@ -284,7 +284,6 @@ const SampleDashboard: React.FC = () => {
       <SEOHead
         title="Sample Dashboard | Asset Safe"
         description="Preview how Asset Safe organizes assets, records, property details, memories, and continuity tools."
-        keywords="asset safe demo, sample dashboard, property documentation preview, home inventory demo, asset safe features preview"
         canonicalUrl="https://getassetsafe.com/sample-dashboard"
       />
       <Navbar />

@@ -13,7 +13,6 @@ const Partnership: React.FC = () => {
       <SEOHead
         title="Partnership Opportunities | Asset Safe"
         description="Explore partnership opportunities with Asset Safe. Insurance, real estate, and home service professionals welcome. Grow together."
-        keywords="asset safe partnership, real estate partnership, insurance partnership, home service partnership, business collaboration"
         canonicalUrl="https://getassetsafe.com/partnership"
       />
       <div className="container mx-auto px-6 py-12">
@@ -23,9 +22,9 @@ const Partnership: React.FC = () => {
             <CardHeader className="text-center">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <span className="text-3xl">🏡</span>
-                <CardTitle className="text-3xl font-bold text-primary">
+                <h1 className="text-3xl font-bold text-primary">
                   Partnership Proposal: Asset Safe x RE/MAX
-                </CardTitle>
+                </h1>
               </div>
               <div className="space-y-2 text-muted-foreground">
                 <p><strong>Presented to:</strong> Chris Harden, RE/MAX Broker</p>

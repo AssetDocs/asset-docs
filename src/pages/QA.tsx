@@ -31,7 +31,6 @@ const QA: React.FC = () => {
       <SEOHead
         title="FAQ - Common Questions Answered | Asset Safe"
         description="Find answers to common questions about digital home inventory, insurance documentation, Legacy Locker, pricing, and account security at Asset Safe."
-        keywords="asset safe faq, home inventory questions, insurance documentation help, legacy locker faq, digital vault questions, property documentation support"
         canonicalUrl="https://getassetsafe.com/qa"
         structuredData={structuredData}
       />

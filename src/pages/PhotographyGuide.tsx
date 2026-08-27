@@ -16,7 +16,6 @@ const PhotographyGuide: React.FC = () => {
       <SEOHead
         title="Photography Guide for Documentation | Asset Safe"
         description="Best practices for photographing your assets. Lighting, angles, and tips to create insurance-ready property documentation photos."
-        keywords="asset photography guide, home inventory photos, insurance documentation photos, property photography tips, how to photograph belongings"
         canonicalUrl="https://getassetsafe.com/photography-guide"
         structuredData={breadcrumbSchema([
           { name: 'Home', url: 'https://getassetsafe.com/' },

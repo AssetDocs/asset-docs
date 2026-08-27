@@ -123,7 +123,6 @@ const Blog = () => {
       <SEOHead 
         title="Asset Safe Blog"
         description="Guides and insights on organizing assets, important records, property details, memories, and continuity planning."
-        keywords="property documentation blog, home inventory tips, estate planning insights, insurance claims guide, asset protection articles"
         canonicalUrl="https://getassetsafe.com/blog"
         structuredData={{
           "@context": "https://schema.org",

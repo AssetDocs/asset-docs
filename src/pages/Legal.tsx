@@ -12,7 +12,6 @@ const Legal: React.FC = () => {
       <SEOHead
         title="Legal & Ethical Considerations | Asset Safe"
         description="Important legal disclaimers about property valuations, documentation standards, and ethical considerations for Asset Safe users and their insurance claims."
-        keywords="asset safe legal, valuation disclaimer, property documentation legal, ethical considerations, insurance documentation guidelines"
         canonicalUrl="https://getassetsafe.com/legal"
       />
       <Navbar />

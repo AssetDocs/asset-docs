@@ -47,8 +47,7 @@ export const productSchema = (planName: string, price: string, description: stri
     "price": price,
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
-    "url": "https://getassetsafe.com/pricing",
-    "priceValidUntil": "2026-12-31"
+    "url": "https://getassetsafe.com/pricing"
   }
 });
 
@@ -112,8 +111,7 @@ export const softwareApplicationSchema = {
   "offers": {
     "@type": "Offer",
     "price": "18.99",
-    "priceCurrency": "USD",
-    "priceValidUntil": "2026-12-31"
+    "priceCurrency": "USD"
   }
 };
 

@@ -8,7 +8,6 @@ interface SEOHeadProps {
   description?: string;
   socialTitle?: string;
   socialDescription?: string;
-  keywords?: string;
   ogImage?: string;
   canonicalUrl?: string;
   type?: 'website' | 'article';
@@ -22,7 +21,6 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   description = 'Your assets, important information, records, and memories — organized, protected, and ready when you need them.',
   socialTitle,
   socialDescription,
-  keywords = 'asset documentation, important records, property documentation, insurance records, secure vault, asset protection, family information, continuity planning',
   ogImage = socialCardAsset.url,
   canonicalUrl,
   type = 'website',
@@ -43,7 +41,6 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <title>{documentTitle}</title>
       <meta name="title" content={fullTitle} />
       <meta name="description" content={description} />
-      <meta name="keywords" content={keywords} />
       <link rel="canonical" href={fullCanonicalUrl} />
       <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow"} />
       <meta name="language" content="English" />

@@ -57,9 +57,8 @@ const LegacyLockerInfo = () => {
   return (
     <>
       <SEOHead
-        title="Legacy Locker | Asset Safe"
-        description="Legacy Locker helps organize important access details, instructions, and records for trusted continuity planning."
-        keywords="legacy locker, digital estate vault, password storage, estate planning vault, secure digital vault, trusted contacts, encrypted storage, digital legacy"
+        title="Legacy Locker | Digital Legacy & Important Instructions"
+        description="Organize important instructions and digital legacy information for the people you trust, alongside the records that can help provide continuity when needed."
         canonicalUrl="https://getassetsafe.com/legacy-locker-info"
         structuredData={structuredData}
       />
@@ -81,6 +80,9 @@ const LegacyLockerInfo = () => {
                 </p>
                 <p className="text-gray-700 leading-relaxed">
                   It provides a centralized, organized place for critical information that is often scattered, forgotten, or inaccessible when it's needed most.
+                </p>
+                <p className="text-gray-700 leading-relaxed mt-4">
+                  It works alongside Asset Safe's <Link to="/features" className="text-brand-blue underline">secure records and vault features</Link>, so continuity details stay connected to the documentation people may need.
                 </p>
               </ExpandableBox>
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -33,7 +34,6 @@ const Claims: React.FC = () => {
       <SEOHead
         title="Claims Documentation | Asset Safe"
         description="Learn how organized photos, records, receipts, and property details can support insurance claim preparation."
-        keywords="insurance claim documentation, what documents for insurance claim, proof of loss, insurance claim photos, home inventory for claim, property damage claim"
         canonicalUrl="https://getassetsafe.com/claims"
         structuredData={structuredData}
       />
@@ -94,6 +94,9 @@ const Claims: React.FC = () => {
                 <li>• Close-up shots of specific items</li>
                 <li>• Videos showing extent of damage</li>
               </ul>
+              <p className="text-sm text-gray-600 mt-3">
+                Use the <Link to="/photography-guide" className="text-brand-blue hover:underline">photography guide</Link> to capture clear, useful images before and after a loss.
+              </p>
             </div>
 
             {/* Item Inventory */}

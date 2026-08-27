@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -211,9 +212,8 @@ const Pricing: React.FC = () => {
         </div>
       )}
       <SEOHead
-        title="Asset Safe Plan"
-        description="One simple plan for organizing assets, records, memories, property details, and continuity tools in Asset Safe."
-        keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
+        title="Asset Safe Pricing | One Plan. Everything Included."
+        description="See Asset Safe's single plan for secure property documentation, important records, media, continuity tools, and flexible storage."
         canonicalUrl="https://getassetsafe.com/pricing"
         structuredData={structuredData}
       />
@@ -386,6 +386,9 @@ const Pricing: React.FC = () => {
                   </p>
                   <p className="text-muted-foreground mb-4">
                     Asset Safe is built as a complete system, not a set of gated features. That's why there's only one plan — everything included — with flexible storage you can adjust anytime as your needs evolve.
+                  </p>
+                  <p className="text-muted-foreground mb-4">
+                    You can review the full <Link to="/features" className="text-primary hover:underline">Asset Safe feature set</Link> before choosing the plan.
                   </p>
                   <p className="text-muted-foreground font-medium">
                     Simple. Transparent. Built for the long term.

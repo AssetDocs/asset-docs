@@ -58,7 +58,6 @@ const Gift: React.FC = () => {
       <SEOHead
         title="Gift Asset Safe"
         description="Give a year of Asset Safe to help someone organize assets, important records, memories, and continuity details."
-        keywords="gift subscription, home inventory gift, property protection gift, estate planning gift, digital vault gift, homeowner gift ideas"
         canonicalUrl="https://getassetsafe.com/gift"
         structuredData={structuredData}
       />

@@ -26,7 +26,6 @@ const Scenarios: React.FC = () => {
       <SEOHead
         title="Insurance Claim Scenarios | Asset Safe"
         description="Review common loss scenarios and the records, photos, and details that can help with claim preparation."
-        keywords="insurance claim scenarios, natural disaster documentation, theft claim, fire damage claim, property loss documentation, hurricane claim, flood damage"
         canonicalUrl="https://getassetsafe.com/scenarios"
         structuredData={structuredData}
       />

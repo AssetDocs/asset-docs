@@ -183,6 +183,7 @@ const AccountAssistance: React.FC = () => {
         title="Continuity & Account Assistance | Asset Safe"
         description="Request help with Asset Safe account continuity, preservation, billing, or account closure questions."
         canonicalUrl="https://getassetsafe.com/account-assistance"
+        noIndex
       />
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-10 max-w-3xl">

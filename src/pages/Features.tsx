@@ -33,7 +33,6 @@ const Features: React.FC = () => {
       <SEOHead
         title="Features | Asset Safe"
         description="Asset Documentation, Knowledge Hub, and an encrypted Secure Vault — see everything Asset Safe does for your property, records, and private information."
-        keywords="asset safe features, asset documentation, knowledge hub, secure vault, legacy locker, digital access"
         canonicalUrl="https://getassetsafe.com/features"
         structuredData={breadcrumbs}
       />

@@ -9,7 +9,6 @@ const Terms: React.FC = () => {
       <SEOHead
         title="Terms and Conditions | Asset Safe"
         description="Read the Asset Safe Terms and Conditions for account eligibility, subscriptions, billing, cancellation, privacy, and service use."
-        keywords="asset safe terms, terms and conditions, subscription terms, gift subscription, account closure, deletion, privacy, us only"
         canonicalUrl="https://getassetsafe.com/terms"
       />
       <Navbar />

@@ -45,12 +45,8 @@ const Index: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Asset Safe | Protect What Matters"
-        browserTitle="Asset Safe"
-        socialTitle="Get Asset Safe"
-        socialDescription="Your assets, important information, records, and memories — organized, protected, and ready when you need them."
-        description="Your assets, important information, records, and memories — organized, protected, and ready when you need them."
-        keywords="asset documentation, important records, property documentation, insurance records, secure vault, asset protection, family information, continuity planning"
+        title="Asset Safe — Document Your Property, Belongings & Records"
+        description="Keep your property, belongings, records, and important information documented and organized in one secure place — ready whenever you need them."
         canonicalUrl="https://getassetsafe.com/"
         structuredData={structuredData}
       />

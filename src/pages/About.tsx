@@ -24,7 +24,6 @@ const About: React.FC = () => {
       <SEOHead
         title="About Asset Safe"
         description="Learn about Asset Safe's mission to help people organize and protect property, records, information, memories, and continuity details in one secure place."
-        keywords="about asset safe, property documentation, household information, secure vault, digital legacy, preparedness, organize records, family information, asset protection"
         canonicalUrl="https://getassetsafe.com/about"
         structuredData={structuredData}
       />

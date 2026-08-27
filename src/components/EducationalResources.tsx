@@ -15,28 +15,32 @@ const EducationalResources: React.FC = () => {
       title: "Photography Best Practices",
       description: "Learn how to capture high-quality photos for comprehensive asset documentation.",
       type: "Guide",
-      duration: "2 min read"
+      duration: "2 min read",
+      href: "/photography-guide"
     },
     {
       icon: FileText,
       title: "Documentation Checklist",
       description: "Complete interactive checklist for documenting your property and possessions effectively.",
       type: "Interactive Guide",
-      duration: "15 min read"
+      duration: "15 min read",
+      anchor: "documentation-checklist"
     },
     {
       icon: AlertTriangle,
       title: "Insurance Claim Preparation",
       description: "Step-by-step guide to preparing documentation for insurance claims.",
       type: "Article",
-      duration: "7 min read"
+      duration: "7 min read",
+      href: "/claims"
     },
     {
       icon: BookOpen,
       title: "Asset Valuation Explained",
       description: "Understanding how to document and value your assets for insurance and planning.",
       type: "Article",
-      duration: "8 min read"
+      duration: "8 min read",
+      href: "/asset-documentation"
     }
   ];
 
@@ -75,12 +79,10 @@ const EducationalResources: React.FC = () => {
               <Button 
                 className="w-full bg-brand-orange hover:bg-brand-orange/90"
                 onClick={() => {
-                  if (resource.title === "Photography Best Practices") {
-                    navigate('/photography-guide');
-                  } else if (resource.title === "Asset Valuation Explained") {
-                    navigate('/ai-valuation-guide');
-                  } else if (resource.title === "Documentation Checklist") {
-                    document.getElementById('documentation-checklist')?.scrollIntoView({ behavior: 'smooth' });
+                  if ('href' in resource && resource.href) {
+                    navigate(resource.href);
+                  } else if ('anchor' in resource && resource.anchor) {
+                    document.getElementById(resource.anchor)?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
               >

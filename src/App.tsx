@@ -375,9 +375,10 @@ const AppContent = () => {
         {/* Public routes */}
         <Route path="/" element={<Index />} />
         <Route path="/features" element={<Features />} />
-        <Route path="/features-list" element={<RouteMeta title="Features List" description="Browse Asset Safe features for organizing assets, records, property details, memories, and continuity tools." path="/features-list" noIndex={false}><FeaturesList /></RouteMeta>} />
+        <Route path="/features-list" element={<RouteMeta title="Features List" description="Browse Asset Safe features for organizing assets, records, property details, memories, and continuity tools." path="/features-list"><FeaturesList /></RouteMeta>} />
         <Route path="/scenarios" element={<Scenarios />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/subscription-agreement" element={<Navigate to="/terms" replace />} />
         
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/install" element={<Install />} />

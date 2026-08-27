@@ -66,7 +66,6 @@ const AwarenessGuide: React.FC = () => {
       <SEOHead
         title="Home Risk Awareness Guide | Asset Safe"
         description="Identify hidden home risks from dryer vents to mold. Protect your property with proactive awareness and documentation strategies."
-        keywords="home risks, property damage prevention, home maintenance guide, hidden home dangers, property protection tips"
         canonicalUrl="https://getassetsafe.com/awareness-guide"
         structuredData={breadcrumbSchema([
           { name: 'Home', url: 'https://getassetsafe.com/' },

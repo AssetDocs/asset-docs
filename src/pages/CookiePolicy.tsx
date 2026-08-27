@@ -10,7 +10,6 @@ const CookiePolicy: React.FC = () => {
       <SEOHead
         title="Cookie Policy | Asset Safe"
         description="Learn how Asset Safe uses cookies to improve your experience. Manage your cookie preferences and understand our data practices."
-        keywords="cookie policy, cookies, data privacy, cookie preferences, asset safe privacy"
         canonicalUrl="https://getassetsafe.com/cookie-policy"
       />
       <Navbar />

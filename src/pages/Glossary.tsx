@@ -298,7 +298,6 @@ const Glossary = () => {
       <SEOHead
         title="Insurance & Valuation Glossary | Asset Safe"
         description="Definitions for common insurance, valuation, claims, appraisal, and asset documentation terms."
-        keywords="insurance glossary, insurance terms, property valuation terms, deductible definition, premium meaning, insurance claim definition, appraisal terms"
         canonicalUrl="https://getassetsafe.com/glossary"
         structuredData={structuredData}
       />

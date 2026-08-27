@@ -15,7 +15,6 @@ const SocialImpact: React.FC = () => {
       <SEOHead
         title="Social Impact | Asset Safe"
         description="Learn how Asset Safe supports families, small businesses, and communities through better documentation and readiness."
-        keywords="social impact, community support, disaster recovery, small business protection, family asset protection, estate planning help"
         canonicalUrl="https://getassetsafe.com/social-impact"
         structuredData={structuredData}
       />
