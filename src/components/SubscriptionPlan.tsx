@@ -53,7 +53,7 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
         </div>
         <p className="text-muted-foreground mt-2">{description}</p>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="flex-grow text-left">
         {featuresLead && (
           <p className="text-sm font-medium text-foreground mb-5">{featuresLead}</p>
         )}
