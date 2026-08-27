@@ -1,145 +1,148 @@
-# Asset Safe SEO Phase 1 — Final Closure Verification
+# Asset Safe SEO Phase 1 — Live Production Verification
 
-Commit under audit: `69f9b384b8f2c8568c021e26fccdc05dd3d641ae`
-
-Audit only. No files were changed.
+Target: `https://getassetsafe.com/`
+Closing commit expected live: `69f9b384b8f2c8568c021e26fccdc05dd3d641ae`
+Audit only. No files changed.
 
 ---
 
 ## Final Verdict
 
-### **PHASE 1 VERIFIED — READY TO CLOSE, B2 DEFERRED**
+### **PHASE 1 LIVE — VERIFIED**
 
-The single outstanding defect is corrected. All 18 gates now pass. No defect was introduced by this commit.
+Production is serving the Phase 1 build. Every requested check passes against the live site. No discrepancy between the approved repository state and production.
 
 ---
 
-## 1. Commit — **PASS**
+## 1. Production Deployment — **PASS**
 
-| Check | Result |
-|---|---|
-| `69f9b384…` exists | **Yes** — `git cat-file -t` → `commit` |
-| Current `HEAD` | `69f9b384b8f2c8568c021e26fccdc05dd3d641ae` |
-| Reachable from `origin/main` | **Yes** — `git merge-base --is-ancestor` → true; remote `HEAD` is `69f9b384` |
-| Is the Phase 1 closing commit | **Yes** — message "Fix press guide SEO metadata", 2026-08-27 18:09:22 -0500 |
-| Working tree | **Clean** — no uncommitted changes |
+Confirmed from live HTTP and browser behavior, not from Git.
 
-**Scope is exactly the intended correction.** The commit touches **one file, `src/pages/PressNews.tsx`, with 5 insertions and 0 deletions** — a single `SEOHead` element added to the early-return article branch at line 329:
+Live raw HTML of `https://getassetsafe.com/` matches the Phase 1 `index.html` exactly:
 
-```tsx
-<SEOHead
-  title="Why Digital Asset Documentation Beats Spreadsheets + Phone Photos"
-  description="Protect what matters most - with precision, professionalism, and proof. A comprehensive comparison of traditional DIY methods versus professional digital documentation."
-  canonicalUrl="https://getassetsafe.com/press-news/digital-documentation-guide"
-/>
-```
+- `<title>Asset Safe</title>` — the single static shell title
+- **zero** `meta name="description"`, **zero** `link rel="canonical"`, **zero** `meta name="robots"`, **zero** `meta name="keywords"` in the static head — all four conflict-causing tags removed, which is the B1 signature
+- all seven `og:*` and five `twitter:*` tags present and each carrying **`data-rh="true"`** — the exact Phase 1 marker
 
-Nothing was removed, no logic changed, no other file touched. (`.lovable/plan.md` also differs from the prior commit, but that is the audit document itself, committed separately in `129ae87c`.)
+Corroborating live evidence: the sitemap serves 37 URLs (pre-Phase-1 served 34), `/press-news/digital-documentation-guide` renders its new metadata (only present in commit `69f9b384`), and `/subscription-agreement` now lands on `/terms`. All three are Phase 1-only behaviors. Cloudflare `x-deployment-id: 1f960454-e9cd-463b-aeaa-67d21dde494a`.
 
-## 2. Guide Metadata — **PASS on every criterion**
+## 2. Live Homepage — **PASS**
 
-Hydrated DOM at `/press-news/digital-documentation-guide`:
+Fully hydrated `https://getassetsafe.com/`:
 
-| Criterion | Measured | Result |
+| Check | Measured | Result |
 |---|---|---|
-| Exactly 1 `<title>` | 1 | **PASS** |
-| Title value | `Why Digital Asset Documentation Beats Spreadsheets + Phone Photos` | **Exact match** |
-| Exactly 1 meta description | 1 | **PASS** |
-| Exactly 1 canonical | 1 | **PASS** |
-| Canonical value | `https://getassetsafe.com/press-news/digital-documentation-guide` | **Exact match, self-referencing** |
-| Exactly 1 robots directive | 1 | **PASS** |
-| robots value | `index, follow` | **PASS** |
-| Coherent OG set, 1 each | `og:title`, `og:description`, `og:url`, `og:image`, `og:type` — 1 each | **PASS** |
-| Coherent Twitter set, 1 each | `twitter:card`, `twitter:title`, `twitter:description`, `twitter:url`, `twitter:image` — 1 each | **PASS** |
-| Keywords tags | **0** | **PASS** |
-| Title differs from `/press-news` | Guide: "Why Digital Asset Documentation…" vs parent: `Press & Insurance News \| Asset Safe` | **PASS — no longer duplicated** |
-| Page content renders normally | 2,987 chars of body text; comparison table present ("Spreadsheet + Phone Photos" heading found) | **PASS** |
+| Title | `Asset Safe — Document Your Property, Belongings & Records` | **Exact match** |
+| Description | `Keep your property, belongings, records, and important information documented and organized in one secure place — ready whenever you need them.` | **Exact match** |
+| `<title>` count | 1 | **PASS** |
+| description count | 1 | **PASS** |
+| canonical count | 1 | **PASS** |
+| canonical value | `https://getassetsafe.com/` | **PASS** |
+| keywords | **0** | **PASS** |
+| OG set | `og:title`, `og:description`, `og:url`, `og:image`, `og:type` — 1 each, all homepage-correct | **Coherent** |
+| Twitter set | `twitter:card`, `twitter:title`, `twitter:description`, `twitter:url`, `twitter:image` — 1 each | **Coherent** |
 
-**Actual rendered description:**
+`og:title` and `twitter:title` resolve to the full new title — not the stale `Get Asset Safe` value still in the static shell — confirming Helmet correctly claims and replaces the `data-rh` tags in production. Visible `<h1>` unchanged: "Everything you love. Protected in one place."
 
-```
-Protect what matters most - with precision, professionalism, and proof. A comprehensive comparison of traditional DIY methods versus professional digital documentation.
-```
+## 3. Live Deep Routes — **PASS (5 of 5)**
 
-**No accidental `| Asset Safe` suffix.** `SEOHead.tsx:32` appends the suffix only when the title lacks "Asset Safe" *and* the suffixed string would be ≤ 60 characters. This title is 65 characters, so the guard short-circuits and the title renders verbatim. `og:title` and `twitter:title` resolve to the same exact string, and `og:url` / `twitter:url` both self-reference the guide URL rather than the homepage.
+Every route: exactly 1 title, 1 description, 1 canonical, 1 robots directive, canonical self-referencing, 0 keywords, and a coherent single OG and Twitter set (`og:url` / `twitter:url` self-referencing, 1 image each).
 
-**Non-blocking observation, not a defect and not introduced by this commit:** the guide's article view has **0 `<h1>`** — its heading is a `CardTitle` (`<div>`). Out of scope for Phase 1, which specified metadata only for this route. Worth noting for a later pass.
+| Route | Live title | Canonical | robots |
+|---|---|---|---|
+| `/features` | `Features \| Asset Safe` | self | `index, follow` |
+| `/pricing` | `Asset Safe Pricing \| One Plan. Everything Included.` | self | `index, follow` |
+| `/legacy-locker-info` | `Legacy Locker \| Digital Legacy & Important Instructions` | self | `index, follow` |
+| `/claims` | `Claims Documentation \| Asset Safe` | self | `index, follow` |
+| `/press-news/digital-documentation-guide` | `Why Digital Asset Documentation Beats Spreadsheets + Phone Photos` | self | `index, follow` |
 
-## 3. Sitemap — **PASS (unaltered)**
+**Guide route, the previously failing one — now correct in production:**
+
+- Title: `Why Digital Asset Documentation Beats Spreadsheets + Phone Photos` — **exact match**, and no accidental `| Asset Safe` suffix
+- Canonical: `https://getassetsafe.com/press-news/digital-documentation-guide` — **exact match**
+- Description live: `Protect what matters most - with precision, professionalism, and proof. A comprehensive comparison of traditional DIY methods versus professional digital documentation.`
+- Title now differs from `/press-news`, so the duplicate-title signal is gone
+- Content renders normally (2,987 chars, comparison table present)
+
+Each deep route also rendered its expected single `<h1>` ("Everything Asset Safe Does", "One Simple Plan. Everything Included.", "Legacy Locker", "Insurance Claims Documentation").
+
+**One pre-existing item, not a Phase 1 defect and not in scope:** the guide's article view has **0 `<h1>`** — its heading is a `CardTitle` `<div>`. Phase 1 specified metadata only for this route. Flagged for a future pass, not a deployment discrepancy.
+
+## 4. Live Noindex Routes — **PASS (3 of 3)**
+
+| Route | HTTP | Reachable / renders | robots | Competing `index, follow` | robots.txt | In sitemap |
+|---|---|---|---|---|---|---|
+| `/account-assistance` | **200** | Yes — `<h1>` "Continuity & Account Assistance" | **1 × `noindex, nofollow`** | **None** | Not disallowed (covered by `Allow: /`) | **Absent** |
+| `/video-help` | **200** | Yes — `<h1>` "Video Help Center" | **1 × `noindex, nofollow`** | **None** | `Allow: /video-help` (line 86) | **Absent** |
+| `/features-list` | **200** | Yes — `<h1>` "All Features" | **1 × `noindex, nofollow`** | **None** | `Allow: /features-list` (line 67) | **Absent** |
+
+All three stay publicly reachable and crawlable, so Google can actually read the `noindex` — the correct configuration. Removing the static `index.html` robots tag is what makes the single-directive result possible.
+
+## 5. Live Sitemap — **PASS**
+
+`https://getassetsafe.com/sitemap.xml` — HTTP **200**.
 
 | Check | Result |
 |---|---|
-| Total `<loc>` entries | **37** |
-| Unique `<loc>` entries | **37** — no duplicates |
-| `/press-news/digital-documentation-guide` present | **Yes** (1 occurrence, line 39) |
-| `/features-list` | **Absent** (0 occurrences) |
-| `/video-help` | **Absent** (0 occurrences) |
-| `/account-assistance` | **Absent** (0 occurrences) |
+| Total `<loc>` | **37** |
+| Unique `<loc>` | **37** — no duplicates |
+| `/blog/estate-planning-digital-vault` | Present |
+| `/blog/insurance-claims-documentation` | Present |
+| `/blog/organizing-receipts-warranties` | Present |
+| `/blog/protecting-high-value-items` | Present |
+| `/blog/disaster-preparedness-checklist` | Present |
+| `/press-news/digital-documentation-guide` | Present |
+| `/features-list` | **Absent** |
+| `/video-help` | **Absent** |
+| `/account-assistance` | **Absent** |
 
-`public/sitemap.xml` is **not in this commit's diff** — byte-identical to the verified Phase 1 state. Not altered by this audit.
+**Fabricated non-blog `lastmod` dates are gone.** The live file contains exactly **10 `<lastmod>` values, all on blog URLs**, each a genuine post date: `2026-02-01`, `2025-01-22`, `2025-01-20`, `2025-01-18`, `2025-01-15`, `2025-01-10`, `2025-01-05`, `2024-12-28`, `2024-12-20`, `2024-12-15`. The placeholder `2026-07-12` appears **0 times**, and no current/build/deploy date was substituted.
 
-## 4. Regression Check — **PASS**
+## 6. Retired Route — **PASS (correctly classified as client-side navigation)**
 
-The commit's diff is one file and five added lines, so nothing outside `PressNews.tsx` could have changed. Re-measured anyway, in the hydrated DOM:
+Live HTTP response for `https://getassetsafe.com/subscription-agreement`:
 
-| Area | Result |
-|---|---|
-| Homepage metadata | **Unchanged** — title `Asset Safe — Document Your Property, Belongings & Records`, canonical `https://getassetsafe.com/`, 1 each, 0 keywords |
-| Pricing metadata | **Unchanged** — `Asset Safe Pricing \| One Plan. Everything Included.`, canonical self-references, single `<h1>` "One Simple Plan. Everything Included." |
-| Legacy Locker metadata | **Unchanged** — `Legacy Locker \| Digital Legacy & Important Instructions`, approved description intact |
-| Noindex behavior | **Unchanged** — `/features-list`, `/video-help`, `/account-assistance` each emit exactly 1 × `noindex, nofollow`, no competing `index, follow` |
-| `index.html` | **Not in diff** — untouched |
-| `SEOHead` behavior | **Not in diff** — `SEOHead.tsx` unmodified; the fix only *consumes* it. `SEOHead` was already imported in `PressNews.tsx`, which is why the diff needed no import line |
-| Structured data | **Not in diff** — `structuredData.ts` untouched; `priceValidUntil` still absent |
-| Internal links | **Not in diff** — no `Link`, route, or nav change in the commit |
-| Authentication | **Untouched** |
-| Billing / Stripe | **Untouched** |
-| Supabase | **Untouched** |
-| Secure Vault / encryption | **Untouched** |
-| Subscription logic | **Untouched** |
+```
+HTTP/2 200
+content-type: text/html; charset=utf-8
+```
 
-Also confirmed the fix did not disturb the parent route: `/press-news` still renders its own list view with title `Press & Insurance News | Asset Safe`, its own self-referencing canonical, and one `index, follow`.
+**No `Location` header, no 301, no 302.** This is the SPA shell served at 200, then React Router replacing the location.
 
-## 5. Build Check — **PASS**
+Browser outcome: final URL is **`https://getassetsafe.com/terms`**. The Terms page renders normally — 42,217 chars of content, `<h1>` "Asset Safe Terms and Conditions", title `Terms and Conditions | Asset Safe`, canonical `https://getassetsafe.com/terms`, one `index, follow`. No NotFound, no redirect loop.
 
-| Command | Result |
-|---|---|
-| `npm run build` | **PASS** — exit 0, built in 14.20s. Only the pre-existing chunk-size advisory (3.9 MB bundle), unrelated to this commit. |
-| `npx tsc --noEmit -p tsconfig.app.json` | **PASS** — exit 0, zero errors, no output. |
+**Accurate classification: client-side navigation, not an HTTP redirect.** For a JS-executing crawler this consolidates correctly, because the resulting page emits the `/terms` canonical. A non-JS crawler sees a 200, so it is a soft redirect. Exposure is minimal — the path is absent from the sitemap and has no known inbound links. A true 301 would require hosting-level rules or B2-style static output; neither is in Phase 1 scope.
 
-No unrelated lint issue was touched.
+## 7. Robots.txt — **PASS**
+
+`https://getassetsafe.com/robots.txt` — HTTP **200**.
+
+- Line 95: **`Sitemap: https://getassetsafe.com/sitemap.xml`** — present and correct
+- **None** of `/features-list`, `/video-help`, `/account-assistance` appears in any `Disallow` directive
+- `Allow: /features-list` (line 67) and `Allow: /video-help` (line 86) explicitly present; `/account-assistance` is covered by the top-level `Allow: /`
+
+All three utility routes remain crawlable, which is required for their `noindex` to be honored.
 
 ---
 
-## Gate Summary — 18 of 18 PASS
+## Live Gate Summary — 7 of 7 PASS
 
 | # | Gate | Result |
 |---|---|---|
-| 1 | Closing commit verified, scope correct | **PASS** |
-| 2 | Raw metadata clean | **PASS** (carried) |
-| 3 | Hydrated metadata clean | **PASS** |
-| 4 | Canonicals singular and self-referencing | **PASS** — including the previously failing guide route |
-| 5 | OG/Twitter singular after hydration | **PASS** |
-| 6 | Keywords removed | **PASS** — 0 everywhere |
-| 7 | Homepage metadata correct | **PASS** |
-| 8 | Pricing metadata correct | **PASS** |
-| 9 | Legacy Locker metadata correct | **PASS** |
-| 10 | Three noindex routes correct | **PASS** |
-| 11 | Sitemap: 37 unique URLs, all quality-checked | **PASS** — the last failing URL now conforms |
-| 12 | Internal links correct | **PASS** (carried) |
-| 13 | Broken AI valuation link resolved | **PASS** (carried) |
-| 14 | Partnership H1 / inbound link | **PASS** (carried) |
-| 15 | Structured data cleanup | **PASS** (carried) |
-| 16 | Retired `/subscription-agreement` handled | **PASS** (carried — client-side navigation) |
-| 17 | No build/type errors | **PASS** |
-| 18 | No auth/billing/vault regressions | **PASS** |
+| 1 | Production serving the Phase 1 build | **PASS** |
+| 2 | Live homepage metadata | **PASS** |
+| 3 | Live deep routes (5) | **PASS** |
+| 4 | Live noindex routes (3) | **PASS** |
+| 5 | Live sitemap (37 URLs, lastmod clean) | **PASS** |
+| 6 | Retired `/subscription-agreement` | **PASS** — client-side navigation, correctly classified |
+| 7 | robots.txt | **PASS** |
 
-**B2: DEFERRED** — deliberately not implemented and not started. `vite.config.ts` has no prerender step and the build remains a bare `vite build`. The static head still carries the homepage title and og/twitter fallback on every route; that is B2's scope, not a Phase 1 defect.
+**No discrepancies between the approved Phase 1 repository state and live production.**
 
----
+**B2: still deferred** — the static shell continues to serve the homepage title and og/twitter fallback on every route, exactly as expected without B2. Not a defect.
 
-## One Operational Item Before Closure Takes Effect Publicly
+### PHASE 1 LIVE — VERIFIED
 
-Production still serves the pre-Phase-1 build: `https://getassetsafe.com/sitemap.xml` returns the old 34-URL file and `/subscription-agreement` returns HTTP 200 without redirecting. **Phase 1 is verified in the repository but not yet live — publishing is required for any of it to affect crawling.** After publishing, re-submitting `sitemap.xml` in Search Console (once connected) is the natural next step.
+Natural next step, outside this audit: connect Google Search Console and submit `sitemap.xml`, so Phase 2 has real performance data to work from.
 
 Nothing was changed in this audit.
