@@ -329,6 +329,11 @@ const PressNews: React.FC = () => {
   if (selectedArticle && location.pathname === '/press-news/digital-documentation-guide') {
     return (
       <div className="flex flex-col min-h-screen">
+        <SEOHead
+          title="Why Digital Asset Documentation Beats Spreadsheets + Phone Photos"
+          description="Protect what matters most - with precision, professionalism, and proof. A comprehensive comparison of traditional DIY methods versus professional digital documentation."
+          canonicalUrl="https://getassetsafe.com/press-news/digital-documentation-guide"
+        />
         <Navbar />
         
         <main className="flex-grow bg-gray-50 py-12">
