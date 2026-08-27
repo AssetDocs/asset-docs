@@ -281,6 +281,9 @@ const Pricing: React.FC = () => {
                     price={billingCycle === 'monthly' ? '$18.99' : '$189'}
                     description="No long-term contract. Cancel anytime."
                     features={unifiedFeatures}
+                    featureGroups={unifiedFeatureGroups}
+                    featuresLead="25 GB Secure Storage Included"
+
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                     recommended={true}
                     footer={!subscriptionStatus.subscribed ? (
