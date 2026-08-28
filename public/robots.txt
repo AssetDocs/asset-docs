@@ -85,8 +85,8 @@ Allow: /state-requirements
 Allow: /sample-dashboard
 Allow: /video-help
 Allow: /photography-guide
-Allow: /press-news
 Allow: /asset-documentation
+Allow: /digital-documentation-guide
 Allow: /partnership
 Allow: /terms
 Allow: /legal

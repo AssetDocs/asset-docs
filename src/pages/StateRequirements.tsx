@@ -16,6 +16,7 @@ const StateRequirements = () => {
         title="State Insurance Requirements | Asset Safe"
         description="Understand how insurance requirements and claim processes vary by state. Regional guidance for property documentation compliance and claims filing."
         canonicalUrl="https://getassetsafe.com/state-requirements"
+        noIndex
         structuredData={breadcrumbSchema([
           { name: 'Home', url: 'https://getassetsafe.com/' },
           { name: 'State Requirements', url: 'https://getassetsafe.com/state-requirements' }

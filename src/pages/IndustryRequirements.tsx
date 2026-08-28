@@ -14,6 +14,7 @@ const IndustryRequirements: React.FC = () => {
         title="Industry Claims Requirements | Asset Safe"
         description="Complete guide to industry-standard insurance claims processes. Steps, documentation, and requirements for filing property and contents claims successfully."
         canonicalUrl="https://getassetsafe.com/industry-requirements"
+        noIndex
         structuredData={breadcrumbSchema([
           { name: 'Home', url: 'https://getassetsafe.com/' },
           { name: 'Industry Requirements', url: 'https://getassetsafe.com/industry-requirements' }

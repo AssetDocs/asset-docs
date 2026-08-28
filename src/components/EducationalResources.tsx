@@ -4,11 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 import { BookOpen, Camera, FileText, AlertTriangle, Play, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const EducationalResources: React.FC = () => {
-  const navigate = useNavigate();
-
   const resources = [
     {
       icon: Camera,
@@ -17,6 +15,14 @@ const EducationalResources: React.FC = () => {
       type: "Guide",
       duration: "2 min read",
       href: "/photography-guide"
+    },
+    {
+      icon: FileText,
+      title: "Digital Documentation Guide",
+      description: "Compare digital asset documentation with spreadsheets and phone photos.",
+      type: "Guide",
+      duration: "8 min read",
+      href: "/digital-documentation-guide"
     },
     {
       icon: FileText,
@@ -76,25 +82,30 @@ const EducationalResources: React.FC = () => {
               <CardDescription className="text-base mb-4">
                 {resource.description}
               </CardDescription>
-              <Button 
-                className="w-full bg-brand-orange hover:bg-brand-orange/90"
-                onClick={() => {
-                  if ('href' in resource && resource.href) {
-                    navigate(resource.href);
-                  } else if ('anchor' in resource && resource.anchor) {
-                    document.getElementById(resource.anchor)?.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                {resource.type === "Video" ? (
-                  <Play className="h-4 w-4 mr-2" />
-                ) : resource.type === "Interactive Guide" ? (
+              {'href' in resource && resource.href ? (
+                <Button asChild className="w-full bg-brand-orange hover:bg-brand-orange/90">
+                  <Link to={resource.href}>
+                    {resource.type === "Video" ? (
+                      <Play className="h-4 w-4 mr-2" />
+                    ) : (
+                      <BookOpen className="h-4 w-4 mr-2" />
+                    )}
+                    Access {resource.type}
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  className="w-full bg-brand-orange hover:bg-brand-orange/90"
+                  onClick={() => {
+                    if ('anchor' in resource && resource.anchor) {
+                      document.getElementById(resource.anchor)?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                ) : (
-                  <BookOpen className="h-4 w-4 mr-2" />
-                )}
-                Access {resource.type}
-              </Button>
+                  Access {resource.type}
+                </Button>
+              )}
             </CardContent>
           </Card>
         ))}

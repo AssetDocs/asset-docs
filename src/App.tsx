@@ -73,7 +73,6 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AccountAssistance from "./pages/AccountAssistance";
 import Testimonials from "./pages/Testimonials";
-import PressNews from "./pages/PressNews";
 import Resources from "./pages/Resources";
 import Feedback from "./pages/Feedback";
 import VideoHelp from "./pages/VideoHelp";
@@ -94,6 +93,7 @@ import Glossary from "./pages/Glossary";
 import StateRequirements from "./pages/StateRequirements";
 import SubscriptionCheckout from "./pages/SubscriptionCheckout";
 import PhotographyGuide from "./pages/PhotographyGuide";
+import DigitalDocumentationGuide from "./pages/DigitalDocumentationGuide";
 
 import SocialImpact from "./pages/SocialImpact";
 import Partnership from "./pages/Partnership";
@@ -463,8 +463,9 @@ const AppContent = () => {
         <Route path="/checklists" element={<RouteMeta title="Checklists" description="Use Asset Safe checklists." path="/checklists"><ProtectedRoute><Checklists /></ProtectedRoute></RouteMeta>} />
         <Route path="/glossary" element={<Glossary />} />
         <Route path="/state-requirements" element={<StateRequirements />} />
-        <Route path="/press-news" element={<PressNews />} />
-        <Route path="/press-news/digital-documentation-guide" element={<PressNews />} />
+        <Route path="/digital-documentation-guide" element={<DigitalDocumentationGuide />} />
+        <Route path="/press-news" element={<Navigate to="/resources" replace />} />
+        <Route path="/press-news/digital-documentation-guide" element={<Navigate to="/digital-documentation-guide" replace />} />
         <Route path="/photography-guide" element={<PhotographyGuide />} />
         
         <Route path="/blog" element={<Blog />} />
