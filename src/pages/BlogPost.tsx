@@ -203,6 +203,8 @@ const BlogPost = () => {
         
         <p>Asset Safe isn't just storage—it's preparedness.</p>
 
+        <p>For a practical breakdown of the item details, receipts, photos, and records to keep together, see our <a href="/asset-documentation">asset documentation guide</a>. For common questions about using Asset Safe, visit the <a href="/qa">FAQ</a>.</p>
+
         <p>By uploading the right documents today, you're protecting yourself from uncertainty tomorrow. Whether it's a natural disaster, legal request, insurance claim, or family transition, having everything securely organized gives you peace of mind when it matters most.</p>
 
         <p><strong>Your documents. Your proof. Your digital safety net.</strong></p>
@@ -271,6 +273,8 @@ const BlogPost = () => {
           <li><strong>Advice around home ownership, maintenance, and long-term planning</strong> to help you build not just a house — but a legacy that lasts</li>
         </ul>
 
+        <p>Our <a href="/asset-documentation">asset documentation guide</a> explains what information is most useful to capture, and the <a href="/legacy-locker-info">Legacy Locker overview</a> shows how personal guidance and important records can work together.</p>
+
         <p>Thank you for trusting Asset Safe with your home and heritage. We're here to help you protect what matters most — today, tomorrow, and for generations to come.</p>
 
         <p><strong>Welcome aboard — let's build something lasting, together.</strong></p>
@@ -335,6 +339,8 @@ const BlogPost = () => {
         </ul>
 
         <p>This isn't paranoia — it's preparation. And it makes the difference between your family scrambling for answers or having a clear roadmap forward.</p>
+
+        <p>For more detail on the protected space behind these records, visit the <a href="/legacy-locker-info">Legacy Locker overview</a>.</p>
 
         <h2>💬 What Makes Legacy Locker Different</h2>
 
@@ -459,6 +465,8 @@ const BlogPost = () => {
         <h2>Conclusion</h2>
         <p>A comprehensive digital home inventory is an investment in your financial security and peace of mind. While it may seem time-consuming to create initially, the protection it provides is invaluable. Start with your most valuable items and build from there - you'll be glad you did.</p>
 
+        <p>If you want a broader record-keeping framework, the <a href="/asset-documentation">asset documentation guide</a> explains what to capture about property, belongings, photos, receipts, and condition.</p>
+
         <p>Ready to start your digital home inventory? <a href="/pricing">Activate your account</a> and protect what matters most.</p>
       `
     },
@@ -493,6 +501,7 @@ const BlogPost = () => {
 
         <h2>Conclusion</h2>
         <p>A comprehensive estate plan in the 21st century needs more than just legal documents. A digital vault provides the context, detail, and accessibility that traditional estate planning lacks.</p>
+        <p>Learn how Asset Safe approaches this in the <a href="/legacy-locker-info">Legacy Locker overview</a>.</p>
         <p>Ready to complete your estate plan with a digital vault? <a href="/pricing">Activate your Asset Safe account</a> today.</p>
       `
     },
@@ -526,6 +535,7 @@ const BlogPost = () => {
         </ol>
 
         <h2>Conclusion</h2>
+        <p>For a focused checklist of records that may support a property claim, read the <a href="/claims">claims documentation guide</a>.</p>
         <p>The time to document your belongings is before you need to file a claim. <a href="/pricing">Start documenting with Asset Safe today</a>.</p>
       `
     },
@@ -558,6 +568,7 @@ const BlogPost = () => {
         <p>Set calendar reminders before warranties expire.</p>
 
         <h2>Conclusion</h2>
+        <p>Receipts and warranties become more useful when they are attached to complete <a href="/asset-documentation">asset documentation</a> records for each item or property improvement.</p>
         <p>A well-organized digital receipt system pays dividends in time saved and money recovered. <a href="/pricing">Get started with Asset Safe</a>.</p>
       `
     },
@@ -587,6 +598,7 @@ const BlogPost = () => {
         <p>Include detailed photographs, gemological reports, original boxes and papers, and service history.</p>
 
         <h2>Conclusion</h2>
+        <p>Use the <a href="/photography-guide">photography guide</a> for detail-shot guidance, and pair those images with the broader records described in the <a href="/asset-documentation">asset documentation guide</a>.</p>
         <p>Your collection deserves the same care in documentation as you give to acquisition. <a href="/pricing">Create your Asset Safe account</a> today.</p>
       `
     },
@@ -623,6 +635,7 @@ const BlogPost = () => {
 
         <h2>How Asset Safe Helps</h2>
         <p>Asset Safe provides cloud-based storage that survives even if your home doesn't, accessible from any device, anywhere.</p>
+        <p>The <a href="/awareness-guide">awareness guide</a> covers hidden property risks to watch for, and the <a href="/scenarios">property damage scenarios</a> page shows events where organized records can matter.</p>
 
         <h2>Conclusion</h2>
         <p>The time you invest in documentation and planning today can save you months of stress tomorrow. <a href="/pricing">Create your Asset Safe account</a> and protect what matters most.</p>
@@ -699,6 +712,8 @@ const BlogPost = () => {
         <h2>Asset Safe Helps Clients Protect What Matters Most — Immediately</h2>
 
         <p>Asset Safe is a secure digital home inventory and protection platform that helps homeowners document and organize <em>everything</em> inside their home.</p>
+
+        <p>Agents can also point clients to the <a href="/gift">gift subscription page</a> and the <a href="/asset-documentation">asset documentation guide</a> when explaining how to get started.</p>
 
         <p>So instead of giving your clients a gift they'll forget…</p>
 

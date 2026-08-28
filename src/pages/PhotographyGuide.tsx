@@ -1,8 +1,8 @@
 import React from 'react';
-import { ArrowLeft, Camera, Lightbulb, CheckCircle, XCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Camera, CheckCircle, ClipboardList, Home, Image, Lightbulb, Video, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -14,8 +14,8 @@ const PhotographyGuide: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title="Photography Guide for Documentation | Asset Safe"
-        description="Best practices for photographing your assets. Lighting, angles, and tips to create insurance-ready property documentation photos."
+        title="Photography Guide for Property Documentation | Asset Safe"
+        description="Practical photo and video tips for documenting belongings, rooms, condition details, serial numbers, receipts, renovations, and property records."
         canonicalUrl="https://getassetsafe.com/photography-guide"
         structuredData={breadcrumbSchema([
           { name: 'Home', url: 'https://getassetsafe.com/' },
@@ -24,178 +24,183 @@ const PhotographyGuide: React.FC = () => {
         ])}
       />
       <Navbar />
-      
+
       <main className="pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
           <div className="mb-8">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate(-1)}
-              className="mb-6"
-            >
+            <Button variant="outline" onClick={() => navigate(-1)} className="mb-6">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            
+
             <div className="flex items-center gap-4 mb-4">
               <Camera className="h-8 w-8 text-brand-blue" />
               <div>
                 <h1 className="text-3xl font-bold text-brand-blue">
-                  How to Capture High-Quality Photos for Asset Documentation
+                  How to Photograph Belongings and Property for Better Documentation
                 </h1>
                 <div className="flex items-center gap-4 mt-2 text-gray-500">
                   <span className="bg-brand-lightBlue/20 text-brand-blue px-3 py-1 rounded text-sm font-medium">
                     Guide
                   </span>
-                  <span className="text-sm">2 min read</span>
+                  <span className="text-sm">8 min read</span>
                 </div>
               </div>
             </div>
-            
+
             <p className="text-lg text-gray-600">
-              Ensure your assets are documented with clarity and precision for insurance and planning purposes:
+              Clear images make your records easier to understand later. Use these practical steps to document rooms, belongings, paperwork, condition, and changes over time.
             </p>
           </div>
 
-          {/* Tips Section */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center text-brand-blue">
-                <CheckCircle className="h-6 w-6 mr-3" />
-                Tips for Best Results
+                <Home className="h-6 w-6 mr-3" />
+                Start with the Room
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-brand-blue rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <strong>Use natural lighting:</strong> Take photos near windows or in well-lit areas to avoid glare and harsh shadows.
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-brand-blue rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <strong>Declutter the space:</strong> Remove unnecessary objects so the item is clearly visible and distinguishable.
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-brand-blue rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <strong>Photograph multiple angles:</strong> Capture front, sides, top, and any identifying details like logos, labels, or serial numbers.
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-brand-blue rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <strong>Include scale:</strong> Place a common object (like a coin or ruler) nearby to help convey size when necessary.
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-brand-blue rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <strong>Avoid reflections:</strong> Especially important for glossy items—adjust the angle or use indirect lighting.
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-brand-blue rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <strong>Use a neutral background:</strong> A plain wall or table helps the AI focus on the item itself.
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-brand-blue rounded-full mt-2 flex-shrink-0"></div>
-                  <div>
-                    <strong>Ensure sharp focus:</strong> Hold your device steady or use a tripod to prevent blur.
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Pro Tip */}
-          <Card className="mb-8 bg-orange-50 border-brand-orange">
-            <CardHeader>
-              <CardTitle className="flex items-center text-brand-orange">
-                <Lightbulb className="h-6 w-6 mr-3" />
-                Pro Tip
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700">
-                For small items like jewelry or collectibles, use your phone's macro mode (if available) to capture fine details that influence value.
+            <CardContent className="space-y-4 text-gray-700">
+              <p>
+                Begin each room with wide photos from multiple corners. Capture closets, cabinets, shelves, garages, attics, storage areas, and built-ins so the overall context is preserved.
+              </p>
+              <p>
+                Add a slow video walkthrough when a room has many belongings or connected spaces. Narrate key details if useful, such as recent upgrades, high-value items, or areas that already show wear.
               </p>
             </CardContent>
           </Card>
 
-          {/* Key Takeaways */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center text-brand-blue">
+                <Image className="h-6 w-6 mr-3" />
+                Photograph Individual Items
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4">
+                {[
+                  ['Use natural or even lighting', 'Take photos near windows or in well-lit areas. Avoid harsh glare and deep shadows.'],
+                  ['Capture multiple angles', 'Photograph the front, back, sides, top, underside, tags, labels, and any unique marks.'],
+                  ['Show condition clearly', 'Include scratches, dents, wear, repairs, stains, or other details that describe current condition.'],
+                  ['Record serial and model numbers', 'Zoom in on serial plates, model labels, VINs, manufacturer tags, and identifying stickers.'],
+                  ['Include scale when needed', 'Use a ruler, coin, hand, doorway, or nearby object when size would otherwise be hard to judge.'],
+                  ['Use a clean background', 'A plain wall, table, or floor keeps the item easy to see and reduces visual confusion.'],
+                  ['Keep images sharp', 'Hold your device steady, tap to focus, clean the lens, and retake blurry photos immediately.']
+                ].map(([title, detail]) => (
+                  <div key={title} className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-brand-blue rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <strong>{title}:</strong> {detail}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center text-brand-blue">
+                <ClipboardList className="h-6 w-6 mr-3" />
+                Pair Photos with Records
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-gray-700">
+              <p>
+                Photograph receipts, warranty cards, appraisals, manuals, certificates, and service paperwork next to the item when it helps connect the record. Keep the text readable and capture the entire page.
+              </p>
+              <p>
+                For renovations and improvements, take before, during, and after photos. Save contractor invoices, permits, materials receipts, and warranty information with the related room or system.
+              </p>
+              <p>
+                The <Link to="/asset-documentation" className="text-brand-blue hover:underline">asset documentation guide</Link> explains what information belongs with each item or property record.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center text-brand-blue">
+                <Video className="h-6 w-6 mr-3" />
+                Use Video for Context
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-gray-700">
+              <p>
+                Video walkthroughs are useful for showing layout, room condition, move-in or move-out condition, and groups of items that do not need individual photos.
+              </p>
+              <p>
+                Move slowly, keep the camera level, and pause on labels, serial numbers, damage, upgrades, or high-value items. A quiet narrated walkthrough can help explain what viewers are seeing.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-8 bg-orange-50 border-brand-orange">
+            <CardHeader>
+              <CardTitle className="flex items-center text-brand-orange">
+                <Lightbulb className="h-6 w-6 mr-3" />
+                Keep It Organized
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-gray-700">
+              <p>
+                Good photos are most useful when they stay connected to the right item, room, receipt, warranty, or property record. Add labels while the details are fresh.
+              </p>
+              <p>
+                For insurance-specific preparation, see the <Link to="/claims" className="text-brand-blue hover:underline">claims documentation guide</Link>. For a comparison of scattered photos versus organized records, read the <Link to="/digital-documentation-guide" className="text-brand-blue hover:underline">digital documentation guide</Link>.
+              </p>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
-                <CardTitle className="flex items-center text-brand-blue">
-                  <Camera className="h-6 w-6 mr-3" />
-                  Key Takeaways for High-Quality Documentation Photos
-                </CardTitle>
+              <CardTitle className="flex items-center text-brand-blue">
+                <Camera className="h-6 w-6 mr-3" />
+                Quick Photo Checklist
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
-                {/* Do's */}
                 <div>
-                  <h4 className="font-semibold text-green-600 mb-4 flex items-center">
+                  <h2 className="font-semibold text-green-600 mb-4 flex items-center">
                     <CheckCircle className="h-5 w-5 mr-2" />
                     Do This
-                  </h4>
+                  </h2>
                   <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Use consistent, diffuse lighting (natural light or softbox)</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Choose plain backgrounds for clarity</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Set correct white balance for accurate colors</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Steady your camera with a tripod and use timer</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Capture multiple perspectives and close-ups</span>
-                    </div>
+                    {[
+                      'Capture each room before individual items',
+                      'Photograph labels, serial numbers, and model numbers',
+                      'Take close-ups of high-value item details',
+                      'Include receipts or paperwork when useful',
+                      'Document move-in, move-out, and renovation condition'
+                    ].map((item) => (
+                      <div key={item} className="flex items-start gap-3">
+                        <CheckCircle className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Don'ts */}
                 <div>
-                  <h4 className="font-semibold text-red-600 mb-4 flex items-center">
+                  <h2 className="font-semibold text-red-600 mb-4 flex items-center">
                     <XCircle className="h-5 w-5 mr-2" />
                     Avoid This
-                  </h4>
+                  </h2>
                   <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Mix light sources like daylight + fluorescent</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Include busy décor or reflections</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Leave color casts unchecked</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Shoot handheld, causing blur</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <XCircle className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">Only shoot a single flat angle</span>
-                    </div>
+                    {[
+                      'Relying on one photo for an important item',
+                      'Leaving serial numbers unreadable',
+                      'Using dark, blurry, or highly reflective images',
+                      'Letting receipts and photos become separated',
+                      'Waiting until after an event to document condition'
+                    ].map((item) => (
+                      <div key={item} className="flex items-start gap-3">
+                        <XCircle className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

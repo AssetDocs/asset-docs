@@ -43,7 +43,7 @@ const EducationalResources: React.FC = () => {
     {
       icon: BookOpen,
       title: "Asset Valuation Explained",
-      description: "Understanding how to document and value your assets for insurance and planning.",
+      description: "Understand what property details, receipts, condition notes, and estimated values belong in an asset record.",
       type: "Article",
       duration: "8 min read",
       href: "/asset-documentation"

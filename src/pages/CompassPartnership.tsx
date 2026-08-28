@@ -50,7 +50,7 @@ const CompassPartnership = () => {
           </CardContent>
         </Card>
 
-        {/* About Asset Docs */}
+        {/* About Asset Safe */}
         <Card className="mb-8">
           <CardHeader>
             <Home className="w-8 h-8 mb-2 text-primary" />

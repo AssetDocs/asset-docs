@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -24,8 +25,8 @@ const Scenarios: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Insurance Claim Scenarios | Asset Safe"
-        description="Review common loss scenarios and the records, photos, and details that can help with claim preparation."
+        title="Property Damage Scenarios | Asset Safe"
+        description="Review fire, theft, storm, water, move-related, and other property events where organized documentation can help you respond."
         canonicalUrl="https://getassetsafe.com/scenarios"
         structuredData={structuredData}
       />
@@ -34,9 +35,9 @@ const Scenarios: React.FC = () => {
       {/* Hero Section */}
       <section className="bg-brand-blue text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold mb-6">Insurance Claim Scenarios</h1>
+          <h1 className="text-4xl font-bold mb-6">Fire, Theft, Storm & Property Damage Scenarios</h1>
           <p className="text-xl max-w-4xl mx-auto">
-            Asset Safe is invaluable in these situations where comprehensive documentation protects your interests and streamlines the claims process.
+            These are the moments when organized photos, receipts, property records, and condition details can make the next step clearer.
           </p>
         </div>
       </section>
@@ -137,22 +138,24 @@ const Scenarios: React.FC = () => {
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <h4 className="font-medium text-brand-blue mb-2">Why Documentation Matters</h4>
                 <p className="text-sm text-gray-700">
-                  In any of these scenarios, having comprehensive pre-incident documentation through Asset Safe can:
+                  In any of these scenarios, having organized pre-incident documentation through Asset Safe can:
                 </p>
                 <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                  <li>• Expedite insurance claims processing</li>
-                  <li>• Ensure accurate settlement amounts</li>
+                  <li>• Support insurance claim preparation</li>
+                  <li>• Reduce guesswork about what was damaged or missing</li>
                   <li>• Provide proof of ownership and condition</li>
-                  <li>• Support legal proceedings if necessary</li>
                   <li>• Facilitate emergency planning and recovery</li>
                 </ul>
+                <p className="text-sm text-gray-700 mt-3">
+                  For the claim-specific record list, see the <Link to="/claims" className="text-brand-blue hover:underline">claims documentation guide</Link>.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Asset Docs Section */}
+      {/* Why Choose Asset Safe Section */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center">
@@ -161,17 +164,17 @@ const Scenarios: React.FC = () => {
               <div className="text-center">
                 <Shield className="h-12 w-12 text-brand-blue mx-auto mb-3" />
                 <h4 className="font-semibold mb-2">Comprehensive Protection</h4>
-                <p className="text-sm text-gray-600">Complete documentation for insurance claims, legal proceedings, and regulatory compliance.</p>
+                <p className="text-sm text-gray-600">Organized records for property events, recovery planning, and claim-support needs.</p>
               </div>
               <div className="text-center">
                 <Timer className="h-12 w-12 text-brand-blue mx-auto mb-3" />
                 <h4 className="font-semibold mb-2">Time & Cost Savings</h4>
-                <p className="text-sm text-gray-600">Streamlined documentation process reduces administrative burden and operational costs.</p>
+                <p className="text-sm text-gray-600">Less time searching for photos, receipts, item details, and proof when something happens.</p>
               </div>
               <div className="text-center">
                 <UserCheck className="h-12 w-12 text-brand-blue mx-auto mb-3" />
                 <h4 className="font-semibold mb-2">Professional Standards</h4>
-                <p className="text-sm text-gray-600">Industry-specific documentation that meets professional and regulatory requirements.</p>
+                <p className="text-sm text-gray-600">Clear records that are easier to review, share, and update as your property changes.</p>
               </div>
             </div>
           </div>

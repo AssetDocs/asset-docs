@@ -52,7 +52,7 @@ const searchableContent: SearchResult[] = [
   {
     id: 'about',
     title: 'About',
-    description: 'About Asset Docs and our mission',
+    description: 'About Asset Safe and our mission',
     path: '/about',
     category: 'page',
     keywords: ['about', 'company', 'mission', 'team']
@@ -122,14 +122,6 @@ const searchableContent: SearchResult[] = [
     path: '/state-requirements',
     category: 'help',
     keywords: ['state', 'requirements', 'regulations', 'local laws']
-  },
-  {
-    id: 'checklists',
-    title: 'Checklists',
-    description: 'Documentation checklists and guides',
-    path: '/checklists',
-    category: 'help',
-    keywords: ['checklists', 'guides', 'documentation', 'organize']
   },
   {
     id: 'photography-guide',

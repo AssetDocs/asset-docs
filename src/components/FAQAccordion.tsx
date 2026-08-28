@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const FAQAccordion: React.FC = () => {
@@ -155,7 +156,7 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="using-1">
             <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for insurance claims?</AccordionTrigger>
             <AccordionContent>
-              Yes. Asset Safe is designed to help you organize and document your property in a way that can support insurance claims. The platform allows you to create detailed records that may include photos, descriptions, dates, receipts, and user-entered values. While Asset Safe does not verify assets or validate claims, many users find this documentation helpful when working with insurance providers during the claims process.
+              Yes. Asset Safe is designed to help you organize and document your property in a way that can support insurance claims. The platform allows you to create detailed records that may include photos, descriptions, dates, receipts, and user-entered values. While Asset Safe does not verify assets or validate claims, many users find this documentation helpful when working with insurance providers during the claims process. See the <Link to="/claims" className="text-primary hover:underline">claims documentation guide</Link> for a practical record list.
             </AccordionContent>
           </AccordionItem>
           
@@ -164,7 +165,8 @@ const FAQAccordion: React.FC = () => {
             <AccordionContent>
               <p className="mb-2">Asset Safe supports documentation for a wide range of assets, including both physical and non-physical items.</p>
               <p className="mb-1"><strong>Physical assets</strong> may include electronics, furniture, artwork, jewelry, collectibles, appliances, vehicles, and real estate.</p>
-              <p><strong>Non-physical assets</strong> may include software licenses, digital subscriptions, intellectual property records, online accounts, and important business or personal documents.</p>
+              <p className="mb-2"><strong>Non-physical assets</strong> may include software licenses, digital subscriptions, intellectual property records, online accounts, and important business or personal documents.</p>
+              <p>The <Link to="/asset-documentation" className="text-primary hover:underline">asset documentation guide</Link> explains what details are useful to capture for each record.</p>
             </AccordionContent>
           </AccordionItem>
           
@@ -210,7 +212,7 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="legacy-1">
             <AccordionTrigger className="text-lg font-medium">What is the Legacy Locker?</AccordionTrigger>
             <AccordionContent>
-              The Legacy Locker is a private, secure vault within Asset Safe where you can organize personal information intended for loved ones or trusted contacts. It's designed to store context-rich materials—such as notes, messages, media, and access details—that help explain your wishes and provide guidance alongside formal estate documents.
+              The Legacy Locker is a private, secure vault within Asset Safe where you can organize personal information intended for loved ones or trusted contacts. It's designed to store context-rich materials—such as notes, messages, media, and access details—that help explain your wishes and provide guidance alongside formal estate documents. Learn more on the <Link to="/legacy-locker-info" className="text-primary hover:underline">Legacy Locker page</Link>.
             </AccordionContent>
           </AccordionItem>
           

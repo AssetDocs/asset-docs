@@ -1,10 +1,11 @@
 import React from 'react';
-import { CheckCircle, XCircle, User, Calendar, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, User, Clock } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const guideTitle = 'Why Digital Asset Documentation Beats Spreadsheets + Phone Photos';
 const guideDescription =
@@ -17,6 +18,11 @@ const DigitalDocumentationGuide: React.FC = () => {
         title={guideTitle}
         description={guideDescription}
         canonicalUrl="https://getassetsafe.com/digital-documentation-guide"
+        structuredData={breadcrumbSchema([
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'Resources', url: 'https://getassetsafe.com/resources' },
+          { name: 'Digital Documentation Guide', url: 'https://getassetsafe.com/digital-documentation-guide' }
+        ])}
       />
       <Navbar />
 
@@ -37,10 +43,6 @@ const DigitalDocumentationGuide: React.FC = () => {
                   <div className="flex items-center gap-1">
                     <User className="w-4 h-4" />
                     <span>Asset Safe Team</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>7/22/2024</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />

@@ -11,7 +11,7 @@ const QA: React.FC = () => {
     { question: "Is my data backed up, and what happens if I cancel?", answer: "Yes. Your data is automatically backed up across multiple secure cloud systems. If you cancel, you retain full access through the end of your billing period." },
     { question: "Why does Asset Safe require multi-factor authentication?", answer: "MFA adds critical layers of protection for sensitive actions like accessing the Secure Vault, using TOTP authenticator apps or one-time backup recovery codes." },
     { question: "What is Legacy Locker?", answer: "Legacy Locker is a secure, encrypted digital vault inside Asset Safe designed to store important information your loved ones may need—photos, videos, account details, and clear instructions." },
-    { question: "Can I use Asset Safe for insurance claims?", answer: "Yes! Asset Safe provides pre-documented proof of ownership, receipts, condition photos, and detailed descriptions to streamline insurance claims and maximize recovery." },
+    { question: "Can I use Asset Safe for insurance claims?", answer: "Yes. Asset Safe helps you organize proof of ownership, receipts, condition photos, and detailed descriptions that may support insurance claim preparation." },
     { question: "What payment methods do you accept?", answer: "We accept all major credit and debit cards through our secure Stripe payment processing. We offer both monthly and annual billing options." }
   ];
 

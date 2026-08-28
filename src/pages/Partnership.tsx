@@ -34,7 +34,7 @@ const Partnership: React.FC = () => {
             </CardHeader>
           </Card>
 
-          {/* What is Asset Docs */}
+          {/* What is Asset Safe */}
           <Card className="mb-8">
             <CardHeader>
               <div className="flex items-center gap-2">

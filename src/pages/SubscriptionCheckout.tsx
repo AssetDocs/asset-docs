@@ -340,7 +340,7 @@ const SubscriptionCheckout: React.FC = () => {
                       name="heardAbout"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>How did you hear about Asset Docs?</FormLabel>
+                          <FormLabel>How did you hear about Asset Safe?</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>

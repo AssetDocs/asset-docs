@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -64,8 +65,8 @@ const AwarenessGuide: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Home Risk Awareness Guide | Asset Safe"
-        description="Identify hidden home risks from dryer vents to mold. Protect your property with proactive awareness and documentation strategies."
+        title="Hidden Home & Property Risks | Asset Safe"
+        description="Identify hidden risks that can damage a home or property, from dryer vents and leaks to electrical, drainage, security, and maintenance issues."
         canonicalUrl="https://getassetsafe.com/awareness-guide"
         structuredData={breadcrumbSchema([
           { name: 'Home', url: 'https://getassetsafe.com/' },
@@ -83,14 +84,10 @@ const AwarenessGuide: React.FC = () => {
               <Shield className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              🏠🔒 Asset Safe Awareness Guide
+              Hidden Risks That Can Damage Your Home or Property
             </h1>
-            <h2 className="text-2xl font-semibold text-muted-foreground mb-6">
-              Top 10 Hidden Risks That Can Damage Your Home or Business
-            </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Most property losses are preventable with regular maintenance and smart documentation. 
-              Protect your investment before disaster strikes.
+              Asset Safe helps you think ahead about the maintenance issues, safety gaps, and property events that can become expensive or stressful if they go unnoticed.
             </p>
           </div>
 
@@ -123,8 +120,10 @@ const AwarenessGuide: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-lg">
-                Most property losses are preventable with regular maintenance and smart documentation. 
-                Protect your investment before disaster strikes.
+                Prevention and documentation are different jobs that support each other. Maintenance helps reduce risk; organized records help you remember condition, improvements, warranties, and next steps if damage still occurs.
+              </p>
+              <p className="text-muted-foreground text-lg mt-4">
+                Explore common <Link to="/scenarios" className="text-primary hover:underline">property damage scenarios</Link> or start with practical <Link to="/asset-documentation" className="text-primary hover:underline">asset documentation</Link> basics.
               </p>
             </CardContent>
           </Card>

@@ -183,6 +183,13 @@ const Claims: React.FC = () => {
             </div>
           </div>
 
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Plan for the Event, Not Just the Claim</h3>
+            <p className="text-gray-600">
+              Different property events can call for different records. Review common <Link to="/scenarios" className="text-brand-blue hover:underline">property damage scenarios</Link> to see how fire, theft, storm damage, and other situations affect the documentation you may want ready.
+            </p>
+          </div>
+
           {/* Call to Action */}
           <div className="bg-brand-blue text-white rounded-lg p-8 text-center">
             <Phone className="h-12 w-12 mx-auto mb-4" />
