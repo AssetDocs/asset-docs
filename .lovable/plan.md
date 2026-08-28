@@ -1,284 +1,346 @@
-# Asset Safe SEO Phase 2A — Post-Implementation Verification
+# Asset Safe SEO Phase 2B — Post-Implementation Verification
 
-Audit only. No files changed. Phase 2B and Phase 3 not started.
+Audit only. No files changed. Phase 3 not started. B2 prerendering not implemented.
 
-Commit under verification: `8c70689fd93a880aabfe0bdc5560a9b5298fe496`
-
----
-
-## FINAL VERDICT
-
-**PHASE 2A VERIFIED — READY FOR PHASE 2B**
-
-All ten verification sections pass. No defects attributable to this commit. Four non-blocking observations are recorded in section 11 — none of them contradicts the approved Phase 2A scope, and none requires correction before Phase 2B.
+Commit under verification: `132994a643341bb7c097229b21d51a1852644506`
 
 ---
 
-## 1. Commit + Scope
+## A. Executive Result
+
+**PHASE 2B VERIFIED — PHASE 2 COMPLETE**
+
+All 18 verification sections pass. No defects attributable to this commit. The protected-file check passes: `SubscriptionCheckout.tsx`, `Partnership.tsx`, and `CompassPartnership.tsx` each contain user-facing stale brand text only, with zero behavior change. Two non-blocking observations are recorded in section S.
+
+---
+
+## B. Commit / Scope
 
 | Check | Result |
 |---|---|
-| Commit exists | **Yes** — `8c70689fd93a880aabfe0bdc5560a9b5298fe496` |
-| Message | `Retire press news and move digital documentation guide` |
-| Author / date | Asset Safe — Fri 28 Aug 2026 13:03:53 −0500 |
-| Reachable from main | **Yes** — `refs/heads/main` = `8c70689f`, and `HEAD` = `8c70689f` |
-| Points at expected implementation state | **Yes** — working tree clean, zero uncommitted changes, no commits after it |
-| Phase 2B / Phase 3 work included | **No** |
+| Commit exists | **Yes** — `132994a643341bb7c097229b21d51a1852644506` |
+| Message | `Reposition existing public SEO content` |
+| Author / date | Asset Safe — Fri 28 Aug 2026 13:34:54 −0500 |
+| Reachable from `main` | **Yes** — `refs/heads/main` = commit |
+| Reachable from `origin/main` | **Yes** — `refs/remotes/origin/main` = commit, `origin/HEAD` = commit |
+| Working tree clean | **Yes** — `git status --porcelain` empty |
+| Phase 3 pages created | **No** — no new route file, `App.tsx` untouched |
+| B2 prerendering introduced | **No** — no `vite.config.ts`, prerender script, or build-pipeline change |
+| Sitemap changed | **No** — `public/sitemap.xml` not in the diff; still 34 URLs |
 
-One reporting note, stated precisely: this sandbox checkout has **no `origin/*` remote-tracking refs** — `git rev-parse origin/main` fails with "unknown revision". The refs present are `refs/heads/main`, the edit branch, and the upload tag, all three pointing at `8c70689f`. So reachability is confirmed against the local `main` branch tip rather than a remote-tracking ref. That is a limitation of what this environment exposes, not a discrepancy in the commit.
-
-**Files changed — exactly 10, +267 / −759:**
-
-```text
- public/robots.txt                        |   2 +-
- public/sitemap.xml                       |   7 +-
- src/App.tsx                              |   7 +-
- src/components/EducationalResources.tsx  |  53 ++-
- src/components/FeaturedGuideShortcut.tsx |   4 +-
- src/components/Footer.tsx                |   5 -
- src/pages/DigitalDocumentationGuide.tsx  | 225 ++++++++++   (new file)
- src/pages/IndustryRequirements.tsx       |   1 +
- src/pages/PressNews.tsx                  | 721 ------------   (deleted)
- src/pages/StateRequirements.tsx          |   1 +
-```
-
-Every file maps to an approved Phase 2A item. Nothing out of scope was touched.
-
----
-
-## 2. `/press-news` Retirement
-
-**Fabricated content is gone from public source.** `src/pages/PressNews.tsx` no longer exists (721 lines deleted). A case-insensitive search across `src/`, `public/`, `index.html`, `supabase/`, and `docs/` for every fingerprint returned **zero hits in public source**:
-
-| Fingerprint searched | Hits in public source |
-|---|---|
-| `AB 2273` | 0 |
-| `FEMA Communications` | 0 |
-| `Insurance Research Institute` | 0 |
-| `Martinez` / `Jane Wilson` / `Maria Santos` | 0 |
-| `Sarah Chang` / `James Mitchell` / `Emma Rodriguez` / `Michael Chen` | 0 |
-| `Disaster Recovery Network` / `Business Weekly` | 0 |
-| `35% higher` / `40% of claims` | 0 |
-| `60 Minutes` / `Merlin` | 0 in source; one unrelated match, `\| Duration \| 60 minutes \|` in `docs/AssetSafe_Security_Incident_Tabletop_Agenda.md` — an internal runbook table, not shipped content |
-| `Press & Insurance News` / `Breaking News` | 0 |
-
-The falsely-attributed California AB 2273 insurance claim, the FEMA-bylined article, the invented institute and its statistics, and the named case studies are all removed from the codebase — not merely unlinked.
-
-**Live behavior at `/press-news`:**
-
-| Observation | Value |
-|---|---|
-| Browser ends at | **`/resources`** ✓ |
-| Document HTTP status | **200** at `/press-news` — no 3xx on the wire |
-| Redirect mechanism | **Client-side SPA navigation** — `<Route path="/press-news" element={<Navigate to="/resources" replace />} />` (`src/App.tsx:467`) |
-| Rendered page | `Resources & Security`, one H1, `index, follow`, canonical `https://getassetsafe.com/resources` |
-| NotFound | **No** |
-| Redirect loop | **No** — single document request, one settled navigation |
-
-**Classified accurately: this is client-side SPA navigation, not an HTTP 301 or 302.** No server redirect exists. `replace` keeps the retired URL out of browser history. This matches the pattern Phase 1 established for `/subscription-agreement` → `/terms`, so it is consistent with the approved approach rather than a deviation.
-
----
-
-## 3. Digital Documentation Guide — `/digital-documentation-guide`
-
-Public, indexable, and clean. Hydrated DOM:
-
-| Requirement | Observed | Pass |
-|---|---|---|
-| Exactly 1 H1 | 1 | ✓ |
-| Exactly 1 `<title>` | 1 | ✓ |
-| Exactly 1 description | 1 | ✓ |
-| Exactly 1 canonical | 1 | ✓ |
-| Canonical value | `https://getassetsafe.com/digital-documentation-guide` — exact match | ✓ |
-| Exactly 1 robots directive | 1 | ✓ |
-| Robots value | `index, follow` | ✓ |
-| Coherent single OG set | 7 tags, one each of `og:type`, `og:image`, `og:site_name`, `og:locale`, `og:url`, `og:title`, `og:description`; `og:url` self-references | ✓ |
-| Coherent single Twitter set | 5 tags, `summary_large_image`, `twitter:url` self-references | ✓ |
-| Keywords tags | **0** | ✓ |
-
-**H1 confirmed verbatim:** `Why Digital Asset Documentation Beats Spreadsheets + Phone Photos`
-
-This is a genuine `<h1>` element now, not the `CardTitle` `<div>` the Phase 2 audit flagged. The Phase 2 H1 defect is resolved.
-
-**Body content preserved.** `src/pages/DigitalDocumentationGuide.tsx` retains the full genuine guide: the "Digital Asset Documentation vs. DIY Methods" comparison table with all eight rows (Proof of Condition, Market Valuation, Insurance Readiness, Disaster Recovery, Search & Organization, Legal & Financial Use, Maintenance Tracking, Presentation Quality), the four-audience "Who Benefits?" list, and the four-point "The Asset Safe Advantage" list. Rendered text length 2,924 characters — real content, no soft 404.
-
----
-
-## 4. Old Guide URL — `/press-news/digital-documentation-guide`
-
-| Observation | Value |
-|---|---|
-| Browser ends at | **`/digital-documentation-guide`** ✓ |
-| Document HTTP status | **200** at the old path — no 3xx on the wire |
-| Redirect mechanism | **Client-side SPA navigation** — `<Navigate to="/digital-documentation-guide" replace />` (`src/App.tsx:468`) |
-| Canonical served | `https://getassetsafe.com/digital-documentation-guide` — points at the new URL, **not** the old one | ✓ |
-| Separately indexable copy | **None** — the old path renders the new URL's canonical, so no duplicate is indexable | ✓ |
-| NotFound | **No** |
-| Redirect loop | **No** |
-| Absent from sitemap | **Yes** — removed | ✓ |
-
-**Classified accurately: client-side SPA navigation, not an HTTP redirect.**
-
-Route-ordering note, checked rather than assumed: `/press-news` is declared before `/press-news/digital-documentation-guide` in `App.tsx`. This project uses `react-router-dom` `^7.18.1`, which ranks routes by specificity rather than declaration order, so the nested path is not shadowed by the parent. Verified empirically — the old guide URL lands on the guide, not on `/resources`.
-
----
-
-## 5. Requirements Pages
-
-| Check | `/industry-requirements` | `/state-requirements` |
-|---|---|---|
-| Publicly reachable | ✓ HTTP 200, renders | ✓ HTTP 200, renders |
-| Robots directives present | **exactly 1** | **exactly 1** |
-| Directive value | `noindex, nofollow` | `noindex, nofollow` |
-| Competing `index, follow` | **None** | **None** |
-| Crawlable in robots.txt | ✓ `Allow:` retained, no `Disallow` | ✓ `Allow:` retained, no `Disallow` |
-| Absent from sitemap | ✓ removed | ✓ removed |
-| Content rendered | 4,588 chars, 1 H1 | 4,166 chars, 1 H1 |
-
-Implemented via the existing `SEOHead` `noIndex` prop, which emits a single `<meta name="robots">` whose value is either `noindex, nofollow` or `index, follow` — one tag, never both. The diff adds exactly one line (`noIndex`) to each page and changes nothing else. Correct: crawlable so the directive is readable, which is what a `Disallow` would have broken.
-
-Retirement not assessed, per instruction.
-
----
-
-## 6. Sitemap
-
-**Exactly 34 URLs. 34 unique — zero duplicates.**
-
-| Removed | Confirmed absent |
-|---|---|
-| `/press-news` | ✓ |
-| `/press-news/digital-documentation-guide` | ✓ |
-| `/industry-requirements` | ✓ |
-| `/state-requirements` | ✓ |
-
-| Added | Confirmed present |
-|---|---|
-| `/digital-documentation-guide` | ✓ (priority 0.6, changefreq monthly, in the Resources block) |
-
-**All 34 URLs swept in a hydrated browser. 34 of 34 passed every criterion; the failure list is empty.**
-
-Each URL verified for: route exists, renders real content (all >400 chars of body text), exactly one `<title>`, exactly one description, exactly one self-referencing canonical on host `getassetsafe.com`, exactly one `index, follow` robots directive, exactly one H1, zero keywords tags, no NotFound text, and final path equal to the requested path (no unexpected redirect).
+**Files changed — exactly 16, +446 / −740:**
 
 ```text
-OK  /                                            OK  /resources
-OK  /features                                    OK  /qa
-OK  /pricing                                     OK  /glossary
-OK  /about                                       OK  /photography-guide
-OK  /contact                                     OK  /asset-documentation
-OK  /blog                                        OK  /digital-documentation-guide
-OK  /blog/best-closing-gift-real-estate-agents   OK  /scenarios
-OK  /blog/what-documents-to-upload               OK  /claims
-OK  /blog/welcome-to-asset-safe                  OK  /awareness-guide
-OK  /blog/legacy-locker-modern-protection        OK  /social-impact
-OK  /blog/digital-home-inventory-guide           OK  /testimonials
-OK  /blog/estate-planning-digital-vault          OK  /sample-dashboard
-OK  /blog/insurance-claims-documentation         OK  /partnership
-OK  /blog/organizing-receipts-warranties         OK  /terms
-OK  /blog/protecting-high-value-items            OK  /legal
-OK  /blog/disaster-preparedness-checklist        OK  /cookie-policy
-OK  /legacy-locker-info                          FAILED: []
-OK  /gift
+ src/components/EducationalResources.tsx |   2 +-
+ src/components/FAQAccordion.tsx         |   8 +-
+ src/pages/AssetDocumentation.tsx        | 339 ++++-----------
+ src/pages/AwarenessGuide.tsx            |  19 +-
+ src/pages/BlogPost.tsx                  |  15 +
+ src/pages/Claims.tsx                    |   7 +
+ src/pages/CompassPartnership.tsx        |   2 +-
+ src/pages/DigitalDocumentationGuide.tsx |  12 +-
+ src/pages/Glossary.tsx                  | 473 +++++-------------
+ src/pages/Partnership.tsx               |   2 +-
+ src/pages/PhotographyGuide.tsx          | 237 +++++------
+ src/pages/QA.tsx                        |   2 +-
+ src/pages/Resources.tsx                 |  27 +-
+ src/pages/Scenarios.tsx                 |  27 +-
+ src/pages/SubscriptionCheckout.tsx      |   2 +-
+ src/services/SearchService.ts           |  12 +-
 ```
 
-Count reconciliation: 37 (Phase 1) − 4 removed + 1 added = **34**. Matches the expected figure exactly.
+Files outside the primary content set, classified exactly:
 
----
-
-## 7. Public Links
-
-| Requirement | Result |
-|---|---|
-| Footer no longer links `/press-news` | ✓ The `Press and News` `<li>` and its `<Link to="/press-news">` were deleted from `Footer.tsx` (5 deletions, nothing else changed) |
-| Resources links to `/digital-documentation-guide` | ✓ `EducationalResources.tsx` adds a "Digital Documentation Guide" card (`href: "/digital-documentation-guide"`, 8 min read) |
-| Featured guide shortcut points to new URL | ✓ `FeaturedGuideShortcut.tsx`: `to="/press-news/digital-documentation-guide"` → `to="/digital-documentation-guide"` |
-| Public link remaining to old guide URL | ✓ **None** other than the deliberate redirect route |
-| Broken link introduced | ✓ **None** — every card destination in `EducationalResources.tsx` (`/photography-guide`, `/digital-documentation-guide`, `/claims`, `/asset-documentation`, plus the in-page checklist anchor) resolves to a live indexable route |
-
-**Every remaining `/press-news` occurrence in `src/` and `public/`, classified — there are exactly two, both intentional:**
-
-| Location | Occurrence | Classification |
+| File | Exact change | Class |
 |---|---|---|
-| `src/App.tsx:467` | `<Route path="/press-news" element={<Navigate to="/resources" replace />} />` | **Deliberate redirect handling** |
-| `src/App.tsx:468` | `<Route path="/press-news/digital-documentation-guide" element={<Navigate to="/digital-documentation-guide" replace />} />` | **Deliberate redirect handling** |
-
-No occurrences remain in components, pages, footer, sitemap, robots.txt, or `SearchService.ts`.
-
-Incidental improvement in `EducationalResources.tsx`: the four cards changed from `useNavigate` button handlers to real `<Link>` elements wrapped by `<Button asChild>`. Card destinations are now crawlable `<a href>` anchors rather than JS click handlers — a genuine internal-linking gain, and in scope as part of adding the new card.
+| `SubscriptionCheckout.tsx` | one `FormLabel` string: `How did you hear about Asset Docs?` → `...Asset Safe?` | Stale brand text only |
+| `Partnership.tsx` | one JSX comment: `{/* What is Asset Docs */}` → `Asset Safe` | Comment only |
+| `CompassPartnership.tsx` | one JSX comment: `{/* About Asset Docs */}` → `Asset Safe` | Comment only |
 
 ---
 
-## 8. robots.txt
+## C. Asset Documentation Verification — `/asset-documentation`
 
-| Requirement | Result |
+**Repositioning confirmed.** The page is 339 lines lighter and no longer presents an accounting, lending, or corporate-asset product. A case-insensitive sweep of `src/pages`, `src/components`, and `src/data` for every old framing term returned **zero hits**:
+
+`accounts receivable`, `marketable securities`, `intangible asset`, `operating assets`, `non-operating`, `mortgage application`, `business liquidation`, `net worth`, `R&D`, `trademark` as an asset category — all 0. (The only `trademark` match anywhere is a standard IP-ownership sentence in `Terms.tsx`, unrelated and untouched.)
+
+The page now covers practical documentation: belongings, property, equipment, photos, videos, receipts, purchase information, values, serial and model numbers, warranties, appraisals, improvements, condition records.
+
+**Final metadata, verified in the hydrated DOM — all three exact matches:**
+
+| Field | Value |
 |---|---|
-| No `Disallow` added for `/industry-requirements` | ✓ Line 83 remains `Allow: /industry-requirements` |
-| No `Disallow` added for `/state-requirements` | ✓ Line 84 remains `Allow: /state-requirements` |
-| Obsolete `/press-news` Allow removed | ✓ `Allow: /press-news` deleted |
-| `/digital-documentation-guide` crawlable | ✓ `Allow: /digital-documentation-guide` added in its place |
-| Sitemap declaration correct | ✓ `Sitemap: https://getassetsafe.com/sitemap.xml` unchanged |
+| H1 | `Document What You Own Before You Need It` ✓ |
+| Title | `Asset Documentation \| Organize Property, Belongings & Records` ✓ |
+| Description | `Learn what to document about belongings, property, equipment, receipts, photos, videos, values, serial numbers, warranties, and condition records.` ✓ |
 
-The entire robots.txt change is a two-line swap: one `Allow` removed, one added. No `Disallow` rule was added, removed, or modified anywhere in the file.
+**Not a Phase 3 landing page.** It remains a single evergreen documentation explainer — no Home Inventory or Small Business acquisition framing, no new route, no audience-segment hero.
+
+**Contextual links present** (in-body, outside nav/footer): `/photography-guide` ✓, `/claims` ✓, `/digital-documentation-guide` ✓.
 
 ---
 
-## 9. Regression Check
+## D. Photography Guide Verification — `/photography-guide`
 
-**No regression. The 10-file change set does not intersect any protected area.**
+**Materially expanded** beyond the old seven-tip list into five topical sections plus a checklist: *Start with the Room*, *Photograph Individual Items* (7 practical tips), *Pair Photos with Records*, *Use Video for Context*, *Keep It Organized*, *Quick Photo Checklist*.
 
-| Area | Touched? | Evidence |
+Coverage confirmed for every required topic: room-level documentation ✓, individual items ✓, multiple angles ✓, condition ✓, serial/model numbers ✓, identifying labels ✓, supporting paperwork (receipts, warranties, appraisals, manuals, certificates) ✓, renovations/improvements (before/during/after, permits, invoices) ✓, move-in/move-out condition ✓, video walkthroughs ✓, organization ✓.
+
+**The unsupported AI claim is gone.** A search of the page source and rendered DOM for `the AI`, `Asset Safe's AI`, and AI-attributed photography claims returns **zero hits**. The plain-background tip survives but is now justified on its own merits ("keeps the item easy to see and reduces visual confusion") with no AI-identification claim. The only remaining `the AI` strings in the repo are in `ChatbotInterface.tsx` and `CustomerSupportWidget.tsx` — support-assistant copy, out of scope and untouched.
+
+**Contextual links present:** `/asset-documentation` ✓, `/claims` ✓, `/digital-documentation-guide` ✓.
+
+New H1: `How to Photograph Belongings and Property for Better Documentation`. Title: `Photography Guide for Property Documentation | Asset Safe`.
+
+---
+
+## E. Claims / Scenarios Verification
+
+**`/claims` retains intent ownership of insurance claim documentation.**
+
+| Check | Result |
+|---|---|
+| H1 | `Insurance Claims Documentation` — **unchanged** ✓ |
+| Broadly rewritten into insurance advice | **No** — the entire diff is a single added 7-line card |
+| Document-oriented structure intact | ✓ Record lists and section order untouched |
+| Link to `/photography-guide` | ✓ retained |
+| New link to `/scenarios` | ✓ added ("Plan for the Event, Not Just the Claim") |
+
+**`/scenarios` remains event-oriented and now differentiates cleanly from `/claims`.**
+
+| Field | Final value |
+|---|---|
+| Title | `Property Damage Scenarios \| Asset Safe` (was `Insurance Claim Scenarios \| Asset Safe`) |
+| H1 | `Fire, Theft, Storm & Property Damage Scenarios` (was `Insurance Claim Scenarios`) |
+
+Event framing is explicit (fire, theft, storm, water, move-related). Link to `/claims` added. No broad insurance advice introduced — the copy edits move in the opposite direction, softening outcome claims: "Expedite insurance claims processing" and "Ensure accurate settlement amounts" became "Support insurance claim preparation" and "Reduce guesswork about what was damaged or missing"; "Support legal proceedings if necessary" was removed. Title cannibalization between `/claims` and `/scenarios` flagged in the Phase 2 audit is resolved.
+
+---
+
+## F. Awareness Guide Verification — `/awareness-guide`
+
+Remains a prevention and risk-awareness page; no insurance-first repositioning (no claim-filing, coverage, or settlement content added).
+
+| Field | Final value |
+|---|---|
+| H1 | `Hidden Risks That Can Damage Your Home or Property` (was `🏠🔒 Asset Safe Awareness Guide`) |
+| Title | `Hidden Home & Property Risks \| Asset Safe` |
+| Description | `Identify hidden risks that can damage a home or property, from dryer vents and leaks to electrical, drainage, security, and maintenance issues.` |
+
+The branded emoji H1 is gone and the risk-topic H2 was promoted into the H1 rather than duplicated — the page still has exactly one H1. Distinctness holds: prevention/maintenance here, events on `/scenarios`, claim records on `/claims`. Contextual links to `/scenarios` ✓ and `/asset-documentation` ✓ added.
+
+---
+
+## G. Resources Verification — `/resources`
+
+Now a real hub rather than a thin tab shell.
+
+| Check | Result |
+|---|---|
+| Introductory content | ✓ Intro paragraph replaced the generic "Everything you need to maximize your property protection" line with a concrete description of what the hub covers |
+| Educational Resources primary | ✓ Still the default active tab |
+| Security & Trust secondary | ✓ Still the second tab — **not** split into a new route |
+| Hub link grid | ✓ New 7-card grid rendered above the tabs |
+
+In-body links verified in the hydrated DOM: `/asset-documentation` ✓, `/photography-guide` ✓, `/digital-documentation-guide` ✓, `/claims` ✓, `/scenarios` ✓, `/awareness-guide` ✓, `/blog` ✓.
+
+**Old valuation/accounting copy corrected.** `EducationalResources.tsx` changed the `/asset-documentation` card description from "Understanding how to document and value your assets for insurance and planning" to "Understand what property details, receipts, condition notes, and estimated values belong in an asset record." The card heading still reads "Asset Valuation Explained" — noted in section S as cosmetic, not a Phase 3 judgment.
+
+---
+
+## H. Glossary Verification — `/glossary`
+
+Rebalanced from a general insurance dictionary into a documentation reference. 473 lines replaced; **30 terms across 5 sections**, all documentation-led:
+
+1. **Documentation & Property Records** — Asset Documentation, Home Inventory, Property Record, Inventory, Documentation Checklist, Record Retention
+2. **Proof, Receipts & Identifiers** — Proof of Ownership, Receipt, Serial Number, Model Number, Warranty, Appraisal
+3. **Photos, Condition & Visual Evidence** — Condition Documentation, Room-Level Documentation, Detail Shot, Video Walkthrough, Move-In/Move-Out Condition, High-Value Item
+4. **Value & Claim-Support Terms** — Estimated Value, Replacement Cost, Depreciation, Actual Cash Value, Proof of Loss, Claim-Support Documentation
+5. **Risk & Preparedness** — Peril, Mitigation, Loss Event, Emergency Record, Preparedness, Maintenance Record
+
+Insurance-adjacent terms survive (Replacement Cost, Actual Cash Value, Depreciation, Proof of Loss, Peril) but are a minority confined to two sections and no longer define the page. New H1 `Documentation & Property Records Glossary`; title `Documentation & Property Records Glossary | Asset Safe`.
+
+**The public `/checklists` link is gone** ✓ — no `/checklists` reference remains in `Glossary.tsx`, and `SearchService.ts` had its `/checklists` search entry removed, so the public search surface no longer routes logged-out visitors into the authenticated route. Remaining `/checklists` references are `App.tsx` (the `ProtectedRoute` definition itself), `ChecklistsAccess.tsx`, `AskAssetSafe.tsx`, and `StateRequirements.tsx` (a noindexed page) — all pre-existing, none touched by this commit.
+
+---
+
+## I. Digital Documentation Guide Verification
+
+| Check | Result |
+|---|---|
+| URL unchanged from Phase 2A | ✓ `/digital-documentation-guide` |
+| Exactly one H1 | ✓ `Why Digital Asset Documentation Beats Spreadsheets + Phone Photos` |
+| Breadcrumb structured data | ✓ **Implemented** — `breadcrumbSchema` added (Home → Resources → Digital Documentation Guide), one `BreadcrumbList` in the hydrated DOM |
+| Legacy `7/22/2024` gone | ✓ The date block and the now-unused `Calendar` import were removed |
+| Fabricated replacement date | ✓ **None** — the byline now shows author and read time only; no date anywhere |
+| Phase 2A title / description | ✓ Unchanged |
+| Canonical | ✓ `https://getassetsafe.com/digital-documentation-guide`, self-referencing |
+| Indexability | ✓ single `index, follow` |
+
+---
+
+## J. Blog Internal-Link Verification
+
+**Actual count in source: 10 posts** — 10 slug entries in `BlogPost.tsx`, 10 cards in `Blog.tsx`, 10 blog-post URLs in the sitemap. The implementation's count of 10 is correct; the earlier audit's "9" was the undercount. Treated as correct per instruction.
+
+| Slug / title | Contextual link(s) added | Topical fit |
 |---|---|---|
-| Auth | **No** | No `AuthContext`, `Auth*`, `Login`, `Signup`, or `ProtectedRoute` file in the diff |
-| Supabase | **No** | No `src/integrations/supabase/**`, no `supabase/functions/**`, no `supabase/config.toml` |
-| RLS | **No** | No migration in the commit |
-| Billing / Stripe / checkout | **No** | No `Subscription*`, `Stripe`, `CompletePricing`, or checkout file |
-| Subscription pricing / storage | **No** | `subscriptionFeatures.ts` untouched |
-| Secure Vault / encryption | **No** | No `SecureVault`, `vaultKey`, `encryption`, `recoveryEncryption`, or delegate file |
-| Gifting | **No** | No `Gift*` file |
-| Homepage positioning | **No** | `Index.tsx`, `HeroSection.tsx` untouched |
-| Asset Documentation content | **No** | `src/pages/AssetDocumentation.tsx` untouched |
-| Photography Guide content | **No** | `src/pages/PhotographyGuide.tsx` untouched |
-| Claims content | **No** | `src/pages/Claims.tsx` untouched |
-| Scenarios content | **No** | `src/pages/Scenarios.tsx` untouched |
-| Awareness Guide content | **No** | `src/pages/AwarenessGuide.tsx` untouched |
-| Glossary content | **No** | `src/pages/Glossary.tsx` untouched |
-| Blog content | **No** | `Blog.tsx`, `BlogPost.tsx` untouched |
+| `digital-home-inventory-guide` — The Complete Guide to Creating a Digital Home Inventory | `/asset-documentation` | ✓ matches expected |
+| `what-documents-to-upload` — What Documents Should I Upload to Asset Safe? | `/asset-documentation`, `/qa` | ✓ matches expected (both) |
+| `organizing-receipts-warranties` — The Smart Way to Organize Receipts and Warranties | `/asset-documentation` | ✓ matches expected |
+| `protecting-high-value-items` — Protecting High-Value Items: A Collector's Guide | `/photography-guide`, `/asset-documentation` | ✓ matches expected (both) |
+| `legacy-locker-modern-protection` — Legacy Locker | `/legacy-locker-info` | ✓ matches expected |
+| `estate-planning-digital-vault` — Why Every Estate Plan Needs a Digital Vault | `/legacy-locker-info` | ✓ matches expected |
+| `disaster-preparedness-checklist` — Disaster Preparedness | `/awareness-guide`, `/scenarios` | ✓ matches expected (both) |
+| `insurance-claims-documentation` — How Proper Documentation Speeds Up Insurance Claims | `/claims` | ✓ matches expected |
+| `best-closing-gift-real-estate-agents` — The Best Closing Gift | `/gift`, `/asset-documentation` | ✓ appropriate existing Gift content |
+| `welcome-to-asset-safe` — Welcome to Asset Safe | `/asset-documentation`, `/legacy-locker-info` | ✓ fits a general introduction post |
 
-Corroborated live: all 9 blog posts, `/claims`, `/scenarios`, `/asset-documentation`, `/photography-guide`, `/awareness-guide`, `/glossary`, and `/` render correctly with intact metadata in the section 6 sweep. `IndustryRequirements.tsx` and `StateRequirements.tsx` each received exactly one added line (`noIndex`) — no content edits.
+**Not mechanically identical.** Five distinct destination sets across ten posts: `/asset-documentation` alone (2), `/legacy-locker-info` alone (2), `/asset-documentation`+`/qa`, `/photography-guide`+`/asset-documentation`, `/awareness-guide`+`/scenarios`, `/claims`, `/gift`+`/asset-documentation`, `/asset-documentation`+`/legacy-locker-info`. Anchor text varies per article.
 
-`App.tsx` changes are confined to one import swap and three route lines. `Footer.tsx` is a pure 5-line deletion. No shared component, context, hook, or service was modified.
+**Pricing CTAs preserved** ✓ — every one of the 10 posts still renders its `/pricing` CTA in the hydrated DOM. All additions are new paragraphs; no CTA line was deleted.
 
 ---
 
-## 10. Build Check
+## K. QA Verification — `/qa`
+
+Page otherwise intact: the only `QA.tsx` change is one answer softened from "streamline insurance claims and maximize recovery" to "may support insurance claim preparation" — an accuracy improvement, no structural edit.
+
+Contextual links added naturally through `FAQAccordion` (rendered on `/qa`): `/claims` in the insurance-claims answer ✓, `/asset-documentation` in the asset-types answer ✓, `/legacy-locker-info` in the Legacy Locker answer ✓. Each sits inside a topically matching answer.
+
+**FAQPage structured data valid and unchanged** ✓ — `/qa` emits one JSON-LD block, `@graph` containing `FAQPage` (with `mainEntity` questions) plus `BreadcrumbList`. Same shape as before; only one answer's text differs, and the schema is generated from that same `faqData` array so it stays in sync.
+
+---
+
+## L. Asset Docs Cleanup
+
+A repo-wide search of `src/`, `public/`, and `index.html` for `Asset Docs` returns **zero occurrences**. Nothing left to classify — no user-facing string, no comment, no search entry.
+
+**`SearchService.ts` corrected** ✓ — the `/about` search result description changed from "About Asset Docs and our mission" to "About Asset Safe and our mission". Same commit also removed the `/checklists` entry and added the missing trailing newline.
+
+No legitimate compatibility, database, or historical technical identifier was renamed (the `AssetDocs` GitHub author handle in commit metadata is not project source and is untouched).
+
+---
+
+## M. Protected-File Regression Check
+
+**`src/pages/SubscriptionCheckout.tsx` — PASS.** The diff is exactly one line inside a `FormLabel`:
+
+```diff
+-  <FormLabel>How did you hear about Asset Docs?</FormLabel>
++  <FormLabel>How did you hear about Asset Safe?</FormLabel>
+```
+
+Confirmed unchanged: Stripe integration, price, plan selection, storage values, payment submission, checkout session creation, email capture, account creation, subscription state, redirects, success handling, error handling. The `heardAbout` field's `name`, `render`, `onValueChange`, `defaultValue`, options, and validation schema are all byte-identical — only the visible label text differs. **User-facing stale brand text only.**
+
+**`Partnership.tsx` — PASS.** One JSX comment (`{/* What is Asset Docs */}` → `{/* What is Asset Safe */}`). Zero runtime effect; no partnership workflow, form, or application behavior touched.
+
+**`CompassPartnership.tsx` — PASS.** One JSX comment (`{/* About Asset Docs */}` → `{/* About Asset Safe */}`). Same classification.
+
+No behavior changed in any of the three. Phase 2B is not failed on this section.
+
+---
+
+## N. Internal-Link Architecture
+
+Verified against the hydrated DOM with nav and footer links excluded, so every entry below is a genuine in-body contextual link.
+
+```text
+/asset-documentation         -> /photography-guide, /claims, /digital-documentation-guide   ✓
+/photography-guide           -> /asset-documentation, /claims, /digital-documentation-guide ✓
+/claims                      -> /scenarios, /photography-guide                             ✓
+/scenarios                   -> /claims                                                    ✓  (bidirectional pair complete)
+/awareness-guide             -> /scenarios, /asset-documentation                            ✓
+/resources                   -> /asset-documentation, /photography-guide,
+                                /digital-documentation-guide, /claims, /scenarios,
+                                /awareness-guide, /blog                                     ✓
+blog posts (10)              -> appropriate evergreen owners (see section J)                ✓
+/qa                          -> /claims, /asset-documentation, /legacy-locker-info          ✓ (inside FAQ answers)
+```
+
+| Check | Result |
+|---|---|
+| Broken links | **None** — every destination resolves to a live route |
+| Public links to authenticated routes | **None introduced**; the `/checklists` entry in public search was removed |
+| References to retired `/press-news` | **None** except the two deliberate `App.tsx` redirect routes from Phase 2A |
+| Loops or malformed anchors | **None** — the `/claims` ↔ `/scenarios` pair is an intentional reciprocal link, not a loop; no self-links, no empty or `#`-only hrefs added |
+
+---
+
+## O. Metadata / Heading Results
+
+All 19 required pages hydrated (9 evergreen + 10 blog posts). **Every page passed every criterion; the failure list is empty.**
+
+Each verified for exactly 1 H1, exactly 1 `<title>`, exactly 1 description, exactly 1 canonical, exactly 1 robots directive with value `index, follow`, zero keywords tags, a coherent single OG set (7 tags with self-referencing `og:url`), a coherent single Twitter set (5 tags, `summary_large_image`), and a self-referencing canonical on `getassetsafe.com` matching the requested path.
+
+```text
+OK /asset-documentation             OK /blog/best-closing-gift-real-estate-agents
+OK /photography-guide               OK /blog/what-documents-to-upload
+OK /claims                          OK /blog/welcome-to-asset-safe
+OK /scenarios                       OK /blog/legacy-locker-modern-protection
+OK /awareness-guide                 OK /blog/digital-home-inventory-guide
+OK /resources                       OK /blog/estate-planning-digital-vault
+OK /glossary                        OK /blog/insurance-claims-documentation
+OK /digital-documentation-guide     OK /blog/organizing-receipts-warranties
+OK /qa                              OK /blog/protecting-high-value-items
+                                    OK /blog/disaster-preparedness-checklist
+BAD: []
+```
+
+Canonical self-reference confirmed on all 19. Breadcrumb JSON-LD present on `/asset-documentation`, `/photography-guide`, `/awareness-guide`, `/resources`, `/glossary`, `/digital-documentation-guide`, and (with FAQPage) `/qa`.
+
+---
+
+## P. Sitemap
+
+| Check | Result |
+|---|---|
+| Exactly 34 unique URLs | ✓ 34 `<loc>` entries, zero duplicates |
+| Phase 2B added a route | **No** |
+| Phase 2B removed a route | **No** — `public/sitemap.xml` is not in the commit diff |
+| All 34 indexable | ✓ Section O confirms `index, follow` on the repositioned pages; the Phase 2A sweep confirmed the remainder |
+| New noindex page left in sitemap | **None** — no `noIndex` prop was added anywhere in this commit |
+| Indexable page accidentally removed | **None** |
+
+---
+
+## Q. Phase 3 Boundary
+
+No new page or route was created for Home Inventory, Renters, Landlords, Small Businesses, Knowledge Hub, High-Value Items, Emergency Information, or Digital Legacy acquisition. `App.tsx` is not in the diff, so no route could have been added, and no new page file exists in the commit. Terms such as "Home Inventory" and "High-Value Item" appear only as mentions inside existing content (glossary entries, blog copy) — allowed.
+
+---
+
+## R. Build / Type Results
 
 | Command | Result |
 |---|---|
 | `npx tsc --noEmit -p tsconfig.app.json` | **PASSES** — exit 0, zero diagnostics |
-| `npm run build` | **PASSES** — exit 0, `✓ 3270 modules transformed`, `✓ built in 22.04s` |
+| `npm run build` | **PASSES** — exit 0, `✓ built in 17.14s` |
 
-Build warnings reviewed and all pre-existing, none introduced by this commit:
-- chunk >500 kB (`index-*.js` at 3.87 MB) — long-standing bundle-size advisory
-- `continuityNotifications.ts` mixed static/dynamic import — pre-existing, unrelated files
-- `caniuse-lite` 8 months stale — toolchain notice
-
-No unrelated lint backlog was touched.
+Warnings reviewed and all pre-existing: chunk >500 kB, `continuityNotifications.ts` mixed import, stale `caniuse-lite`. No unrelated lint backlog touched.
 
 ---
 
-## 11. Non-Blocking Observations
+## Regression Check (section 17)
 
-Recorded for completeness. **None is a defect attributable to this commit**, and none blocks Phase 2B.
-
-1. **Both retirements are client-side, not HTTP 3xx.** `/press-news` and `/press-news/digital-documentation-guide` return HTTP 200 and redirect via React Router `<Navigate replace>`. JS-executing crawlers follow this and read the correct canonical; non-JS fetchers see a 200 with the static shell. This matches the approved Phase 2A design and the Phase 1 precedent. If a true 301 is wanted later, it needs hosting-level rules or SSR — a separate decision, not a Phase 2A gap.
-2. **`/digital-documentation-guide` carries no structured data.** Peer resource pages pass a `breadcrumbSchema` to `SEOHead`; the new page passes none. Not required by the approved scope. Candidate for the Phase 2B linking pass.
-3. **Guide byline still reads `7/22/2024`.** Carried over verbatim from the retired listing's entry, so content was preserved exactly as instructed. Worth a product decision on whether to refresh or drop the date.
-4. **`/industry-requirements` and `/state-requirements` remain linked from the footer.** Correct while they are noindexed-but-crawlable. Revisit only at actual retirement.
+No change to homepage hero, pricing, auth, Supabase, RLS, billing, Stripe, subscription logic, Secure Vault, encryption, gifting, the Phase 2A redirect architecture, or B2 prerendering. None of `Index.tsx`, `HeroSection.tsx`, `Pricing.tsx`, `subscriptionFeatures.ts`, `AuthContext.tsx`, `src/integrations/supabase/**`, `supabase/**`, `SecureVault.tsx`, `encryption.ts`, `vaultKey.ts`, `Gift*.tsx`, `App.tsx`, or `vite.config.ts` appears in the diff, and the commit contains no migration. `SubscriptionCheckout.tsx` is the only billing-adjacent file, and its single change is visible label text (section M).
 
 ---
 
-## Verdict
+## S. Findings Requiring Correction
 
-**PHASE 2A VERIFIED — READY FOR PHASE 2B**
+**None.** No defect is attributable to commit `132994a643341bb7c097229b21d51a1852644506`.
 
-Nothing was implemented. No files were changed. Phase 2B not started.
+Two non-blocking observations, recorded for later judgment:
+
+1. **The `/qa` contextual links live inside collapsed accordion panels.** Radix `AccordionContent` mounts only when a panel is opened, so the new `/claims`, `/asset-documentation`, and `/legacy-locker-info` links are absent from the initial DOM. They are correct and topically placed; they simply do not contribute crawlable link equity until expanded. Same limitation applies to the pre-existing FAQ answers, so this is not a regression.
+2. **`EducationalResources.tsx` card heading still reads "Asset Valuation Explained"** while its description and destination are now documentation-focused. The misleading accounting framing was corrected in the description; the title is a cosmetic leftover.
+
+---
+
+## T. Final Verdict
+
+**PHASE 2B VERIFIED — PHASE 2 COMPLETE**
+
+Nothing was implemented. No files were changed. Phase 3 not started; B2 prerendering not implemented.
