@@ -97,6 +97,7 @@ import DigitalDocumentationGuide from "./pages/DigitalDocumentationGuide";
 import HomeInventory from "./pages/HomeInventory";
 import Renters from "./pages/Renters";
 import Landlords from "./pages/Landlords";
+import SmallBusiness from "./pages/SmallBusiness";
 
 import SocialImpact from "./pages/SocialImpact";
 import Partnership from "./pages/Partnership";
@@ -403,6 +404,7 @@ const AppContent = () => {
         <Route path="/home-inventory" element={<HomeInventory />} />
         <Route path="/renters" element={<Renters />} />
         <Route path="/landlords" element={<Landlords />} />
+        <Route path="/small-business" element={<SmallBusiness />} />
         <Route path="/sample-dashboard" element={<SampleDashboard />} />
         
         {/* Authentication routes */}

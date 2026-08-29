@@ -112,6 +112,9 @@ const Scenarios: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-800 mb-2">🏢 Business-Specific</h4>
+                  <p className="text-sm text-gray-600 mb-2">
+                    For physical business property, see the <Link to="/small-business" className="text-brand-blue hover:underline">small business documentation guide</Link>.
+                  </p>
                   <ul className="text-sm text-gray-600 space-y-1">
                     <li>• Business interruption (due to disaster)</li>
                     <li>• Cyberattacks (for cyber liability insurance)</li>

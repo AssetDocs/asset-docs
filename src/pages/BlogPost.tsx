@@ -550,7 +550,7 @@ const BlogPost = () => {
           <li><strong>Returns and exchanges:</strong> Most stores require receipts for returns</li>
           <li><strong>Warranty claims:</strong> Proof of purchase is typically required</li>
           <li><strong>Insurance claims:</strong> Prove ownership and value of lost or damaged items</li>
-          <li><strong>Tax deductions:</strong> Business expenses need documentation</li>
+          <li><strong>Business expense records:</strong> Keep receipts and supporting documents organized for reference or to share with your accountant or advisor</li>
         </ul>
 
         <h2>Building a Digital Receipt System</h2>

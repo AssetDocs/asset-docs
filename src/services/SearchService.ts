@@ -108,6 +108,14 @@ const searchableContent: SearchResult[] = [
     keywords: ['landlords', 'rental property', 'property records', 'condition documentation', 'repairs', 'improvements']
   },
   {
+    id: 'small-business',
+    title: 'Small Business',
+    description: 'Document business equipment, premises, receipts, warranties, condition, repairs, maintenance records, and supporting files',
+    path: '/small-business',
+    category: 'help',
+    keywords: ['small business', 'business equipment', 'equipment records', 'business property', 'property documentation', 'equipment documentation', 'receipts', 'warranties', 'repairs', 'maintenance records']
+  },
+  {
     id: 'qa',
     title: 'Q&A',
     description: 'Frequently asked questions',

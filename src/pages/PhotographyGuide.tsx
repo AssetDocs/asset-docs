@@ -54,6 +54,9 @@ const PhotographyGuide: React.FC = () => {
             <p className="text-gray-600 mt-3">
               If you are creating a full room-by-room record, pair these photo tips with the <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory guide</Link>.
             </p>
+            <p className="text-gray-600 mt-3">
+              Small businesses can apply the same photo principles to <Link to="/small-business" className="text-brand-blue hover:underline">business equipment and property documentation</Link>.
+            </p>
           </div>
 
           <Card className="mb-8">

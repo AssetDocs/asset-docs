@@ -58,6 +58,9 @@ const Claims: React.FC = () => {
             <p className="text-gray-600 max-w-2xl mx-auto mt-3">
               Rental property owners can keep <Link to="/landlords" className="text-brand-blue hover:underline">property condition, repair, and improvement records</Link> organized for claim preparation.
             </p>
+            <p className="text-gray-600 max-w-2xl mx-auto mt-3">
+              Small businesses can also keep <Link to="/small-business" className="text-brand-blue hover:underline">business equipment and property records</Link> organized for claim preparation.
+            </p>
           </div>
 
           {/* Disclaimer */}

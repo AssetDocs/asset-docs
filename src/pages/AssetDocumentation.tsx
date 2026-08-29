@@ -91,6 +91,9 @@ const AssetDocumentation: React.FC = () => {
                 <p className="text-lg text-gray-700 mt-4">
                   Rental property owners can use <Link to="/landlords" className="text-brand-blue hover:underline">landlord documentation</Link> to keep condition history, repairs, improvements, receipts, and warranties organized by property.
                 </p>
+                <p className="text-lg text-gray-700 mt-4">
+                  Small businesses can use <Link to="/small-business" className="text-brand-blue hover:underline">business equipment and property documentation</Link> to keep equipment details, premises records, receipts, warranties, and repair history organized.
+                </p>
               </div>
             </Card>
           </section>
