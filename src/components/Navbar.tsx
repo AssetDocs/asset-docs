@@ -348,7 +348,9 @@ const Navbar: React.FC = () => {
                     >
                       {translate('nav.features')}
                     </NavLink>
+                    {mobileAudienceSection}
                    <NavLink 
+
                       to="/pricing" 
                       className={({ isActive }) => 
                         `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
