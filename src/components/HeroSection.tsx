@@ -17,7 +17,7 @@ const HeroSection: React.FC = () => {
               Everything you love.<br />Protected in one place.
             </h1>
             <p className="text-xl mb-4 animate-slide-up text-white/85">
-              Document, organize &amp; protect — all in one system, so you're ready when it counts.
+              Document, organize, protect &amp; share — all in one system, so you’re ready when it matters.
             </p>
             
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-slide-up">
