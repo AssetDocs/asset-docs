@@ -12,7 +12,6 @@ import LegacyLockerSection from '@/components/LegacyLockerSection';
 import ScrollProgressCue from '@/components/ScrollProgressCue';
 import ComparisonSection from '@/components/ComparisonSection';
 import CTASection from '@/components/CTASection';
-import HomeFAQ from '@/components/HomeFAQ';
 import { organizationSchema, webApplicationSchema, faqSchema, videoSchema } from '@/utils/structuredData';
 import introVideo from '@/assets/asset-safe-intro.mp4.asset.json';
 import introPoster from '@/assets/asset-safe-intro-poster.jpg.asset.json';
@@ -23,7 +22,7 @@ const Index: React.FC = () => {
     { question: "What is a digital home inventory?", answer: "A digital home inventory is a comprehensive record of your property and possessions, including photos, videos, receipts, and detailed descriptions. Learn more in Asset Safe's home inventory guide." },
     { question: "How does Asset Safe protect my data?", answer: "Asset Safe uses enterprise-grade encryption, secure cloud storage, and follows industry best practices for data protection. All files are encrypted both in transit and at rest." },
     { question: "What is the Legacy Locker?", answer: "Legacy Locker is a secure digital vault for storing important information your loved ones will need—estate documents, account details, personal notes, and instructions. It's not a legal will, but a companion tool that supports your estate planning." },
-    { question: "Can I use Asset Safe for insurance claims?", answer: "Yes! Asset Safe provides pre-documented proof of ownership, receipts, condition photos, and detailed descriptions to streamline insurance claims and maximize recovery." }
+    { question: "Can I use Asset Safe for insurance claims?", answer: "Yes! Asset Safe provides pre-documented proof of ownership, receipts, condition photos, and detailed descriptions to streamline documentation and support insurance claim preparation." }
   ];
 
   const heroVideoData = videoSchema(
@@ -58,7 +57,6 @@ const Index: React.FC = () => {
       <LegacyLockerSection />
       <GiftSection />
       <ComparisonSection />
-      <HomeFAQ />
       <CTASection />
       <Footer />
     </div>
