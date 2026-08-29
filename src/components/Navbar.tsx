@@ -8,6 +8,14 @@ import assetSafeLogo from '@/assets/asset-safe-logo.png';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import AccountSwitcher from '@/components/AccountSwitcher';
+import AudienceNavMenu from '@/components/AudienceNavMenu';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { audienceNavGroupLabel, audienceNavLinks } from '@/data/audienceNav';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
