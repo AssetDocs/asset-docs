@@ -52,6 +52,9 @@ const Claims: React.FC = () => {
             <p className="text-gray-600 max-w-2xl mx-auto mt-4">
               A current <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory</Link> can keep item details, photos, receipts, and values organized before a claim ever begins.
             </p>
+            <p className="text-gray-600 max-w-2xl mx-auto mt-3">
+              Renters can also keep <Link to="/renters" className="text-brand-blue hover:underline">rental condition and belongings records</Link> organized for their own reference.
+            </p>
           </div>
 
           {/* Disclaimer */}

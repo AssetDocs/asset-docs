@@ -173,10 +173,15 @@ const Features: React.FC = () => {
             </TabsList>
 
             {audiences.map((audience) => (
-              <TabsContent key={audience.id} value={audience.id} className="animate-fade-in">
+              <TabsContent key={audience.id} value={audience.id} forceMount className="animate-fade-in">
                 <div className="mb-8 text-center">
                   <h3 className="text-2xl font-bold text-brand-blue mb-2">{audience.headline}</h3>
                   <p className="text-lg text-gray-600 max-w-2xl mx-auto">{audience.intro}</p>
+                  {audience.id === 'renters' && (
+                    <p className="text-gray-600 max-w-2xl mx-auto mt-3">
+                      See the <Link to="/renters" className="text-brand-blue hover:underline">renters documentation guide</Link> for move-in condition records and belongings inventory basics.
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {audience.focus.map((focus) => (

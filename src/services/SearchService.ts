@@ -92,6 +92,14 @@ const searchableContent: SearchResult[] = [
     keywords: ['home inventory', 'inventory app', 'belongings', 'possessions', 'receipts', 'values']
   },
   {
+    id: 'renters',
+    title: 'Renters',
+    description: 'Document rental condition, belongings, photos, receipts, move-in records, and move-out records',
+    path: '/renters',
+    category: 'help',
+    keywords: ['renters', 'apartment inventory', 'move in documentation', 'move out documentation', 'rental condition', 'tenant records']
+  },
+  {
     id: 'qa',
     title: 'Q&A',
     description: 'Frequently asked questions',

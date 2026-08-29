@@ -273,6 +273,9 @@ const HomeInventory: React.FC = () => {
                 <p className="text-lg text-gray-700">
                   A home inventory is useful before a move, after a renovation, when combining households, when preparing family records, or when handing information to someone you trust. Clear records reduce the amount of household knowledge that lives only in your memory.
                 </p>
+                <p className="text-gray-700 mt-4">
+                  If you rent, the <Link to="/renters" className="text-brand-blue hover:underline">renters documentation guide</Link> adds rental condition records to the belongings inventory workflow.
+                </p>
               </div>
               <div>
                 <h2 className="text-3xl font-bold text-brand-blue mb-6">Beyond a Basic Home Inventory</h2>

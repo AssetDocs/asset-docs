@@ -44,7 +44,7 @@ const termSections = [
       { term: 'Room-Level Documentation', definition: 'Wide photos or video walkthroughs that show the contents and condition of an entire room or space.' },
       { term: 'Detail Shot', definition: 'A close-up photo of labels, serial numbers, damage, wear, craftsmanship, markings, or other important details.' },
       { term: 'Video Walkthrough', definition: 'A slow visual recording that captures layout, context, belongings, and condition across a property or room.' },
-      { term: 'Move-In/Move-Out Condition', definition: 'Visual records that show the state of a property before or after occupancy, moving, or handoff.' },
+      { term: 'Move-In/Move-Out Condition', definition: 'Visual records that show the state of a property before or after occupancy, moving, or handoff.', href: '/renters' },
       { term: 'High-Value Item', definition: 'An item that deserves extra documentation because of its cost, rarity, sentimental value, or replacement difficulty.' }
     ]
   },

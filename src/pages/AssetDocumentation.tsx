@@ -85,6 +85,9 @@ const AssetDocumentation: React.FC = () => {
                 <p className="text-lg text-gray-700 mt-4">
                   If you are starting with household belongings, the <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory guide</Link> shows how to organize records by property, room, and item.
                 </p>
+                <p className="text-lg text-gray-700 mt-4">
+                  Renters can also use <Link to="/renters" className="text-brand-blue hover:underline">rental condition documentation</Link> to keep move-in, maintenance, and move-out records alongside belongings.
+                </p>
               </div>
             </Card>
           </section>

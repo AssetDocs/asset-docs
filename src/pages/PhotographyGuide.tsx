@@ -134,6 +134,9 @@ const PhotographyGuide: React.FC = () => {
                 Video walkthroughs are useful for showing layout, room condition, move-in or move-out condition, and groups of items that do not need individual photos.
               </p>
               <p>
+                Renters can use the <Link to="/renters" className="text-brand-blue hover:underline">renters documentation guide</Link> to connect move-in and move-out visuals with their own rental condition records.
+              </p>
+              <p>
                 Move slowly, keep the camera level, and pause on labels, serial numbers, damage, upgrades, or high-value items. A quiet narrated walkthrough can help explain what viewers are seeing.
               </p>
             </CardContent>

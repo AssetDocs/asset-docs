@@ -44,6 +44,8 @@ const BlogPost = () => {
           <li>Appraisals</li>
         </ul>
 
+        <p>Renters can pair rental or lease records with the <a href="/renters">renters documentation guide</a> to keep move-in condition notes and belongings records organized together.</p>
+
         <p><strong>Why it matters:</strong> In the event of a sale, dispute, insurance claim, or estate transfer, these documents provide legal proof and clarity.</p>
 
         <h2>📄 2. Insurance Documents</h2>
