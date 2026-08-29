@@ -133,7 +133,7 @@ const HomeInventory: React.FC = () => {
               <div className="flex flex-wrap gap-4">
                 <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
                   <Link to="/pricing">
-                    View Pricing
+                    Get Started
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -322,6 +322,31 @@ const HomeInventory: React.FC = () => {
                   </Card>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 bg-brand-blue text-white">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold mb-4">Start Your Home Inventory Today</h2>
+            <p className="text-lg text-white/85 max-w-2xl mx-auto mb-8">
+              Build a room-by-room record of your belongings, photos, receipts, and values in one secure place.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
+                <Link to="/pricing">
+                  Get Started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="bg-white/10 text-white border-white/25 hover:bg-white/20"
+              >
+                <Link to="/sample-dashboard">View Sample Dashboard</Link>
+              </Button>
             </div>
           </div>
         </section>
