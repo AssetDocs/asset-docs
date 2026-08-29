@@ -1,265 +1,263 @@
-# Asset Safe SEO Phase 3 — Home Inventory Acquisition Page Planning Audit
+# Asset Safe SEO Phase 3A — Home Inventory Post-Implementation Verification
 
-Audit only. No files changed. No route created. No landing-page copy written.
+Audit only. No files changed. No new Phase 3 page started. B2 not implemented.
 
----
-
-## A. Executive Recommendation
-
-Build `/home-inventory` as a new commercial-intent acquisition page. The term is currently **unowned**: no public page has "home inventory" in a title, H1, or meta description. The only substantive home-inventory content is a 2025 blog article (`/blog/digital-home-inventory-guide`), which is informational and a poor commercial ranking asset.
-
-Demand is real and winnable (Semrush US): `home inventory` 1,300/mo, `home inventory app` 1,000/mo at KD 21 (easy), `household inventory` 480/mo, `house inventory app` 260/mo, plus a long tail of list/checklist/template terms.
-
-Position the page as *"the home inventory is where you start; Asset Safe is what it grows into"* — a genuine home-inventory solution page that hands off to Asset Documentation, Knowledge Hub, and Secure Vault rather than redefining the product.
+Commit under verification: `a0f8701106be1f0208f7d01f6b304239f290bcb7`
 
 ---
 
-## B. Existing Home Inventory Footprint
+## FINAL VERDICT
 
-31 case-insensitive matches across 14 files. Verified inventory of public occurrences:
+**PHASE 3A REQUIRES CORRECTION**
 
-| Location | Usage | Type |
-|---|---|---|
-| `src/pages/BlogPost.tsx` (9) | `digital-home-inventory-guide` article body + 2 other posts | Body copy |
-| `src/pages/Blog.tsx` (3) | Card title/excerpt + Blog schema description | Listing |
-| `src/components/HomeFAQ.tsx` (3) | "What is a digital home inventory?", "What makes Asset Safe different from other home inventory apps?" | FAQ (+ FAQPage schema via Index) |
-| `src/pages/Index.tsx` (2) | FAQ data + video schema name "Digital Home Inventory Platform" | Schema/body |
-| `src/pages/QA.tsx` | Meta description mentions "digital home inventory" | Meta |
-| `src/pages/Glossary.tsx` | "Home Inventory" glossary term | Definition |
-| `src/components/ComparisonSection.tsx` | "...unlike traditional home inventory apps" | Comparison copy |
-| `src/components/FAQAccordion.tsx` | "Organizing your home inventory" list item | Body |
-| `src/components/Navbar.tsx` | logo `alt` text | Image alt |
-| `Partnership.tsx`, `HabitatPartnership.tsx`, `HabitatPilot.tsx`, `DevPartnerStrategy.tsx`, `VideoHelp.tsx` | Incidental partner/internal copy | Low relevance |
+Three concrete defects attributable to this commit (details in sections 6, 5, and 11):
 
-Notable gaps confirmed by search:
+1. **Hero primary CTA label is `View Pricing`, not the approved `Get Started`.** The route (`/pricing`) is correct and the conversion architecture was preserved, but the visible label turns the page's primary action into a pricing-first message, contrary to the approved CTA intent.
+2. **No closing CTA section exists.** The page ends with the FAQ block; there is no final call to action anywhere below the hero. An acquisition page with a single CTA cluster at the very top loses the evaluation-stage conversion.
+3. **Homepage `HomeFAQ` was newly rendered, and its 11 visible Q&As do not match the homepage FAQPage schema's 4 Q&As.** Answer text differs materially (notably the insurance question), which is an invalid-schema condition and exceeds "only approved FAQ/link-related change."
 
-- `/asset-documentation`, `/features`, `/claims`, `/photography-guide`, `/resources`, `/digital-documentation-guide`, `/scenarios` contain **zero** "home inventory" occurrences after the Phase 2 rewrite.
-- No page has "home inventory" in `<title>`, H1, or canonical meta description.
-- `/blog/what-documents-to-upload` does not use the phrase; it is document-upload intent.
-
-**Most likely current ranker for "home inventory":** `/blog/digital-home-inventory-guide` — it is the only page with the phrase in its title ("The Complete Guide to Creating a Digital Home Inventory") and repeated in H2s. Secondary: the homepage, only via FAQ/schema text. Both are weak for commercial queries.
+Everything else verifies clean. Metadata, structured data on `/home-inventory`, sitemap, links, blog handling, boundary, regression, build, and typecheck all pass.
 
 ---
 
-## C. Search-Intent Ownership Map
+## 1. Commit + Scope
 
-| Page | Owns | Primary intent |
-|---|---|---|
-| `/home-inventory` (new) | home inventory, home inventory app, digital home inventory, household inventory, home inventory software | Commercial / category |
-| `/asset-documentation` | what to document about belongings, property, records, values, serial numbers | Informational — *what* to record |
-| `/blog/digital-home-inventory-guide` | how to create a home inventory, room-by-room process | Informational how-to |
-| `/photography-guide` | how to photograph belongings and property | Task-level how-to |
-| `/claims` | insurance claim documentation, proof of loss records | Insurance-adjacent |
-| `/scenarios` | fire, theft, storm, water, move events | Event-driven |
-| `/features` | product capability comparison | Product |
-| `/pricing` | plan + purchase | Transactional |
-
-The proposed separation is **sound**. The commercial layer is genuinely missing today, and adding it does not require inserting the phrase into unrelated pages.
-
----
-
-## D. Cannibalization Risks
-
-1. **`/home-inventory` vs `/blog/digital-home-inventory-guide`** — highest risk. Both would target "digital home inventory." Mitigation: the blog keeps the step-by-step process and room walkthrough; the landing page keeps *solution, capability, and comparison* framing, summarizes process in 4–6 lines max, and links down to the guide. Do not repeat the room-by-room list at equal depth in both.
-2. **`/home-inventory` vs `/asset-documentation`** — moderate. Mitigation: no "what fields to record" table on the landing page; link out instead.
-3. **`/home-inventory` vs `/` (homepage)** — low but real, since the homepage carries the "digital home inventory" FAQ and video schema name. Mitigation (recommend, do not implement now): leave the homepage untouched per instruction, but once `/home-inventory` exists, consider linking the homepage FAQ answer to it so the internal signal points at the specialist page.
-4. **`/home-inventory` vs `/features`** — low. Landing page must not become a full feature matrix; keep a compact three-pillar block that links to `/features`.
-5. **Future audiences (Renters, Landlords, Small Business, High-Value Items, Emergency Information)** — out of Phase 3 scope. Reserve those terms: `/home-inventory` should mention renters/landlords at most once in passing and must not build sections for them.
-
----
-
-## E. Search Console Findings
-
-**No verified data available.** `google_search_console--diagnose` returned `no_project_connection` for `https://getassetsafe.com` — no Search Console property is linked to this project, so impressions, clicks, CTR, positions, and landing-page attribution for "home inventory" and related queries cannot be reported. No performance figures are asserted anywhere in this audit.
-
-Third-party demand data (Semrush US, keyword volume only — not site performance): `home inventory` 1,300/mo; `home inventory app` 1,000/mo, KD 21, CPC $1.20, low competition; `inventory home` 720/mo; `personal inventory` 720/mo; `household inventory` 480/mo; `home inventory list` 320/mo; `home inventory checklist` 260/mo; `home inventory template` 260/mo (high competition); `house inventory app` 260/mo; `household inventory list` 260/mo. Question tail is thin (`what is the best home inventory app` 20/mo).
-
-Recommendation: connect Search Console before Phase 3 measurement so post-launch impact is verifiable.
-
----
-
-## F. `/home-inventory` Primary Search Intent
-
-**Primary:** commercial investigation — "I want a home inventory and I'm evaluating how/where to keep one."
-Head terms: home inventory, home inventory app, digital home inventory, home inventory software, household inventory.
-
-**Secondary (supporting, on-page only):** what belongs in a home inventory, how to keep it current, why it matters for insurance.
-
-**Not this page:** step-by-step creation tutorial (blog), field-level documentation reference (`/asset-documentation`), photo technique (`/photography-guide`), claim filing and record lists (`/claims`), spreadsheet/template downloads (no asset exists — do not imply one).
-
----
-
-## G. Relationship to `/asset-documentation`
-
-Boundary line: **`/asset-documentation` answers "what information should I record?"; `/home-inventory` answers "how do I create and maintain a complete inventory of my home, and what should I use to do it?"**
-
-- Phase 2 rewrite stays intact. No edits to its H1, title, description, or body framing.
-- `/home-inventory` may reference documentation fields only as a short summary sentence plus a link.
-- Only permitted change to `/asset-documentation`: adding one contextual inbound link to `/home-inventory`.
-
----
-
-## H. Relationship to the Digital Home Inventory Blog Post
-
-Keep the article. It is useful informational content and should not be consolidated or deleted.
-
-**Retain:** why it matters, room-by-room walkthrough (living areas, kitchen, bedrooms), information-to-include list, maintenance cadence.
-
-**Should not duplicate from the future landing page:** product capability framing, three-pillar positioning, comparison/differentiation angle, pricing or plan discussion, FAQ block.
-
-**Recommended trims/edits at implementation time:** the "Using Asset Safe for Your Inventory" block should shrink to a short paragraph linking to `/home-inventory` instead of listing product features; the photography tips should link to `/photography-guide` rather than restate technique; the closing CTA currently points at `/pricing` and should point at `/home-inventory` (with `/pricing` retained as secondary). Also review the "Tax Purposes: Track depreciation and support deductions" bullet — that is tax advice and should be softened per section P.
-
-**Linking:** guide → `/home-inventory` (intro or CTA, contextual, in-body). Landing page → guide (from a "How to build yours, step by step" pointer). Reciprocal linking is appropriate here because the intents differ.
-
----
-
-## I. Recommended Page Structure
-
-Section-by-section outline with the intent each serves. No copy written.
-
-1. **Hero** — one-line value statement + primary CTA. Intent: commercial head term. Contains "home inventory" naturally once in the H1 and once in the subhead.
-2. **What a home inventory is** — 2–3 sentences plus a compact definition. Intent: `what is a home inventory`, featured-snippet eligibility.
-3. **Why it matters** — insurance readiness, loss events, moving, estate/continuity, knowing what you own. Intent: motivation-stage queries. Keep balanced — not insurance-only.
-4. **What to document (summary)** — short grouped list (belongings, property/structure, receipts and proof, photos/video, values and identifiers, condition). Intent: `what should be included in a home inventory`. Links to `/asset-documentation`.
-5. **Room-by-room organization (condensed)** — how to structure by property → room → item; 5–8 lines, not a tutorial. Intent: `household inventory list`, `home inventory checklist`. Links to the blog guide for the full walkthrough.
-6. **Photos, video, and receipts** — why visual evidence plus paperwork matters; links to `/photography-guide`.
-7. **Values and identifying information** — estimated values, serial/model numbers, warranties, appraisals. Intent: high-value/identifier tail. No appraisal or valuation guarantees.
-8. **Keeping it current** — update triggers and a light cadence. Intent: `maintaining home inventory`.
-9. **Insurance preparedness** — one focused section, links to `/claims` and `/scenarios`. Must not expand into coverage advice.
-10. **Moving and transitions** — move-in/move-out condition, relocation records. Intent: moving tail. Keep short.
-11. **Beyond a basic inventory: the Asset Safe system** — three compact blocks: Asset Documentation, Knowledge Hub, Secure Vault. Intent: differentiation, brand alignment ("Everything you love. Protected in one place."). Links to `/features`.
-12. **How Asset Safe compares to spreadsheets, photo rolls, and single-purpose inventory apps** — factual, no named competitors, no unverifiable claims. Intent: `home inventory app` comparison stage. Links to `/digital-documentation-guide`.
-13. **FAQ** — 5–7 genuine visible questions drawn from real query patterns (what is it, what should it include, how long does it take, do I need photos and receipts, how do I keep it updated, do insurers require one — answered carefully, is my data secure). Intent: question tail + FAQPage eligibility.
-14. **Closing CTA** — primary + secondary per section O.
-
-Exactly one H1. Sections 2–13 as H2s, sub-points as H3s.
-
----
-
-## J. SEO Title Candidates
-
-1. `Home Inventory App | Document Everything You Own — Asset Safe` (58)
-2. `Home Inventory Software for Your Belongings & Property | Asset Safe` (66 — trim if strict 60 cap applies)
-3. `Digital Home Inventory | Photos, Receipts & Values | Asset Safe` (62)
-
-Preference: **#1** — matches the highest-value commercial term at readable length. Note `SEOHead` auto-appends `| Asset Safe` only when absent and under 60 chars, so pass the full string explicitly.
-
----
-
-## K. Meta Description Candidates
-
-1. `Create a digital home inventory of your belongings and property — photos, receipts, values, serial numbers, and condition records, organized and ready when you need them.` (168 — trim to <160)
-2. `Build a complete home inventory in one secure place. Document belongings room by room with photos, receipts, and values, then keep it current with Asset Safe.` (155)
-3. `A home inventory app for everything you own: belongings, property details, receipts, photos, and values — organized, protected, and ready when it counts.` (150)
-
-Preference: **#2**.
-
----
-
-## L. H1 Candidates
-
-1. `Create a Home Inventory of Everything You Own`
-2. `Your Home Inventory, Organized in One Secure Place`
-3. `A Digital Home Inventory That Goes Beyond a List`
-
-Preference: **#1** for clarity and head-term match; **#3** if differentiation is the stronger priority.
-
----
-
-## M. Internal-Link Plan
-
-**Inbound (contextual, in-body — not nav or footer only):**
-
-| Source | Placement |
+| Check | Result |
 |---|---|
-| `/asset-documentation` | one contextual link ("start with a home inventory") |
-| `/features` | one link from the Asset Documentation pillar block |
-| `/resources` | new card in the existing hub grid |
-| `/blog/digital-home-inventory-guide` | intro + closing CTA |
-| `/blog/protecting-high-value-items` | one contextual link |
-| `/blog/organizing-receipts-warranties` | one contextual link |
-| `/photography-guide` | one link ("photos belong in your home inventory") |
-| `/claims` | one link where record lists are introduced |
-| `/glossary` | link the existing "Home Inventory" term definition |
-| `/qa` or `HomeFAQ` | link from the existing "What is a digital home inventory?" answer (homepage copy itself unchanged apart from the link, pending owner approval) |
+| Commit exists | **Yes** — `a0f8701106be1f0208f7d01f6b304239f290bcb7`, "Add home inventory acquisition page", Fri 28 Aug 2026 19:19:26 −0500 |
+| Local `main` / `HEAD` | **= a0f87011** |
+| Reachable from `origin/main` | **No** — `origin/main` = `0eb5ffff` ("Update plan"), which is the **parent** of `a0f87011`. The commit is one ahead of the remote and not yet pushed. |
+| Working tree clean | **Yes** — `git status --porcelain` empty |
+| Rebase artifacts | **None** — the diff `origin/main..a0f87011` is exactly the inverse of the commit's own diff; no unrelated production-code changes were pulled in |
+| Unrelated Phase 3 pages | **None** |
+| B2 / prerender work | **None** — no `vite.config.ts`, prerender script, or build-pipeline change |
 
-**Outbound from `/home-inventory`:** `/asset-documentation`, `/photography-guide`, `/claims`, `/scenarios`, `/features`, `/pricing`, `/digital-documentation-guide`, `/blog/digital-home-inventory-guide`.
+**Files changed — exactly 14, +401 / −20:**
 
-Also required: add `https://getassetsafe.com/home-inventory` to `public/sitemap.xml` (static file, no generator script exists — currently 34 URLs, becomes 35).
+```text
+ public/sitemap.xml                      |   1 +
+ src/App.tsx                             |   2 +
+ src/components/EducationalResources.tsx |  10 +-
+ src/components/HomeFAQ.tsx              |  15 +-
+ src/pages/AssetDocumentation.tsx        |   3 +
+ src/pages/BlogPost.tsx                  |  20 +-
+ src/pages/Claims.tsx                    |   6 +
+ src/pages/Features.tsx                  |   2 +-
+ src/pages/Glossary.tsx                  |  10 +-
+ src/pages/HomeInventory.tsx             | 335 +++++++++++++++++++++++
+ src/pages/Index.tsx                     |   5 +-
+ src/pages/PhotographyGuide.tsx          |   3 +
+ src/pages/Resources.tsx                 |   1 +
+ src/services/SearchService.ts           |   8 +
+```
 
----
-
-## N. Structured-Data Recommendation
-
-- **BreadcrumbList** — yes. Home → Resources → Home Inventory, via the existing `breadcrumbSchema` helper.
-- **FAQPage** — yes, but only mirroring the genuinely visible FAQ block, using `faqSchema`. Do not add questions that are not rendered.
-- **Organization / WebApplication** — already emitted on `/`. Do not duplicate on this page; a page-level graph of Breadcrumb + FAQPage is sufficient.
-- **SoftwareApplication** — leave dormant. The helper exists in `src/utils/structuredData.ts` but must not be activated merely because the page says "home inventory app."
-- **Review / AggregateRating / Product** — prohibited; no verified review data exists.
-- Emit as a single `@graph` through `SEOHead`'s `structuredData` prop, with a self-referencing canonical `https://getassetsafe.com/home-inventory`.
-
----
-
-## O. Conversion / CTA Recommendation
-
-Search stage is evaluation, not purchase.
-
-- **Primary CTA:** Get Started (existing signup entry) — repeated in hero and closing.
-- **Secondary CTA:** View Sample Dashboard (`/sample-dashboard`) — lets evaluators see the product without committing; strongest match for "app/software" queries.
-- **Tertiary, in-body links only:** `/features` and `/pricing`.
-
-No change to pricing or the signup flow.
+Note (not a defect, but a release gate): the implementation is **not on `origin/main`**, so it is not yet in the deployable state.
 
 ---
 
-## P. Content Claims / Compliance Boundaries
+## 2. `/home-inventory` Route
 
-- No claim that an insurer requires, accepts, or will accept a specific record format; no settlement-speed or payout-amount promises.
-- No tax advice (the existing blog "track depreciation and support deductions" bullet should be softened).
-- No legal or estate-planning advice; Secure Vault language stays continuity-oriented.
-- No appraisal, valuation accuracy, or replacement-cost guarantees — "estimated values" only.
-- Security wording must be "SOC 2–aligned practices," never "SOC 2 Compliant."
-- No AI identification, auto-recognition, or auto-valuation claims.
-- No fabricated statistics, case studies, testimonials, named-competitor comparisons, or invented dates.
-- No downloadable template or checklist promised unless one actually ships.
-- US-only availability constraints continue to apply to any billing reference.
-
----
-
-## Q. Exact Existing Files That Would Need Changes
-
-Implementation-time change set (not touched in this audit):
-
-| File | Change |
+| Check | Result |
 |---|---|
-| `src/pages/HomeInventory.tsx` | **New** page |
-| `src/App.tsx` | Add `/home-inventory` route |
-| `public/sitemap.xml` | Add the URL (34 → 35) |
-| `src/pages/AssetDocumentation.tsx` | One contextual inbound link |
-| `src/pages/Features.tsx` or `src/data/featuresContent.ts` | One inbound link |
-| `src/pages/Resources.tsx` | Hub-grid card |
-| `src/components/EducationalResources.tsx` | Optional resource card |
-| `src/pages/BlogPost.tsx` | Links from 3 posts; trim product block and soften tax bullet in the home-inventory guide |
-| `src/pages/PhotographyGuide.tsx` | One inbound link |
-| `src/pages/Claims.tsx` | One inbound link |
-| `src/pages/Glossary.tsx` | Link the "Home Inventory" definition |
-| `src/services/SearchService.ts` | Add the page to public search results |
-| `src/components/Footer.tsx` | Optional — only if resource nav lists guides |
-| `src/components/HomeFAQ.tsx` | Optional, owner decision — link the existing FAQ answer |
-
-Not to be modified: homepage hero/meta, `SEOHead.tsx`, pricing, checkout, auth, or any dashboard code.
+| Route registered | ✓ `src/App.tsx` — `<Route path="/home-inventory" element={<HomeInventory />} />`, public, outside `ProtectedRoute` |
+| Real content, not a soft 404 | ✓ hydrated `document.body.innerText` = 6,729 chars across 12 H2 sections |
+| Indexable | ✓ `robots = index, follow` |
+| Self-canonical | ✓ `https://getassetsafe.com/home-inventory` |
+| Sitemap | ✓ present exactly once; total **35 `<loc>` entries, 35 unique** |
 
 ---
 
-## R. Product-Owner Decisions Required Before Implementation
+## 3. Search-Intent Ownership
 
-1. **URL:** confirm `/home-inventory` (recommended) over `/home-inventory-app`.
-2. **Title/H1/description:** pick from sections J, K, L.
-3. **Homepage FAQ link:** approve or decline adding a link from the existing homepage FAQ answer to `/home-inventory`.
-4. **Blog edits:** approve trimming the product block, retargeting the CTA, and softening the tax bullet in `/blog/digital-home-inventory-guide`.
-5. **Secondary CTA:** confirm Sample Dashboard over View Features.
-6. **Comparison section:** approve a spreadsheets/photo-roll/single-purpose-app comparison with no named competitors.
-7. **Downloadable checklist:** in or out for Phase 3 (affects the `home inventory checklist` / `template` tail).
-8. **Search Console:** connect the property so Phase 3 impact is measurable.
-9. **Nav placement:** whether `/home-inventory` appears in primary navigation or lives inside the Resources hierarchy.
-10. **Phase 3 sequencing:** confirm Renters, Landlords, Small Business, High-Value Items, and Emergency Information remain deferred to later audits.
+The page owns commercial/category intent cleanly: the eyebrow reads "Home inventory app", the H1 and 4 H2s carry the head terms, and the comparison H2 ("Home Inventory App vs. Spreadsheets and Camera Rolls") targets the evaluation query set. `household inventory` is covered semantically via "household belongings/information" rather than forced.
+
+Distinctness holds:
+
+- **vs `/asset-documentation`** — no field-level documentation reference is duplicated; the "What to Include" block is a 3-card summary (Belongings / Proof / Context) and links out to the documentation guide.
+- **vs `/blog/digital-home-inventory-guide`** — the room-by-room section is 2 short paragraphs (no living-areas/kitchen/bedrooms walkthrough) and explicitly defers to the blog.
+- **vs `/photography-guide`** — technique is not restated; one paragraph plus a link.
+- **vs `/claims`** — no claim-record lists; the insurance card is 2 sentences plus links to `/claims` and `/scenarios`.
+
+**No material cannibalization introduced.** Only natural phrase overlap.
+
+---
+
+## 4. Approved Metadata — hydrated DOM
+
+| Field | Result |
+|---|---|
+| H1 | ✓ exactly 1 — `Create a Home Inventory of Everything You Own` (exact match) |
+| Title | ✓ exactly 1 — `Home Inventory App \| Document What You Own \| Asset Safe` (exact match) |
+| Description | ✓ exactly 1 — exact match to approved string |
+| Canonical | ✓ exactly 1 — `https://getassetsafe.com/home-inventory` |
+| Robots | ✓ exactly 1 — `index, follow` |
+| Keywords tags | ✓ **zero** |
+| OG | ✓ coherent — `og:url`, `og:title`, `og:description` all self-consistent with the canonical and title; `og:type=website`, site_name, locale, image present |
+| Twitter | ✓ coherent — `summary_large_image`, url/title/description/image aligned |
+
+---
+
+## 5. Page Content
+
+Approved sections present: hero ✓, what a home inventory is ✓, why it matters ✓, what to include ✓, room-by-room ✓, photos/video/receipts ✓, values and identifiers ✓, keeping it current ✓, insurance preparedness ✓, moving/transitions ✓, beyond a basic inventory (3 pillars) ✓, comparison section ✓, FAQ ✓.
+
+**Missing: closing CTA — DEFECT.** The last `<main>` section is "Home Inventory FAQs"; there is no closing CTA section, button, or link cluster after the hero. The only buttons on the page are the two in the hero.
+
+Prohibited-content checks, all clean:
+
+| Must not | Result |
+|---|---|
+| Insurance-only | ✓ one card of 12 sections; motivations span moving, maintenance, resale, continuity |
+| Step-by-step duplicate of the blog | ✓ condensed and delegated |
+| Duplicate of `/asset-documentation` | ✓ summary only |
+| Renters / Landlords / Small Business page | ✓ no such framing or sections ("rental" appears once, incidentally, in an FAQ answer) |
+| Downloadable template/checklist promise | ✓ none |
+| Valuation / appraisal guarantees | ✓ "estimated values", "value notes" only |
+| Insurance payout / approval guarantees | ✓ wording is "preparing for a property or contents claim", "clearer information available" |
+| AI recognition / valuation claims | ✓ none |
+| Tax or legal advice | ✓ none |
+
+---
+
+## 6. CTA Verification — DEFECT
+
+- **A. Visible label of the primary CTA:** `View Pricing` (with an arrow icon). Not `Get Started`.
+- **B. Route:** `<Link to="/pricing">` — the same destination used by the homepage hero's `Get started` button (`HeroSection.tsx`).
+- **C. Is `/pricing` the legitimate first step?** **Yes.** Asset Safe uses a payment-first onboarding flow, and `/pricing` is the existing funnel entry that the homepage's own "Get started" CTA points to.
+- **D. Was the conversion architecture preserved?** **Yes** — no new signup path, no bypass, no pricing or checkout change.
+
+Classification per the stated rule: the route is legitimate, but the **label is not "Get Started"** — the implementation converted the approved Get Started CTA into a pricing-first message. **FLAGGED.**
+
+Secondary CTA is correct: `View Sample Dashboard` → `/sample-dashboard` ✓.
+
+Compounding issue: because there is no closing CTA (section 5), both CTAs sit above the fold only.
+
+---
+
+## 7. FAQ + Structured Data
+
+| Check | Result |
+|---|---|
+| Visible FAQs | ✓ **exactly 7**, rendered as always-visible cards (not an accordion) |
+| FAQPage schema | ✓ 7 `Question` entries, generated from the same `faqData` array that renders the visible cards — question and answer text are byte-identical to the visible copy |
+| Hidden / schema-only questions | ✓ none |
+| BreadcrumbList | ✓ Home → Resources → Home Inventory, positions 1–3, correct absolute URLs |
+| SoftwareApplication | ✓ not added (helper remains dormant) |
+| AggregateRating / Review / Product-review | ✓ none |
+
+Emitted as a single `@graph` with two members. Minor cosmetic note (pre-existing helper behavior, not a defect): each `@graph` member repeats its own `@context`.
+
+---
+
+## 8. Internal Links — Inbound
+
+| Source | Present | Visibility class |
+|---|---|---|
+| Homepage FAQ (`HomeFAQ.tsx`, first item) | ✓ | **Accordion — now open by default** (`defaultValue="item-0"` was added), so the anchor renders in the DOM |
+| `/asset-documentation` | ✓ | Always-visible body paragraph |
+| `/features` | ✓ | Always-visible overview paragraph |
+| `/resources` | ✓ | Always-visible hub card (first in `resourceLinks`) + `EducationalResources` card "Home Inventory Guide" (inside the default-active tab) |
+| `/blog/digital-home-inventory-guide` | ✓ | Always-visible — 2 in-body links (product section + conclusion) |
+| `/blog/protecting-high-value-items` | ✓ | Always-visible conclusion paragraph |
+| `/blog/organizing-receipts-warranties` | ✓ | Always-visible conclusion paragraph |
+| `/photography-guide` | ✓ | Always-visible intro paragraph |
+| `/claims` | ✓ | Always-visible — 2 links (intro + item-records list) |
+| `/glossary` | ✓ | Always-visible — the "Home Inventory" term heading is now a link |
+
+All 10 sources present; **9 of 10 are always-visible anchors**, well past the crawlable threshold.
+
+---
+
+## 9. Internal Links — Outbound
+
+All nine required destinations present in `<main>`, no malformed or broken hrefs, all resolving to real registered routes:
+
+`/pricing` ✓ · `/sample-dashboard` ✓ · `/asset-documentation` ✓ · `/photography-guide` ✓ · `/claims` ✓ · `/scenarios` ✓ · `/features` ✓ · `/digital-documentation-guide` ✓ · `/blog/digital-home-inventory-guide` ✓
+
+No external links, no `#` placeholders, no absolute self-links. Zero console errors during hydration.
+
+---
+
+## 10. Digital Home Inventory Blog
+
+| Check | Result |
+|---|---|
+| Remains a distinct informational how-to | ✓ room-by-room walkthrough, photography tips, information-to-include list, maintenance cadence all retained |
+| Product section shortened, not expanded | ✓ the 5-bullet feature list was replaced by a single sentence |
+| Contextual link to `/home-inventory` | ✓ two — product section and conclusion |
+| Primary contextual path now points to `/home-inventory` | ✓ conclusion CTA leads with the home inventory guide |
+| `/pricing` retained as secondary | ✓ "then view pricing when you are ready" |
+| Photography guidance links to `/photography-guide` | ✓ new sentence added above the tips list |
+| Tax / depreciation / deduction wording | ✓ **removed** — replaced with "Household Organization: keep purchase, warranty, and item records connected" |
+| New tax claim introduced | ✓ none |
+
+Bonus safety improvement in the same diff: "Speed up the claims process and ensure you receive proper compensation" → "Keep clearer records available when preparing a property or contents claim", and "an investment in your financial security" → "an investment in clarity and preparedness".
+
+---
+
+## 11. Other Supporting Changes
+
+**Resources** — ✓ `Home Inventory` added as the first `resourceLinks` card; ✓ `EducationalResources` card renamed `Asset Valuation Explained` → `Asset Documentation Guide`, plus a new `Home Inventory Guide` card.
+
+**Glossary** — ✓ the `Home Inventory` term now carries `href: '/home-inventory'` and renders as a link; the optional-`href` handling is type-safe (`'href' in item && item.href`) and typechecks clean.
+
+**SearchService** — ✓ one public entry added (`/home-inventory`, category `help`); no authenticated route exposed, and the Phase 2B removal of `/checklists` is intact.
+
+**Homepage — DEFECT.**
+
+- ✓ Hero (`HeroSection.tsx`) untouched; ✓ `SEOHead` title, description, canonical unchanged.
+- ✗ `Index.tsx` now **renders `<HomeFAQ />`** between `ComparisonSection` and `CTASection`. `HomeFAQ` was previously imported nowhere and rendered nowhere; this commit puts an 11-question accordion on the homepage for the first time. That is more than the approved FAQ/link change.
+- ✗ The homepage `FAQPage` schema is still built from `Index.tsx`'s own 4-item `faqData`, which no longer corresponds to the visible block. Specific mismatches:
+  - Schema Q1 answer ends "Learn more in Asset Safe's home inventory guide." — the visible Q1 answer ends with a linked "home inventory guide" and different trailing text.
+  - Schema Q4 ("Can I use Asset Safe for insurance claims?") answer is "Yes! Asset Safe provides pre-documented proof of ownership … streamline insurance claims and **maximize recovery**", while the visible answer in `HomeFAQ` is a different, longer, more carefully hedged paragraph. The schema-only "maximize recovery" phrasing is also an outcome claim that the rest of Phase 2 deliberately removed.
+  - Seven visible questions (Verified status, Verified+, storage, sharing, getting started, properties, differentiation) have no schema counterpart — acceptable — but the answer-text divergence above is not.
+
+Also worth noting: the visible Q1 answer now drops the "It serves as proof of ownership for insurance claims, estate planning, and property documentation" clause in favor of the link, so the schema asserts text the page does not contain.
+
+---
+
+## 12. Sitemap
+
+| Check | Result |
+|---|---|
+| `<loc>` entries | ✓ **35** |
+| Unique URLs | ✓ **35** (`uniq -d` returns nothing) |
+| `/home-inventory` | ✓ exactly once (the second "home-inventory" line match is `/blog/digital-home-inventory-guide`) |
+| Phase 2 URLs removed | ✓ **none** — the diff is a single added line |
+| New noindex page included | ✓ none — `/home-inventory` is `index, follow` |
+| Fabricated `lastmod` | ✓ **none** — the new entry carries `changefreq` and `priority` only |
+
+---
+
+## 13. Phase 3 Boundary
+
+`src/App.tsx` gained exactly one route (`/home-inventory`) and one import. **No routes or pages** for Renters, Landlords, Small Business, Knowledge Hub, High-Value Items, Emergency Information, or additional Digital Legacy topics. Incidental mentions only (e.g. "rental" once in an FAQ answer, "vacation property"), which is permitted. ✓
+
+---
+
+## 14. Regression Check
+
+No file in the 14-file change set touches pricing logic, subscription pricing, checkout, Stripe, auth, Supabase, RLS, Secure Vault, encryption, billing, gifting, or edge functions. Confirmed specifically:
+
+- Phase 2A redirects in `App.tsx` — untouched (diff is +1 import, +1 route).
+- Requirements-page `noIndex` behavior — untouched.
+- B2 prerendering — not introduced.
+- `SEOHead.tsx`, `structuredData.ts`, `HeroSection.tsx`, `vite.config.ts`, `package.json` — unmodified.
+- Zero console errors on `/home-inventory` and `/` during hydration.
+
+---
+
+## 15. Build
+
+- `npx tsc --noEmit -p tsconfig.app.json` — **passes**, zero diagnostics.
+- `npm run build` — **passes**, `✓ built in 13.19s`. Only the pre-existing >500 kB chunk-size advisory, unchanged from Phase 2.
+
+---
+
+## Concrete Corrections Required
+
+1. **`src/pages/HomeInventory.tsx` hero** — change the primary CTA label from `View Pricing` to `Get Started`, keeping `to="/pricing"` unchanged.
+2. **`src/pages/HomeInventory.tsx`** — add the approved closing CTA section after the FAQ block, with `Get Started` (`/pricing`) primary and `View Sample Dashboard` (`/sample-dashboard`) secondary.
+3. **Homepage FAQ schema/visible parity** — either revert the `<HomeFAQ />` render on `Index.tsx` (keeping only the FAQ answer link change), or make the homepage `FAQPage` schema derive from the same source as the visible `HomeFAQ` questions and answers. If the schema is regenerated from `HomeFAQ`, the "maximize recovery" phrasing must not be reintroduced.
+
+No other defects are attributable to `a0f8701106be1f0208f7d01f6b304239f290bcb7`.
