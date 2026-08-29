@@ -16,7 +16,6 @@ import {
   sampleDocumentationChecklist,
   sampleEmergencyInstructions,
   sampleKnowledgeHub,
-  sampleKnowledgeHub as knowledgeHub,
   sampleMfa,
   sampleQuickAdd,
   sampleSecureVault,
@@ -359,22 +358,22 @@ const SampleDashboard: React.FC = () => {
                 />
                 <DemoGridCard
                   icon={<Heart className="h-6 w-6" />}
-                  title={knowledgeHub.title}
-                  description={knowledgeHub.description}
-                  tags={knowledgeHub.tags}
-                  actionLabel={knowledgeHub.actionLabel}
+                  title={sampleKnowledgeHub.title}
+                  description={sampleKnowledgeHub.description}
+                  tags={sampleKnowledgeHub.tags}
+                  actionLabel={sampleKnowledgeHub.actionLabel}
                   color="red"
                   explainer={sampleKnowledgeHub.explainer}
                 />
 
                 {/* Secure Vault — grouped wrapper with a single inner destination */}
-                <Tooltip delayDuration={300}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg overflow-hidden cursor-pointer"
-                      onClick={() => showDemoAlert(sampleSecureVault.title, sampleSecureVault.explainer)}
-                    >
-                      <div className="px-5 py-4 flex items-center gap-3 border-b border-amber-200/60">
+                <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg overflow-hidden">
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => showDemoAlert(sampleSecureVault.title, sampleSecureVault.explainer)}
+                        className="w-full text-left px-5 py-4 flex items-center gap-3 border-b border-amber-200/60 hover:bg-amber-100/40 transition-colors">
                         <div className="flex-1">
                           <p className="text-sm font-bold text-amber-900">🔒 {sampleSecureVault.title}</p>
                           <p className="text-xs text-amber-700 mt-0.5">{sampleSecureVault.supporting}</p>
@@ -383,23 +382,23 @@ const SampleDashboard: React.FC = () => {
                           <LockKeyhole className="h-3 w-3 text-emerald-600" />
                           {sampleSecureVault.badge}
                         </span>
-                      </div>
-                      <div className="p-4">
-                        <DemoGridCard
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-sm">
+                      {sampleSecureVault.explainer}
+                    </TooltipContent>
+                  </Tooltip>
+                  <div className="p-4">
+                    <DemoGridCard
                           icon={<Shield className="h-6 w-6" />}
                           title={sampleSecureVault.inner.title}
                           description={sampleSecureVault.inner.description}
                           actionLabel={sampleSecureVault.inner.actionLabel}
                           color="yellow"
                           explainer={sampleSecureVault.explainer}
-                        />
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-xs text-sm">
-                    {sampleSecureVault.explainer}
-                  </TooltipContent>
-                </Tooltip>
+                    />
+                  </div>
+                </div>
 
                 {/* Documentation Checklist */}
                 <DemoCollapsibleBar
