@@ -179,7 +179,7 @@ const Features: React.FC = () => {
                   <p className="text-lg text-gray-600 max-w-2xl mx-auto">{audience.intro}</p>
                   {audience.id === 'homeowners' && (
                     <p className="text-gray-600 max-w-2xl mx-auto mt-3">
-                      See the <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory guide</Link> for a room-by-room record of belongings, photos, receipts, and values.
+                      Homeowners usually start with a <Link to="/home-inventory" className="text-brand-blue hover:underline">room-by-room home inventory</Link> covering belongings, photos, receipts, and values.
                     </p>
                   )}
                   {audience.id === 'renters' && (
