@@ -96,7 +96,8 @@ const Navbar: React.FC = () => {
                    }
                  >
                    {translate('nav.features')}
-                 </NavLink>
+                   </NavLink>
+                   <AudienceNavMenu />
                  <NavLink 
                    to="/pricing" 
                    className={({ isActive }) => 
@@ -113,14 +114,7 @@ const Navbar: React.FC = () => {
                  >
                    Gift
                  </NavLink>
-                 <NavLink 
-                   to="/blog" 
-                   className={({ isActive }) => 
-                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
-                   }
-                 >
-                   Blog
-                 </NavLink>
+
                  <div className="flex items-center space-x-4">
                    <Link 
                      to="/account" 
