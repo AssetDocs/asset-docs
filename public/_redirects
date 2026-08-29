@@ -1,5 +1,9 @@
 # Subscription Agreement merged into Terms of Service
 /subscription-agreement  /terms  301
 
+# Retired press/news URLs
+/press-news/digital-documentation-guide  /digital-documentation-guide  301
+/press-news  /resources  301
+
 # SPA fallback for all routes
 /*    /index.html   200
