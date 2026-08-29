@@ -237,8 +237,8 @@ const Admin = () => {
                     className="h-auto py-4 flex flex-col items-start text-left"
                     onClick={() => navigate('/partnership')}
                   >
-                    <span className="font-semibold">RE/MAX Partnership</span>
-                    <span className="text-sm text-muted-foreground">Real estate partnership proposal</span>
+                    <span className="font-semibold">Partner With Asset Safe</span>
+                    <span className="text-sm text-muted-foreground">General partnership page (/partnership)</span>
                   </Button>
                   <Button 
                     variant="outline" 
