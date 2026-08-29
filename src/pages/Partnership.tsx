@@ -23,11 +23,10 @@ const Partnership: React.FC = () => {
               <div className="flex items-center justify-center gap-2 mb-4">
                 <span className="text-3xl">🏡</span>
                 <h1 className="text-3xl font-bold text-primary">
-                  Partnership Proposal: Asset Safe x RE/MAX
+                  Partner With Asset Safe
                 </h1>
               </div>
               <div className="space-y-2 text-muted-foreground">
-                <p><strong>Presented to:</strong> Chris Harden, RE/MAX Broker</p>
                 <p><strong>From:</strong> Michael Lewis, Founder – Asset Safe</p>
                 <p><strong>Contact:</strong> support@assetsafe.net | getassetsafe.com</p>
               </div>
@@ -92,7 +91,7 @@ const Partnership: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="mb-4 text-lg">
-                By partnering with Asset Safe, RE/MAX agents can offer clients real, lasting value beyond the transaction. It's a smart way to:
+                By partnering with Asset Safe, real estate professionals can offer clients real, lasting value beyond the transaction. It's a smart way to:
               </p>
               <ul className="space-y-2 text-lg">
                 <li>• Differentiate your services</li>
@@ -137,7 +136,7 @@ const Partnership: React.FC = () => {
 
               <div className="border-l-4 border-primary pl-4">
                 <h3 className="text-xl font-semibold mb-2">4. Co-Branded Materials</h3>
-                <p className="mb-2">Asset Safe provides RE/MAX agents with flyers, email templates, and digital handouts.</p>
+                <p className="mb-2">Asset Safe provides partners with flyers, email templates, and digital handouts.</p>
                 <p className="text-muted-foreground">
                   📩 Makes offering the service seamless and professional.
                 </p>
@@ -150,7 +149,7 @@ const Partnership: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">📊</span>
-                <CardTitle className="text-2xl">How This Helps RE/MAX Agents</CardTitle>
+                <CardTitle className="text-2xl">How This Helps Real Estate Professionals</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -349,7 +348,7 @@ const Partnership: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-lg mb-6">
-                We'd love to set up a custom RE/MAX partner package and explore a pilot program with your team. 
+                We'd love to set up a custom partner package and explore a pilot program with your team. 
                 I'm happy to provide samples, answer questions, or walk through a quick demo at your convenience.
               </p>
               
