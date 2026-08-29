@@ -8,6 +8,14 @@ import assetSafeLogo from '@/assets/asset-safe-logo.png';
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import AccountSwitcher from '@/components/AccountSwitcher';
+import AudienceNavMenu from '@/components/AudienceNavMenu';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { audienceNavGroupLabel, audienceNavLinks } from '@/data/audienceNav';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,6 +46,32 @@ const Navbar: React.FC = () => {
       navigate('/', { state: { allowAuthenticatedHome: true } });
     }
   };
+
+  const mobileAudienceSection = (
+    <Accordion type="single" collapsible className="w-full border-none">
+      <AccordionItem value="audience" className="border-none">
+        <AccordionTrigger className="py-2 text-base font-normal text-gray-700 hover:text-brand-blue hover:no-underline">
+          {audienceNavGroupLabel}
+        </AccordionTrigger>
+        <AccordionContent className="pb-0">
+          <div className="flex flex-col pl-3">
+            {audienceNavLinks.map((link) => (
+              <NavLink
+                key={link.href}
+                to={link.href}
+                className={({ isActive }) =>
+                  `flex items-center min-h-11 py-2 transition-colors ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
+                }
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -88,7 +122,8 @@ const Navbar: React.FC = () => {
                    }
                  >
                    {translate('nav.features')}
-                 </NavLink>
+                   </NavLink>
+                   <AudienceNavMenu />
                  <NavLink 
                    to="/pricing" 
                    className={({ isActive }) => 
@@ -105,14 +140,7 @@ const Navbar: React.FC = () => {
                  >
                    Gift
                  </NavLink>
-                 <NavLink 
-                   to="/blog" 
-                   className={({ isActive }) => 
-                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
-                   }
-                 >
-                   Blog
-                 </NavLink>
+
                  <div className="flex items-center space-x-4">
                    <Link 
                      to="/account" 
@@ -150,6 +178,7 @@ const Navbar: React.FC = () => {
                     >
                       {translate('nav.features')}
                     </NavLink>
+                    <AudienceNavMenu />
                     <NavLink 
                       to="/pricing" 
                       className={({ isActive }) => 
@@ -166,14 +195,7 @@ const Navbar: React.FC = () => {
                     >
                       Gift
                     </NavLink>
-                    <NavLink 
-                      to="/blog" 
-                      className={({ isActive }) => 
-                        `transition-colors ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
-                      }
-                    >
-                      Blog
-                    </NavLink>
+
                  <Button asChild variant="outline">
                    <Link 
                      to="/login" 
@@ -220,8 +242,12 @@ const Navbar: React.FC = () => {
               </Button>
             )}
             <button
+              type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 focus:outline-none"
+              aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-navigation"
+              className="p-2 min-h-11 min-w-11 flex items-center justify-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -230,7 +256,7 @@ const Navbar: React.FC = () => {
         
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 animate-fade-in">
+          <div id="mobile-navigation" className="md:hidden py-4 animate-fade-in">
             <div className="flex flex-col space-y-4">
               {isAuthenticated ? (
                 <>
@@ -262,6 +288,7 @@ const Navbar: React.FC = () => {
                    >
                      {translate('nav.features')}
                    </NavLink>
+                   {mobileAudienceSection}
                    <NavLink 
                      to="/pricing" 
                      className={({ isActive }) => 
@@ -279,15 +306,6 @@ const Navbar: React.FC = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Gift
-                    </NavLink>
-                    <NavLink 
-                      to="/blog" 
-                      className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
-                      }
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Blog
                     </NavLink>
                    <Link 
                      to="/account" 
@@ -330,7 +348,9 @@ const Navbar: React.FC = () => {
                     >
                       {translate('nav.features')}
                     </NavLink>
+                    {mobileAudienceSection}
                    <NavLink 
+
                       to="/pricing" 
                       className={({ isActive }) => 
                         `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
@@ -347,15 +367,6 @@ const Navbar: React.FC = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Gift
-                    </NavLink>
-                    <NavLink 
-                      to="/blog" 
-                      className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
-                      }
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Blog
                     </NavLink>
                 </>
               )}
