@@ -9,6 +9,14 @@ import { Link } from 'react-router-dom';
 const EducationalResources: React.FC = () => {
   const resources = [
     {
+      icon: BookOpen,
+      title: "Home Inventory Guide",
+      description: "Create a room-by-room inventory of belongings, photos, receipts, values, and supporting details.",
+      type: "Guide",
+      duration: "7 min read",
+      href: "/home-inventory"
+    },
+    {
       icon: Camera,
       title: "Photography Best Practices",
       description: "Learn how to capture high-quality photos for comprehensive asset documentation.",
@@ -42,7 +50,7 @@ const EducationalResources: React.FC = () => {
     },
     {
       icon: BookOpen,
-      title: "Asset Valuation Explained",
+      title: "Asset Documentation Guide",
       description: "Understand what property details, receipts, condition notes, and estimated values belong in an asset record.",
       type: "Article",
       duration: "8 min read",

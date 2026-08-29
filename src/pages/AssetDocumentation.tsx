@@ -82,6 +82,9 @@ const AssetDocumentation: React.FC = () => {
                 <p className="text-lg text-gray-700">
                   A strong record answers simple questions: what is it, where is it, what condition is it in, what supports ownership or value, and what should someone know if they need to act on your behalf?
                 </p>
+                <p className="text-lg text-gray-700 mt-4">
+                  If you are starting with household belongings, the <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory guide</Link> shows how to organize records by property, room, and item.
+                </p>
               </div>
             </Card>
           </section>

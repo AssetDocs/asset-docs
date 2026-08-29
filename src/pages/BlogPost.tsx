@@ -398,9 +398,9 @@ const BlogPost = () => {
         <h2>Why You Need a Digital Home Inventory</h2>
         <p>A digital home inventory serves multiple crucial purposes:</p>
         <ul>
-          <li><strong>Insurance Claims:</strong> Speed up the claims process and ensure you receive proper compensation</li>
+          <li><strong>Insurance Claims:</strong> Keep clearer records available when preparing a property or contents claim</li>
           <li><strong>Estate Planning:</strong> Help loved ones understand and manage your assets</li>
-          <li><strong>Tax Purposes:</strong> Track depreciation and support deductions</li>
+          <li><strong>Household Organization:</strong> Keep purchase, warranty, and item records connected</li>
           <li><strong>Peace of Mind:</strong> Know exactly what you own and its value</li>
         </ul>
 
@@ -425,6 +425,7 @@ const BlogPost = () => {
         <h2>Best Practices for Documentation</h2>
 
         <h3>Photography Tips</h3>
+        <p>For more detailed photo and video guidance, use the <a href="/photography-guide">photography guide</a> when you are ready to capture rooms, labels, serial numbers, and condition details.</p>
         <ul>
           <li>Use good lighting - natural light works best</li>
           <li>Capture multiple angles of each item</li>
@@ -444,14 +445,7 @@ const BlogPost = () => {
         </ul>
 
         <h2>Using Asset Safe for Your Inventory</h2>
-        <p>Asset Safe makes the process simple with features designed specifically for home inventory management:</p>
-        <ul>
-          <li><strong>Photo Upload:</strong> Easily attach multiple photos to each item</li>
-          <li><strong>Receipt Storage:</strong> Keep digital copies of purchase receipts</li>
-          <li><strong>Property Organization:</strong> Organize items by property and location</li>
-          <li><strong>Secure Storage:</strong> Your data is encrypted and backed up</li>
-          <li><strong>Easy Sharing:</strong> Share with insurance companies or family when needed</li>
-        </ul>
+        <p>Asset Safe keeps your inventory organized by property, room, and item so photos, receipts, values, and notes stay connected. For a product-focused overview, visit the <a href="/home-inventory">home inventory app page</a>.</p>
 
         <h2>Maintaining Your Inventory</h2>
         <p>Creating your inventory is just the first step. To keep it valuable:</p>
@@ -463,11 +457,11 @@ const BlogPost = () => {
         </ul>
 
         <h2>Conclusion</h2>
-        <p>A comprehensive digital home inventory is an investment in your financial security and peace of mind. While it may seem time-consuming to create initially, the protection it provides is invaluable. Start with your most valuable items and build from there - you'll be glad you did.</p>
+        <p>A comprehensive digital home inventory is an investment in clarity and preparedness. While it may seem time-consuming to create initially, starting with your most valuable items gives you a useful foundation to build from.</p>
 
         <p>If you want a broader record-keeping framework, the <a href="/asset-documentation">asset documentation guide</a> explains what to capture about property, belongings, photos, receipts, and condition.</p>
 
-        <p>Ready to start your digital home inventory? <a href="/pricing">Activate your account</a> and protect what matters most.</p>
+        <p>Ready to start your digital home inventory? Begin with the <a href="/home-inventory">home inventory guide</a>, then <a href="/pricing">view pricing</a> when you are ready to use Asset Safe.</p>
       `
     },
     'estate-planning-digital-vault': {
@@ -569,6 +563,7 @@ const BlogPost = () => {
 
         <h2>Conclusion</h2>
         <p>Receipts and warranties become more useful when they are attached to complete <a href="/asset-documentation">asset documentation</a> records for each item or property improvement.</p>
+        <p>If you are organizing household belongings room by room, the <a href="/home-inventory">home inventory guide</a> shows where receipts, warranties, photos, and values fit into each item record.</p>
         <p>A well-organized digital receipt system pays dividends in time saved and money recovered. <a href="/pricing">Get started with Asset Safe</a>.</p>
       `
     },
@@ -599,6 +594,7 @@ const BlogPost = () => {
 
         <h2>Conclusion</h2>
         <p>Use the <a href="/photography-guide">photography guide</a> for detail-shot guidance, and pair those images with the broader records described in the <a href="/asset-documentation">asset documentation guide</a>.</p>
+        <p>For a household-wide starting point, add those high-value records to a broader <a href="/home-inventory">home inventory</a> organized by property, room, and item.</p>
         <p>Your collection deserves the same care in documentation as you give to acquisition. <a href="/pricing">Create your Asset Safe account</a> today.</p>
       `
     },

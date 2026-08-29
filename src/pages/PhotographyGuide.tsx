@@ -51,6 +51,9 @@ const PhotographyGuide: React.FC = () => {
             <p className="text-lg text-gray-600">
               Clear images make your records easier to understand later. Use these practical steps to document rooms, belongings, paperwork, condition, and changes over time.
             </p>
+            <p className="text-gray-600 mt-3">
+              If you are creating a full room-by-room record, pair these photo tips with the <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory guide</Link>.
+            </p>
           </div>
 
           <Card className="mb-8">

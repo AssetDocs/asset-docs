@@ -84,6 +84,14 @@ const searchableContent: SearchResult[] = [
     keywords: ['resources', 'documentation', 'guides', 'learning']
   },
   {
+    id: 'home-inventory',
+    title: 'Home Inventory',
+    description: 'Create a room-by-room inventory of belongings, photos, receipts, values, and supporting details',
+    path: '/home-inventory',
+    category: 'help',
+    keywords: ['home inventory', 'inventory app', 'belongings', 'possessions', 'receipts', 'values']
+  },
+  {
     id: 'qa',
     title: 'Q&A',
     description: 'Frequently asked questions',

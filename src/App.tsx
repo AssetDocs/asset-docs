@@ -94,6 +94,7 @@ import StateRequirements from "./pages/StateRequirements";
 import SubscriptionCheckout from "./pages/SubscriptionCheckout";
 import PhotographyGuide from "./pages/PhotographyGuide";
 import DigitalDocumentationGuide from "./pages/DigitalDocumentationGuide";
+import HomeInventory from "./pages/HomeInventory";
 
 import SocialImpact from "./pages/SocialImpact";
 import Partnership from "./pages/Partnership";
@@ -397,6 +398,7 @@ const AppContent = () => {
         <Route path="/video-help" element={<VideoHelp />} />
         <Route path="/test-email" element={<RouteMeta title="Test Email" description="Internal Asset Safe email testing page." path="/test-email"><TestEmail /></RouteMeta>} />
         <Route path="/resources" element={<Resources />} />
+        <Route path="/home-inventory" element={<HomeInventory />} />
         <Route path="/sample-dashboard" element={<SampleDashboard />} />
         
         {/* Authentication routes */}

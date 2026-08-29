@@ -66,7 +66,7 @@ const Features: React.FC = () => {
       <section className="py-14 bg-white">
         <div className="container mx-auto px-4">
           <p className="text-center text-lg text-gray-600 max-w-3xl mx-auto mb-10">
-            {featuresHero.overview}
+            {featuresHero.overview} If you are building a room-by-room record first, start with the <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory guide</Link>.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {destinations.map((destination) => (

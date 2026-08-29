@@ -49,6 +49,9 @@ const Claims: React.FC = () => {
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Essential documents needed when filing property and contents insurance claims
             </p>
+            <p className="text-gray-600 max-w-2xl mx-auto mt-4">
+              A current <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory</Link> can keep item details, photos, receipts, and values organized before a claim ever begins.
+            </p>
           </div>
 
           {/* Disclaimer */}
@@ -112,6 +115,9 @@ const Claims: React.FC = () => {
                 <li>• Purchase dates and prices</li>
                 <li>• Current estimated values</li>
               </ul>
+              <p className="text-sm text-gray-600 mt-3">
+                Build this record ahead of time with the <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory guide</Link>.
+              </p>
             </div>
 
             {/* Proof of Ownership */}

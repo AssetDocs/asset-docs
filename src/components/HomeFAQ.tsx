@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Accordion,
   AccordionContent,
@@ -67,14 +68,24 @@ const HomeFAQ: React.FC = () => {
             </p>
           </div>
 
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible defaultValue="item-0" className="w-full">
             {faqs.map((faq, index) => (
               <AccordionItem key={index} value={`item-${index}`}>
                 <AccordionTrigger className="text-left text-lg font-semibold">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                  {faq.answer}
+                  {index === 0 ? (
+                    <>
+                      A digital home inventory is a comprehensive record of your property and possessions, including photos, videos, receipts, and detailed descriptions. Learn more in the{' '}
+                      <Link to="/home-inventory" className="text-primary hover:underline font-medium">
+                        home inventory guide
+                      </Link>
+                      .
+                    </>
+                  ) : (
+                    faq.answer
+                  )}
                 </AccordionContent>
               </AccordionItem>
             ))}

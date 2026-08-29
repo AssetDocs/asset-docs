@@ -10,6 +10,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { breadcrumbSchema } from '@/utils/structuredData';
 
 const resourceLinks = [
+  { title: 'Home Inventory', description: 'Create a room-by-room inventory with photos, receipts, values, and item details.', href: '/home-inventory' },
   { title: 'Asset Documentation', description: 'What to record about belongings, property, values, receipts, and condition.', href: '/asset-documentation' },
   { title: 'Photography Guide', description: 'How to capture rooms, items, serial numbers, condition, and supporting paperwork.', href: '/photography-guide' },
   { title: 'Digital Documentation Guide', description: 'How organized digital records compare with spreadsheets and scattered phone photos.', href: '/digital-documentation-guide' },

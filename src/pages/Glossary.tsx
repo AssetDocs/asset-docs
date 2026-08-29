@@ -15,7 +15,7 @@ const termSections = [
     color: 'bg-brand-blue',
     terms: [
       { term: 'Asset Documentation', definition: 'An organized record of belongings, property details, supporting files, and notes that may matter later.' },
-      { term: 'Home Inventory', definition: 'A room-by-room or item-by-item list of household belongings with descriptions, photos, and supporting records.' },
+      { term: 'Home Inventory', definition: 'A room-by-room or item-by-item list of household belongings with descriptions, photos, and supporting records.', href: '/home-inventory' },
       { term: 'Property Record', definition: 'Information tied to a home, room, structure, system, upgrade, repair, or improvement.' },
       { term: 'Inventory', definition: 'A structured list of items with details such as location, description, condition, and estimated value.' },
       { term: 'Documentation Checklist', definition: 'A repeatable list of records to collect so important details are not missed.' },
@@ -132,7 +132,13 @@ const Glossary = () => {
                           className="p-4 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
                         >
                           <h2 className="font-semibold text-gray-900 mb-2 text-base">
-                            {item.term}
+                            {'href' in item && item.href ? (
+                              <Link to={item.href} className="text-brand-blue hover:underline">
+                                {item.term}
+                              </Link>
+                            ) : (
+                              item.term
+                            )}
                           </h2>
                           <p className="text-gray-600 text-sm leading-relaxed">
                             {item.definition}
