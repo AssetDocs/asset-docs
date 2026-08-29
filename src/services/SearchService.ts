@@ -100,6 +100,14 @@ const searchableContent: SearchResult[] = [
     keywords: ['renters', 'apartment inventory', 'move in documentation', 'move out documentation', 'rental condition', 'tenant records']
   },
   {
+    id: 'landlords',
+    title: 'Landlords',
+    description: 'Document rental property records, condition history, repairs, improvements, receipts, and warranties',
+    path: '/landlords',
+    category: 'help',
+    keywords: ['landlords', 'rental property', 'property records', 'condition documentation', 'repairs', 'improvements']
+  },
+  {
     id: 'qa',
     title: 'Q&A',
     description: 'Frequently asked questions',

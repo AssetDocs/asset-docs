@@ -251,8 +251,11 @@ const Renters: React.FC = () => {
               <Card className="p-6">
                 <RefreshCw className="h-8 w-8 text-brand-blue mb-4" />
                 <h2 className="text-3xl font-bold text-brand-blue mb-4">Prepare for Move-Out</h2>
-                <p className="text-lg text-gray-700">
+                <p className="text-lg text-gray-700 mb-4">
                   When you move out, recreate similar room views, document final condition, capture belongings as they are moved, and compare your own move-in and move-out records.
+                </p>
+                <p className="text-gray-700">
+                  Rental property owners can use the <Link to="/landlords" className="text-brand-blue hover:underline">landlords documentation guide</Link> for the owner-side property history workflow.
                 </p>
               </Card>
               <Card className="p-6">

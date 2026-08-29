@@ -88,6 +88,9 @@ const AssetDocumentation: React.FC = () => {
                 <p className="text-lg text-gray-700 mt-4">
                   Renters can also use <Link to="/renters" className="text-brand-blue hover:underline">rental condition documentation</Link> to keep move-in, maintenance, and move-out records alongside belongings.
                 </p>
+                <p className="text-lg text-gray-700 mt-4">
+                  Rental property owners can use <Link to="/landlords" className="text-brand-blue hover:underline">landlord documentation</Link> to keep condition history, repairs, improvements, receipts, and warranties organized by property.
+                </p>
               </div>
             </Card>
           </section>

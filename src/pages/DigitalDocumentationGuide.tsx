@@ -169,7 +169,7 @@ const DigitalDocumentationGuide: React.FC = () => {
                           <td className="border border-border px-4 py-3">
                             <span className="flex items-center text-green-600">
                               <CheckCircle className="w-4 h-4 mr-2" />
-                              Track warranties, repairs, and depreciation
+                              Track warranties, repairs, and condition changes
                             </span>
                           </td>
                         </tr>
@@ -196,7 +196,7 @@ const DigitalDocumentationGuide: React.FC = () => {
                   <ul className="list-none space-y-3 mb-8">
                     <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Homeowners:</strong> Fire, theft, natural disaster recovery, or estate planning</li>
                     <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Business Owners:</strong> Equipment inventory, liability protection, tax prep</li>
-                    <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Landlords & Investors:</strong> Move-in/out documentation, asset depreciation</li>
+                    <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Landlords & Investors:</strong> Move-in/out documentation, property condition, improvements, and supporting records</li>
                     <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Restoration & Insurance Professionals:</strong> Claim support and documentation</li>
                   </ul>
 

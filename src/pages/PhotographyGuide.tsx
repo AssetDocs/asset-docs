@@ -137,6 +137,9 @@ const PhotographyGuide: React.FC = () => {
                 Renters can use the <Link to="/renters" className="text-brand-blue hover:underline">renters documentation guide</Link> to connect move-in and move-out visuals with their own rental condition records.
               </p>
               <p>
+                Rental property owners can use the <Link to="/landlords" className="text-brand-blue hover:underline">landlords documentation guide</Link> to organize condition photos with turnover, repair, and improvement records.
+              </p>
+              <p>
                 Move slowly, keep the camera level, and pause on labels, serial numbers, damage, upgrades, or high-value items. A quiet narrated walkthrough can help explain what viewers are seeing.
               </p>
             </CardContent>

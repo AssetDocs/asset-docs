@@ -182,6 +182,11 @@ const Features: React.FC = () => {
                       See the <Link to="/renters" className="text-brand-blue hover:underline">renters documentation guide</Link> for move-in condition records and belongings inventory basics.
                     </p>
                   )}
+                  {audience.id === 'landlords' && (
+                    <p className="text-gray-600 max-w-2xl mx-auto mt-3">
+                      See the <Link to="/landlords" className="text-brand-blue hover:underline">landlords documentation guide</Link> for rental property condition history, repairs, and improvements.
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {audience.focus.map((focus) => (

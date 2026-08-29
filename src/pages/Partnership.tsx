@@ -256,7 +256,7 @@ const Partnership: React.FC = () => {
               <div className="border-l-4 border-secondary pl-4">
                 <h3 className="text-xl font-semibold mb-2">Property Management</h3>
                 <p className="text-muted-foreground">
-                  Comprehensive documentation for rental properties and tenant management.
+                  Comprehensive rental property documentation for condition history and records.
                 </p>
               </div>
 

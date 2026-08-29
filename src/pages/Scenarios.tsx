@@ -149,6 +149,9 @@ const Scenarios: React.FC = () => {
                 <p className="text-sm text-gray-700 mt-3">
                   For the claim-specific record list, see the <Link to="/claims" className="text-brand-blue hover:underline">claims documentation guide</Link>.
                 </p>
+                <p className="text-sm text-gray-700 mt-3">
+                  Rental property owners can also keep property-specific records organized with the <Link to="/landlords" className="text-brand-blue hover:underline">landlords documentation guide</Link>.
+                </p>
               </div>
             </div>
           </div>
