@@ -177,6 +177,11 @@ const Features: React.FC = () => {
                 <div className="mb-8 text-center">
                   <h3 className="text-2xl font-bold text-brand-blue mb-2">{audience.headline}</h3>
                   <p className="text-lg text-gray-600 max-w-2xl mx-auto">{audience.intro}</p>
+                  {audience.id === 'homeowners' && (
+                    <p className="text-gray-600 max-w-2xl mx-auto mt-3">
+                      See the <Link to="/home-inventory" className="text-brand-blue hover:underline">home inventory guide</Link> for a room-by-room record of belongings, photos, receipts, and values.
+                    </p>
+                  )}
                   {audience.id === 'renters' && (
                     <p className="text-gray-600 max-w-2xl mx-auto mt-3">
                       See the <Link to="/renters" className="text-brand-blue hover:underline">renters documentation guide</Link> for move-in condition records and belongings inventory basics.

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, Smartphone, Video } from 'lucide-react';
+import { audienceNavGroupLabel, audienceNavLinks } from '@/data/audienceNav';
 
 const Footer: React.FC = () => {
   return (
@@ -156,6 +157,20 @@ const Footer: React.FC = () => {
 
           <div>
             <h3 className="text-lg font-semibold mb-4">References</h3>
+
+            <div className="mb-4">
+              <h4 className="text-md font-medium text-gray-200 mb-2">{audienceNavGroupLabel}</h4>
+              <ul className="space-y-1">
+                {audienceNavLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link to={link.href} className="text-gray-300 hover:text-white transition-colors text-sm">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <ul className="space-y-1">
               <li>
                 <Link to="/blog" className="text-gray-300 hover:text-white transition-colors text-sm">
