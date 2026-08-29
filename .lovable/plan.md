@@ -53,7 +53,7 @@ Everything else verifies clean. Metadata, structured data on `/home-inventory`, 
  src/services/SearchService.ts           |   8 +
 ```
 
-Note (not a defect, but a release gate): the implementation is **not on `origin/main`**, so it is not yet in the deployable state.
+Rebase check: the two later commits on `origin/main` (`273cac61`, `4e977e56`) carry `.lovable/plan.md` content only — the rebase over the pre-existing plan update introduced **no unrelated production-code changes**. Re-verified on the published state: `/home-inventory` still ships `View Pricing` as its hero primary CTA, still has no closing CTA section, and `Index.tsx` still renders `<HomeFAQ />`, so the three defects below are unchanged by the publish.
 
 ---
 
