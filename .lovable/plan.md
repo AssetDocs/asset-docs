@@ -25,9 +25,11 @@ Everything else verifies clean. Metadata, structured data on `/home-inventory`, 
 | Check | Result |
 |---|---|
 | Commit exists | **Yes** — `a0f8701106be1f0208f7d01f6b304239f290bcb7`, "Add home inventory acquisition page", Fri 28 Aug 2026 19:19:26 −0500 |
-| Local `main` / `HEAD` | **= a0f87011** |
-| Reachable from `origin/main` | **No** — `origin/main` = `0eb5ffff` ("Update plan"), which is the **parent** of `a0f87011`. The commit is one ahead of the remote and not yet pushed. |
+| Local `main` / `HEAD` | **= 4e977e56** ("Update plan") |
+| Reachable from `origin/main` | **Yes** — `origin/main` = `4e977e56`; `a0f87011` is an ancestor. Re-verified after the publish. |
+| `origin/main` = expected implementation state | **Yes** — `git diff a0f87011 origin/main` touches **only `.lovable/plan.md`** (+176/−178). Zero production-code differences, so the live state is exactly this commit's code. |
 | Working tree clean | **Yes** — `git status --porcelain` empty |
+
 | Rebase artifacts | **None** — the diff `origin/main..a0f87011` is exactly the inverse of the commit's own diff; no unrelated production-code changes were pulled in |
 | Unrelated Phase 3 pages | **None** |
 | B2 / prerender work | **None** — no `vite.config.ts`, prerender script, or build-pipeline change |
