@@ -1,52 +1,37 @@
-# Reorganize the Public Site Footer
+# Rebuild the Public Partnerships Page (`/partnership`)
 
-Footer information-architecture and responsive UI update only. No route, content, SEO metadata, backend, auth, billing, dashboard, or legal-content changes. All destination URLs preserved.
+Replace the current proposal-style page (stacked white cards, founder contact block in the header, outdated claims) with a modern, concise public partnerships page that matches the rest of the Asset Safe marketing site.
 
-Resolved decisions:
-- Re-add **Admin** (`/admin`) link under the Legal subsection (user explicitly confirmed).
-- **Partnership stays out of the public footer** — it already exists in the admin workspace under "Business Opportunities & Partnerships" (`src/pages/Admin.tsx`, navigating to `/partnership`). No admin change needed.
+## Scope
 
-## Changes
+- Only `src/pages/Partnership.tsx` is rewritten. Route, URL, and indexability stay the same.
+- The internal admin B2B strategy page (`/admin/b2b-opportunities`) and all other admin partnership pages are untouched.
+- No auth, billing, dashboard, database, or subscription changes.
 
-### 1. `src/components/Footer.tsx` (only file changed)
+## New page structure
 
-Retire the "References" heading and regroup into purpose-based columns. Keep dark `bg-brand-darkGray` styling, existing typography scale, social icons, and copyright line unchanged.
+1. **Hero** — H1 "Partner With Asset Safe", supporting headline, two-paragraph intro, primary CTA "Explore Partnership Opportunities" (anchors to the opportunities section) and secondary CTA "See What Asset Safe Does" (links to `/features`). No founder name or phone in the hero.
+2. **Why Partner** — "Extend the value of what you already do." plus four benefit cards: Add Meaningful Value, Strengthen Relationships, Encourage Preparedness, Differentiate Your Organization.
+3. **Partnership Opportunities** — "Built for Organizations That Serve People, Homes & Communities". Responsive grid (3 columns desktop, 2 tablet, 1 mobile) of the nine cards: Real Estate, HOAs, Mortgage/Lending/Title/Financial, Property Management, Insurance Agents, Restoration & Disaster Recovery, Estate Planning/Trust/Elder Care, Employer Benefits & EAPs, Builders/Developers/New Construction. Each card uses the supplied title, subheading, and body verbatim.
+4. **Flexible Ways to Partner** — five concise rows: Sponsored Memberships, Closing & Welcome Programs, Organization & Community Programs, Educational Partnerships, Co-Branded Introductions. No affiliate/commission language.
+5. **Privacy & Trust** — visually distinct tinted band: "Your Relationship. Their Information." with the supplied copy and a simple three-step sequence (organization provides the benefit → customer owns the account → their information stays private).
+6. **Core Partnership Insight** — "Built to Support What You Already Care About" with the emphasized three-line statement.
+7. **Final CTA** — "Let's Explore What Asset Safe Could Look Like for Your Organization", primary "Explore a Partnership" and secondary "Contact Asset Safe", both routed to the existing `/contact` page/form (plus a `mailto:support@assetsafe.net` link). Small audience line beneath.
 
-**Desktop (lg and up): 6-column grid — `hidden lg:grid lg:grid-cols-6`**
+## Content removals
 
-| Column | Contents |
-|---|---|
-| Get Social | Social icons (Facebook, X, YouTube, Instagram), then Contact Us block (McKinney, Texas / United States / Ask Ashley chat line) |
-| Quick Links | Services: All Features, Pricing, Gift Subscriptions, Testimonials. Support: FAQs, Contact, Account Assistance, Add to Home Screen, Video Help |
-| Who It's For | Homeowners, Renters, Landlords, Small Business (from `audienceNavLinks`), + Industry Applications (`/features#industries`) |
-| Guides & Resources | Blog, Resources (`/resources`, label shortened from "Resources & Security"), Awareness Guide, Glossary |
-| Documentation & Claims | Asset Documentation, Claims (`/claims`, label shortened from "Claims Documentation"), Scenarios, State Requirements, Industry Requirements |
-| About | About Us, Social Impact, Technical. Legal subsection: Legal & Ethical Considerations, Terms of Use, Cookie Policy, Admin (`/admin`) |
+Everything currently on the page that conflicts with present positioning goes: AI-assisted valuation, "accurate settlement amounts", "expedite insurance claims processing" as a promise, asset verification for loans/mortgages/investments, passive income / affiliate revenue program, "professional-grade home inventory" framing, the founder contact card at the top, the emoji-led card headers, and the mission/blockquote block. No invented stats, logos, testimonials, or endorsements.
 
-- All links remain `<Link>`/`<a>` crawlable anchors with identical `to`/`href` values.
-- Column balance: tallest columns ~7–9 items, no single catch-all column.
+## Design & technical notes
 
-**Mobile & tablet (below lg): accordion layout — `lg:hidden`**
-
-Use the existing shadcn `Accordion` (`src/components/ui/accordion.tsx`, already used in Navbar), `type="multiple"` so sections open/close independently. Groups:
-1. Quick Links (Services + Support subgroups)
-2. Who It's For
-3. Guides & Resources
-4. Documentation & Claims
-5. About (incl. Legal subsection)
-6. Support & Contact (address + Ask Ashley)
-
-- Social icons and copyright render outside the accordion, always visible.
-- AccordionTrigger provides keyboard access, chevron indicator, and `aria-expanded` out of the box; links inside content stay standard anchors in the DOM.
-- Breakpoint `lg` (1024px) follows the project's existing Tailwind conventions — tablet gets the compact accordion rather than a cramped multi-column grid.
-
-### 2. No other files
-
-- `src/data/audienceNav.ts` reused as-is for the Who It's For links (single source of truth preserved).
-- No sitemap, route, metadata, or page changes.
+- Existing design system only: `Card`, `Button`, Tailwind semantic tokens (`bg-background`, `bg-muted/30`, `text-primary`, `border-border`). No hardcoded colors, no emoji.
+- Alternating subtle section backgrounds instead of boxing every paragraph; generous vertical spacing; restrained lucide icons (one per card, decorative with `aria-hidden`).
+- The page currently imports `Navbar` and `Footer` but never renders them. The rebuild will render both so the page matches every other public marketing page.
+- Anchor scroll: opportunities section gets `id="partnership-opportunities"` with `scroll-mt` offset for the sticky navbar; the hero CTA is a real anchor link so it works with keyboard.
+- Heading order H1 → H2 per section → H3 per card; semantic `<section>` with `aria-labelledby`.
+- Mobile: single-column stacks, no fixed widths, tap-friendly full-width CTAs, verified at 390px for overflow.
+- SEO via the existing `SEOHead`: title "Partnership Opportunities | Asset Safe", the supplied meta description, self-canonical `https://getassetsafe.com/partnership`, index/follow retained. No new structured data.
 
 ## Verification
 
-1. `npm run build` / typecheck clean.
-2. Playwright: desktop (1280px) — confirm 6 columns, no "References" heading, Industry Applications under Who It's For, Admin under Legal; tablet (834px) and mobile (390px) — confirm accordion renders, sections expand/collapse, `aria-expanded` toggles, social icons and copyright visible, no horizontal overflow.
-3. Diff all footer `to`/`href` values before/after to confirm every destination URL preserved (plus the one intentional addition: `/admin`).
+Build + typecheck, load `/partnership` in a browser at 390px and desktop, grep the rendered page for the banned terms (AI valuation, settlement amounts, passive revenue, asset verification, RE/MAX), and confirm the admin B2B page is unchanged.
