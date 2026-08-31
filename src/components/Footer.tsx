@@ -48,10 +48,13 @@ const ContactBlock: React.FC = () => (
       <p className="mb-2">McKinney, Texas</p>
       <p className="mb-4">United States</p>
     </address>
-    <div className="flex items-center space-x-2">
-      <MessageCircle className="h-6 w-6 text-brand-green" />
-      <span className="text-gray-300 text-sm">Ask Ashley — Chat support available</span>
-    </div>
+  </div>
+);
+
+const ChatSupportLine: React.FC = () => (
+  <div className="flex items-center space-x-2">
+    <MessageCircle className="h-6 w-6 text-brand-green" />
+    <span className="text-gray-300 text-sm">Ask Ashley — Chat support available</span>
   </div>
 );
 
@@ -142,8 +145,8 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-brand-darkGray text-white py-12">
       <div className="container mx-auto px-4">
-        {/* Desktop: 6-column grid */}
-        <div className="hidden lg:grid lg:grid-cols-6 gap-8">
+        {/* Desktop: 7-column grid */}
+        <div className="hidden lg:grid lg:grid-cols-7 gap-8">
           <div>
             <h3 className="text-lg font-semibold mb-4">Get Social</h3>
             <div className="mb-6">
@@ -176,6 +179,16 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">About</h3>
             <AboutContent />
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Support &amp; Contact</h3>
+            <div className="mb-4">
+              <h4 className={subHeadClass}>Chat Support</h4>
+              <ChatSupportLine />
+            </div>
+            <h4 className={subHeadClass}>Contact Us</h4>
+            <ContactBlock />
           </div>
         </div>
 
@@ -237,6 +250,11 @@ const Footer: React.FC = () => {
                 Support &amp; Contact
               </AccordionTrigger>
               <AccordionContent>
+                <div className="mb-4">
+                  <h4 className={subHeadClass}>Chat Support</h4>
+                  <ChatSupportLine />
+                </div>
+                <h4 className={subHeadClass}>Contact Us</h4>
                 <ContactBlock />
               </AccordionContent>
             </AccordionItem>
