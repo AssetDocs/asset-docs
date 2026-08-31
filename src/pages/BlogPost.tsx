@@ -22,7 +22,7 @@ const BlogPost = () => {
       category: 'Insurance',
       date: '2026-08-31',
       readTime: '11 min read',
-      image: 'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=1200&h=600&fit=crop',
+      image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=1200&h=600&fit=crop',
       author: 'Asset Safe Team',
       content: `
         <p>Artificial intelligence can now identify objects, analyze photographs, search enormous amounts of information, and produce an estimated value in seconds.</p>
@@ -833,7 +833,7 @@ const BlogPost = () => {
       category: 'Protection',
       date: '2024-12-20',
       readTime: '9 min read',
-      image: 'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=1200&h=600&fit=crop',
+      image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=1200&h=600&fit=crop',
       author: 'Asset Safe Team',
       content: `
         <p>Whether you collect fine art, vintage watches, rare coins, or precious jewelry, your collection represents more than monetary value. Protecting these high-value items requires special attention to documentation, insurance, and security.</p>

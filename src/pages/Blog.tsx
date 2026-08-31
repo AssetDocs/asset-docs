@@ -18,7 +18,7 @@ const Blog = () => {
       category: 'Insurance',
       date: '2026-08-31',
       readTime: '11 min read',
-      image: 'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=800&h=400&fit=crop',
+      image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&h=400&fit=crop',
       featured: true
     },
     {
