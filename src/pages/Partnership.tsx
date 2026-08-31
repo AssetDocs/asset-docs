@@ -210,7 +210,7 @@ const Partnership: React.FC = () => {
                   <a href="#partnership-opportunities">Explore Partnership Opportunities</a>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                  <Link to="/features">See What Asset Safe Does</Link>
+                  <Link to="/features">See what Asset Safe Does</Link>
                 </Button>
               </div>
             </div>
@@ -409,16 +409,16 @@ const Partnership: React.FC = () => {
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Button asChild size="lg" className="w-full sm:w-auto">
-                  <Link to="/contact">
+                  <a href="#partnership-opportunities">
                     Explore a Partnership
                     <ArrowRight className="ml-2 w-4 h-4" aria-hidden="true" />
-                  </Link>
+                  </a>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                  <a href="mailto:support@assetsafe.net">
+                  <Link to="/contact">
                     <Mail className="mr-2 w-4 h-4" aria-hidden="true" />
                     Contact Asset Safe
-                  </a>
+                  </Link>
                 </Button>
               </div>
 
