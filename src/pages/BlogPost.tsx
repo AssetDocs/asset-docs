@@ -15,6 +15,265 @@ const BlogPost = () => {
 
   // Sample blog post data - in production, this would come from a CMS or database
   const blogPosts: Record<string, any> = {
+    'ai-personal-property-valuations': {
+      title: 'Can AI Really Tell You What Your Belongings Are Worth?',
+      metaTitle: 'AI Valuations for Personal Property: What You Should Know | Asset Safe',
+      description: 'AI can estimate what personal property may be worth, but an AI estimate is not a professional appraisal. Why documentation, receipts, photos, and records still matter.',
+      category: 'Insurance',
+      date: '2026-08-31',
+      readTime: '11 min read',
+      image: 'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=1200&h=600&fit=crop',
+      author: 'Asset Safe Team',
+      content: `
+        <p>Artificial intelligence can now identify objects, analyze photographs, search enormous amounts of information, and produce an estimated value in seconds.</p>
+
+        <p>Photograph a watch, a painting, an antique, a piece of furniture, or a collectible, and a tool may confidently tell you:</p>
+
+        <div style="border-left: 4px solid hsl(var(--primary)); background: hsl(var(--muted) / 0.5); padding: 1.25rem 1.5rem; border-radius: 0.5rem; margin: 2rem 0;">
+          <p style="font-size: 1.25rem; font-weight: 700; margin: 0;">Estimated Value: $4,750</p>
+        </div>
+
+        <p>It looks precise. It feels authoritative.</p>
+
+        <p>But what does that number actually mean? Is it resale value? Auction value? Fair market value? Retail replacement cost? Insurance replacement value?</p>
+
+        <p>And did the system actually verify the object's condition, authenticity, provenance, age, restoration history, materials, rarity, or exact model?</p>
+
+        <p>That distinction matters — especially when the reason you are documenting an item is insurance.</p>
+
+        <div style="border-left: 4px solid hsl(var(--primary)); background: hsl(var(--primary) / 0.08); padding: 1.25rem 1.5rem; border-radius: 0.5rem; margin: 2rem 0;">
+          <p style="font-size: 1.25rem; font-weight: 700; margin: 0;">Estimate &ne; Appraisal &ne; Proof</p>
+        </div>
+
+        <h2>AI Can Estimate. That Doesn't Make It an Appraisal.</h2>
+
+        <p>Artificial intelligence can be genuinely useful as a research and identification tool. Depending on the tool, an AI valuation may be able to:</p>
+
+        <ul>
+          <li>recognize an object</li>
+          <li>suggest a manufacturer or model</li>
+          <li>locate similar objects online</li>
+          <li>identify possible comparable sales</li>
+          <li>organize information</li>
+          <li>generate a preliminary value range</li>
+          <li>help you decide that an object may deserve further investigation</li>
+        </ul>
+
+        <p>Those are useful capabilities. But a professional personal property appraisal involves much more than finding similar-looking objects online.</p>
+
+        <p>The International Society of Appraisers addressed this directly in August 2026 in an article titled <em>"AI &amp; Appraising: Proceed with Caution."</em> The organization explains that AI may assist an appraisal process, but it cannot replace the judgment, competence, methodology, market knowledge, verification, and accountability of a qualified appraiser.</p>
+
+        <blockquote style="border-left: 4px solid hsl(var(--primary)); padding: 1rem 1.5rem; margin: 2rem 0; font-style: italic;">
+          <p style="margin: 0;">"AI cannot replace market knowledge and the accountability required to produce a credible appraisal."</p>
+          <p style="margin: 0.75rem 0 0; font-style: normal; font-weight: 600;">— International Society of Appraisers</p>
+        </blockquote>
+
+        <h2>A Photograph Cannot Tell the Whole Story</h2>
+
+        <p>Two objects can look almost identical in photographs while having substantially different values.</p>
+
+        <p>Depending on the type of object, personal property value may depend on factors such as authenticity, manufacturer, artist or maker, materials, age, edition, model or variation, rarity, provenance, ownership history, maker's marks, signatures, restoration, modifications, damage, wear, mechanical condition, completeness, accessories, original packaging, documentation, geographic market, current demand, and verified comparable sales.</p>
+
+        <h3>Artwork</h3>
+        <p>A photograph may resemble the work of a particular artist, but resemblance does not establish authenticity.</p>
+
+        <h3>Antique furniture</h3>
+        <p>A reproduction and an original period piece can look extremely similar in a photograph. Construction techniques, materials, joinery, markings, restoration, provenance, and condition can materially affect value.</p>
+
+        <h3>Watches</h3>
+        <p>Different references, movements, replacement parts, dial variations, condition, service history, box and papers, and authenticity can dramatically change what a watch is worth.</p>
+
+        <h3>Collectibles</h3>
+        <p>Edition, production year, rarity, signatures, authenticity, condition, and provenance can make superficially similar items worth very different amounts.</p>
+
+        <p>None of this means AI cannot recognize objects. The point is narrower, and more important:</p>
+
+        <div style="border-left: 4px solid hsl(var(--primary)); background: hsl(var(--primary) / 0.08); padding: 1.25rem 1.5rem; border-radius: 0.5rem; margin: 2rem 0;">
+          <p style="font-size: 1.25rem; font-weight: 700; margin: 0;">Recognition is not the same thing as verification.</p>
+        </div>
+
+        <h2>Professional Judgment Still Matters</h2>
+
+        <p>The Uniform Standards of Professional Appraisal Practice (USPAP), published by The Appraisal Foundation, are the generally recognized appraisal standards in the United States, and they include personal property appraisal.</p>
+
+        <p>In its guidance concerning technology and artificial intelligence, The Appraisal Foundation explains that technological output does not substitute for an appraiser's professional judgment. That guidance addresses computer-assisted valuation tools, generative AI, and even image-recognition software attempting to assign condition and quality conclusions.</p>
+
+        <blockquote style="border-left: 4px solid hsl(var(--primary)); padding: 1rem 1.5rem; margin: 2rem 0; font-style: italic;">
+          <p style="margin: 0;">"Developing credible assignment results requires the professional judgment of the appraiser."</p>
+          <p style="margin: 0.75rem 0 0; font-style: normal; font-weight: 600;">— The Appraisal Foundation</p>
+        </blockquote>
+
+        <p>On April 23, 2026, the Appraisal Standards Board adopted Advisory Opinion 41 (AO-41), <em>Use of Technology in an Appraisal or Appraisal Review Assignment</em>, which offers guidance on how technology may be used within an assignment.</p>
+
+        <p>These are professional appraisal standards and guidance for appraisers — not consumer rules. But they are a useful signal for consumers about how carefully the profession treats automated output.</p>
+
+        <h2>Even Professional Appraisers Are Being Told to Verify AI Output</h2>
+
+        <p>In January 2026, the American Society of Appraisers issued a statement on artificial intelligence. The ASA notes that appraisers remain responsible for confirming and verifying the information necessary to produce credible valuation results, and that when AI materially contributes to research or analysis, the professional remains responsible for the conclusion.</p>
+
+        <p>That is worth sitting with, because the appraisal profession is not rejecting AI. It is saying something more practical: use the technology, but verify the information.</p>
+
+        <h2>What Does "Worth" Actually Mean?</h2>
+
+        <p>Most people think of an item's "value" as a single number. In practice, the same object can simultaneously have a different auction value, resale value, fair market value, retail value, replacement value, and insurance replacement value.</p>
+
+        <p>So when an AI system returns:</p>
+
+        <div style="border-left: 4px solid hsl(var(--primary)); background: hsl(var(--muted) / 0.5); padding: 1.25rem 1.5rem; border-radius: 0.5rem; margin: 2rem 0;">
+          <p style="font-size: 1.25rem; font-weight: 700; margin: 0;">Estimated value: $2,800</p>
+        </div>
+
+        <p>The important question is: <strong>$2,800 based on what definition of value?</strong></p>
+
+        <p>Chubb's collector appraisal guidance distinguishes between Fair Market Value and Replacement Value. Fair Market Value generally addresses what property would change hands for between informed, willing parties. Replacement Value is commonly used in connection with insurance for fine art and collectibles, and considers what it may cost to replace an object with another of similar age, quality, origin, appearance, provenance, and condition in the appropriate market.</p>
+
+        <p>Those definitions come from one insurer's educational guidance and do not automatically apply to every policy. They are useful here for a simpler reason: they show why the word "value" needs context before it means anything.</p>
+
+        <div style="border-left: 4px solid hsl(var(--primary)); background: hsl(var(--primary) / 0.08); padding: 1.25rem 1.5rem; border-radius: 0.5rem; margin: 2rem 0;">
+          <p style="font-size: 1.25rem; font-weight: 700; margin: 0;">A precise number is not necessarily a precise valuation.</p>
+        </div>
+
+        <p>A valuation can look extremely sophisticated simply because it contains an exact dollar amount. Precision in presentation does not automatically establish accuracy, methodology, or relevance to insurance.</p>
+
+        <h2>AI Can Be Confidently Wrong</h2>
+
+        <p>Generative AI systems can sometimes produce information that sounds authoritative but is incorrect. The National Institute of Standards and Technology (NIST) uses the term <em>confabulation</em> to describe situations where a generative AI system confidently produces erroneous or false content.</p>
+
+        <p>In a valuation context, that general risk could involve things like:</p>
+
+        <ul>
+          <li>incorrect product identification</li>
+          <li>incorrect model information</li>
+          <li>incorrect dates</li>
+          <li>inaccurate descriptions</li>
+          <li>fabricated or misunderstood comparable information</li>
+          <li>incorrect assumptions</li>
+          <li>incomplete market context</li>
+        </ul>
+
+        <p>This is a description of an inherent risk in generative systems generally — not a claim about any particular valuation service. It is simply a reason to ask where a number came from.</p>
+
+        <h2>Insurance Is Where the Difference Becomes Important</h2>
+
+        <p>When you are documenting personal property for insurance, being able to establish that an item existed — and retaining the information that supports it — may ultimately matter more than having an automatically generated dollar amount attached to a photograph.</p>
+
+        <p>The National Association of Insurance Commissioners advises consumers to create a home inventory containing important information about their belongings, including photographs, brand, purchase price, purchase date, model, serial number, and receipts.</p>
+
+        <blockquote style="border-left: 4px solid hsl(var(--primary)); padding: 1rem 1.5rem; margin: 2rem 0; font-style: italic;">
+          <p style="margin: 0;">"An accurate home inventory gives your insurance carrier the information they need to help settle your claims."</p>
+          <p style="margin: 0.75rem 0 0; font-style: normal; font-weight: 600;">— National Association of Insurance Commissioners</p>
+        </blockquote>
+
+        <p>Notice what that guidance emphasizes. It is a list of verifiable facts and records — not a list of estimated values.</p>
+
+        <h2>Documentation Is Different From Valuation</h2>
+
+        <p>Valuation asks: <em>"What might this item be worth?"</em></p>
+
+        <div style="border-left: 4px solid hsl(var(--primary)); background: hsl(var(--primary) / 0.08); padding: 1.25rem 1.5rem; border-radius: 0.5rem; margin: 2rem 0;">
+          <p style="font-size: 1.25rem; font-weight: 700; margin: 0;">Documentation asks a different question: What can I establish about this item?</p>
+        </div>
+
+        <p>Documentation preserves factual information, including photographs, video, item descriptions, manufacturer, model, serial number, purchase date, purchase price, receipts, warranties, provenance, certificates, appraisal reports, supporting documents, maintenance information, restoration records, and ownership records.</p>
+
+        <p>Those records provide context that an isolated AI estimate cannot. A number without evidence is a claim. A number with photographs, a receipt, a serial number, and an appraisal report is a documented position.</p>
+
+        <p>For a practical breakdown of what to keep together, see our <a href="/home-inventory">home inventory guide</a> and our <a href="/asset-documentation">asset documentation guide</a>.</p>
+
+        <h2>Where AI Valuation Can Still Be Useful</h2>
+
+        <p>AI valuation tools can genuinely help with:</p>
+
+        <ul>
+          <li>preliminary research</li>
+          <li>identifying common household objects</li>
+          <li>locating similar products</li>
+          <li>estimating broad value ranges</li>
+          <li>flagging items that may warrant a professional appraisal</li>
+          <li>helping organize large inventories</li>
+          <li>showing where additional research is needed</li>
+        </ul>
+
+        <p>A rough estimate is useful. The problem arises when a rough estimate is treated as something it is not.</p>
+
+        <div style="border-left: 4px solid hsl(var(--primary)); background: hsl(var(--primary) / 0.08); padding: 1.25rem 1.5rem; border-radius: 0.5rem; margin: 2rem 0;">
+          <p style="font-size: 1.25rem; font-weight: 700; margin: 0;">AI can be a starting point. It should not automatically be treated as the final word.</p>
+        </div>
+
+        <h2>When Should You Consider a Professional Appraisal?</h2>
+
+        <p>A qualified professional appraisal may be worth considering when an item's value materially matters, such as:</p>
+
+        <ul>
+          <li>fine art</li>
+          <li>jewelry</li>
+          <li>antiques</li>
+          <li>valuable collections and rare collectibles</li>
+          <li>high-value watches</li>
+          <li>historically significant items</li>
+          <li>unusual or one-of-a-kind property</li>
+          <li>items where authenticity materially affects value</li>
+          <li>property that may require scheduled insurance coverage</li>
+          <li>estate-related valuation</li>
+          <li>situations involving a significant insurance claim</li>
+        </ul>
+
+        <p>This article is educational and is not legal, tax, insurance, or appraisal advice. When valuation materially matters, speak with your insurance provider and a qualified professional appraiser.</p>
+
+        <h2>The Asset Safe Approach: Document What You Know</h2>
+
+        <p>Asset Safe does not replace professional appraisers, and it does not attempt to decide what every belonging is worth. Our philosophy is simpler: document the information you actually know, and preserve the evidence that supports it.</p>
+
+        <p>With Asset Safe, you can organize information such as photos, videos, receipts, purchase information, estimated values you enter yourself when appropriate, serial numbers, item descriptions, supporting documents, professional appraisal records, and property information.</p>
+
+        <p><strong>Asset Safe doesn't need to guess what your belongings are worth to help you protect the information that matters.</strong></p>
+
+        <p>Photos. Receipts. Purchase records. Serial numbers. Documents. Appraisals.</p>
+
+        <p>Because when you need to establish what you owned, documentation matters more than an unexplained estimate.</p>
+
+        <h2>The Future May Be AI-Assisted. But It Still Needs Evidence.</h2>
+
+        <p>Artificial intelligence will keep getting better at identifying objects, researching markets, comparing information, and assisting valuation professionals. That can be enormously useful.</p>
+
+        <p>But technology does not eliminate the need to understand where a number came from, what type of value it represents, what assumptions were made, and what evidence supports it.</p>
+
+        <p>For personal property — especially where insurance, estates, valuable collections, or major losses are involved — a confident estimate should never be confused with documented evidence or a qualified professional opinion.</p>
+
+        <p><strong>Document what matters today — so you're not trying to recreate it tomorrow.</strong></p>
+
+        <p><em>Everything you love. Protected in one place.</em></p>
+
+        <h2>Frequently Asked Questions</h2>
+
+        <h3>Can AI accurately value personal property?</h3>
+        <p>AI may provide useful estimates based on available information, but accurate valuation can depend on condition, authenticity, provenance, exact identification, market context, and the specific definition of value being used.</p>
+
+        <h3>Is an AI valuation the same as an appraisal?</h3>
+        <p>No. An automated estimate is not automatically equivalent to a professional appraisal performed according to recognized appraisal methodology and standards.</p>
+
+        <h3>Can I use an AI estimate for insurance?</h3>
+        <p>An AI estimate may help with preliminary research, but consumers should check with their insurance provider about documentation and appraisal requirements, particularly for high-value or scheduled property.</p>
+
+        <h3>What should I document for insurance?</h3>
+        <p>Depending on the item, useful records can include photographs, videos, receipts, purchase dates, purchase prices, manufacturers, model numbers, serial numbers, descriptions, and professional appraisal documentation.</p>
+
+        <h2>Sources &amp; Further Reading</h2>
+
+        <ul>
+          <li>International Society of Appraisers — <a href="https://www.isa-appraisers.org/about/blog/details/556/ai-appraising-proceed-with-caution" target="_blank" rel="noopener noreferrer">"AI &amp; Appraising: Proceed with Caution," August 19, 2026</a></li>
+          <li>The Appraisal Foundation — <a href="https://appraisalfoundation.org/pages/practicing-appraisers" target="_blank" rel="noopener noreferrer">Practicing Appraisers / artificial intelligence and USPAP guidance</a></li>
+          <li>The Appraisal Foundation — <a href="https://appraisalfoundation.org/pages/uspap" target="_blank" rel="noopener noreferrer">USPAP and Advisory Opinion 41 (AO-41)</a></li>
+          <li>American Society of Appraisers — <a href="https://www.appraisers.org/about/standards-ethics-and-policies/standards/artificial-intelligence" target="_blank" rel="noopener noreferrer">Statement on Artificial Intelligence, effective January 28, 2026</a></li>
+          <li>National Association of Insurance Commissioners — <a href="https://content.naic.org/consumer/home-inventory" target="_blank" rel="noopener noreferrer">Home Inventory</a></li>
+          <li>National Association of Insurance Commissioners — <a href="https://content.naic.org/sites/default/files/publication-hoi-pp-consumer-homeowners.pdf" target="_blank" rel="noopener noreferrer">A Consumer's Guide to Home Insurance</a></li>
+          <li>Chubb — <a href="https://www.chubb.com/us-en/individuals-families/resources/a-collectors-guide-to-appraisals.html" target="_blank" rel="noopener noreferrer">A Collector's Guide to Appraisals</a></li>
+          <li>National Institute of Standards and Technology — <a href="https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf" target="_blank" rel="noopener noreferrer">Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile (NIST AI 600-1)</a></li>
+        </ul>
+
+        <p>— The Asset Safe Team</p>
+      `
+    },
     'what-documents-to-upload': {
       title: 'What Documents Should I Upload to Asset Safe?',
       category: 'Guides',
