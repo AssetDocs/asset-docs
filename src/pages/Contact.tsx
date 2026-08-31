@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageCircle, HelpCircle, ChevronLeft } from 'lucide-react';
+import { MessageCircle, HelpCircle } from 'lucide-react';
 import { breadcrumbSchema } from '@/utils/structuredData';
 
 interface ContactFormData {
@@ -79,18 +79,6 @@ const Contact: React.FC = () => {
       
       <div className="container mx-auto px-4 py-12 flex-grow">
         <div className="max-w-4xl mx-auto">
-          {/* Back to Dashboard Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="flex items-center gap-2 mb-6 bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
-          >
-            <Link to="/account">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Link>
-          </Button>
           
           <h1 className="text-4xl font-bold text-brand-blue mb-8 text-center">Contact Us</h1>
           
