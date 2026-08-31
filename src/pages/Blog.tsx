@@ -12,6 +12,16 @@ const Blog = () => {
   // Sample blog posts - in production, this would come from a CMS or database
   const blogPosts = [
     {
+      id: 'ai-personal-property-valuations',
+      title: 'Can AI Really Tell You What Your Belongings Are Worth?',
+      excerpt: 'AI can estimate what personal property may be worth, but an estimate is not an appraisal — and not proof. Here is what documentation still does that automation cannot.',
+      category: 'Insurance',
+      date: '2026-08-31',
+      readTime: '11 min read',
+      image: 'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=800&h=400&fit=crop',
+      featured: true
+    },
+    {
       id: 'best-closing-gift-real-estate-agents',
       title: "The Best Closing Gift Real Estate Agents Can Give (It's Not Wine or a Cutting Board)",
       excerpt: "Forward-thinking agents are choosing Asset Safe as the ultimate modern closing gift that delivers value for years — not days. Here's why.",
@@ -19,7 +29,7 @@ const Blog = () => {
       date: '2026-02-01',
       readTime: '9 min read',
       image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=400&fit=crop',
-      featured: true
+      featured: false
     },
     {
       id: 'what-documents-to-upload',
