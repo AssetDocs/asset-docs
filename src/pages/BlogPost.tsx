@@ -1140,7 +1140,7 @@ const BlogPost = () => {
     );
   }
 
-  const postDescription = post.content.substring(0, 160).replace(/<[^>]*>/g, '');
+  const postDescription = post.description || post.content.substring(0, 160).replace(/<[^>]*>/g, '');
   const postImage = post.image.startsWith('http') ? post.image : `${siteUrl}${post.image.startsWith('/') ? post.image : `/${post.image}`}`;
 
   const structuredData = {
@@ -1166,6 +1166,7 @@ const BlogPost = () => {
     <>
       <SEOHead 
         title={post.title}
+        browserTitle={post.metaTitle}
         description={postDescription}
         canonicalUrl={`${siteUrl}/blog/${slug}`}
         type="article"
