@@ -48,10 +48,13 @@ const ContactBlock: React.FC = () => (
       <p className="mb-2">McKinney, Texas</p>
       <p className="mb-4">United States</p>
     </address>
-    <div className="flex items-center space-x-2">
-      <MessageCircle className="h-6 w-6 text-brand-green" />
-      <span className="text-gray-300 text-sm">Ask Ashley — Chat support available</span>
-    </div>
+  </div>
+);
+
+const ChatSupportLine: React.FC = () => (
+  <div className="flex items-center space-x-2">
+    <MessageCircle className="h-6 w-6 text-brand-green" />
+    <span className="text-gray-300 text-sm">Ask Ashley — Chat support available</span>
   </div>
 );
 
