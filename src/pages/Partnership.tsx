@@ -210,7 +210,7 @@ const Partnership: React.FC = () => {
                   <a href="#partnership-opportunities">Explore Partnership Opportunities</a>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                  <Link to="/features">See What Asset Safe Does</Link>
+                  <Link to="/features">See what Asset Safe Does</Link>
                 </Button>
               </div>
             </div>
