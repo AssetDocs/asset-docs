@@ -14,7 +14,7 @@ import { AccountProvider, useContributor } from "@/contexts/AccountContext";
 import { StepUpProvider } from "@/contexts/StepUpContext";
 import IdleWarningDialog from "@/components/IdleWarningDialog";
 import CookieConsent from "@/components/CookieConsent";
-import MobileCTA from "@/components/MobileCTA";
+
 import AskAssetSafe from "@/components/AskAssetSafe";
 import SystemMaintenanceBanner from "@/components/SystemMaintenanceBanner";
 import SEOHead from "@/components/SEOHead";
@@ -512,7 +512,7 @@ const AppContent = () => {
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <MobileCTA />
+      
       <AskAssetSafe />
     </BrowserRouter>
   );
