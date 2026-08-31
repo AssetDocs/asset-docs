@@ -250,6 +250,11 @@ const Footer: React.FC = () => {
                 Support &amp; Contact
               </AccordionTrigger>
               <AccordionContent>
+                <div className="mb-4">
+                  <h4 className={subHeadClass}>Chat Support</h4>
+                  <ChatSupportLine />
+                </div>
+                <h4 className={subHeadClass}>Contact Us</h4>
                 <ContactBlock />
               </AccordionContent>
             </AccordionItem>
