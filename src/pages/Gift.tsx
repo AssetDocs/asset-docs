@@ -14,7 +14,12 @@ const Gift: React.FC = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      productSchema("Asset Safe Gift Plan", "189", "One-year gift subscription — everything included. The perfect gift for homeowners and families."),
+      productSchema(
+        "Asset Safe Gift Plan",
+        "189",
+        "One-year gift subscription — everything included. The perfect gift for homeowners and families.",
+        { offerUrl: "https://getassetsafe.com/gift" }
+      ),
       breadcrumbSchema([
         { name: 'Home', url: 'https://getassetsafe.com/' },
         { name: 'Gift', url: 'https://getassetsafe.com/gift' }
