@@ -1234,20 +1234,7 @@ const BlogPost = () => {
 
                   {/* Article Content */}
                   <div 
-                    className="prose prose-lg max-w-none
-                      prose-headings:text-foreground prose-headings:font-extrabold
-                      prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-4
-                      prose-h3:text-2xl prose-h3:mt-7 prose-h3:mb-3
-                      prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mt-0 prose-p:mb-5
-                      prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-                      prose-strong:text-foreground prose-strong:font-bold
-                      prose-ul:text-muted-foreground prose-ul:mt-0 prose-ul:mb-5 prose-ul:ml-6
-                      prose-ol:text-muted-foreground prose-ol:mt-0 prose-ol:mb-5 prose-ol:ml-6
-                      prose-li:my-1 prose-li:leading-relaxed
-                      [&_li>p]:my-0
-                      [&>div]:!my-6 [&>blockquote]:!my-6
-                      [&>div>p]:!mb-0 [&>blockquote>p]:!mb-0
-                      [&>*:first-child]:!mt-0 [&>*:last-child]:!mb-0"
+                    className="article-content max-w-none text-lg"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
                   />
                 </CardContent>
