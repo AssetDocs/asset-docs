@@ -20,4 +20,5 @@ export const audienceNavLinks: AudienceNavLink[] = [
   { label: 'Renters', href: '/renters' },
   { label: 'Landlords', href: '/landlords' },
   { label: 'Small Business', href: '/small-business' },
+  { label: 'Professionals', href: '/professionals' },
 ];
