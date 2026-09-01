@@ -33,11 +33,19 @@ export const organizationSchema = {
 };
 
 // Product Schema for Subscription Plans
-export const productSchema = (planName: string, price: string, description: string) => ({
+export const productSchema = (
+  planName: string,
+  price: string,
+  description: string,
+  options?: { image?: string | string[]; offerUrl?: string }
+) => ({
   "@context": "https://schema.org",
   "@type": "Product",
   "name": planName,
   "description": description,
+  "image": options?.image
+    ? (Array.isArray(options.image) ? options.image : [options.image])
+    : [socialCardUrl],
   "brand": {
     "@type": "Brand",
     "name": "Asset Safe"
@@ -47,7 +55,7 @@ export const productSchema = (planName: string, price: string, description: stri
     "price": price,
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
-    "url": "https://getassetsafe.com/pricing"
+    "url": options?.offerUrl ?? "https://getassetsafe.com/pricing"
   }
 });
 
