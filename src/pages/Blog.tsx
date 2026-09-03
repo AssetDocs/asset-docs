@@ -7,6 +7,7 @@ import FeaturedSection from '@/components/FeaturedSection';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import whatDocumentsToUploadHeader from '@/assets/what-documents-to-upload-header.jpg.asset.json';
 
 const Blog = () => {
   // Sample blog posts - in production, this would come from a CMS or database
@@ -38,7 +39,7 @@ const Blog = () => {
       category: 'Guides',
       date: '2025-01-22',
       readTime: '10 min read',
-      image: 'https://images.unsplash.com/photo-1568234928966-359c35dd8327?w=800&h=400&fit=crop',
+      image: whatDocumentsToUploadHeader.url,
       featured: false
     },
     {
