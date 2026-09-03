@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { articleSchema, breadcrumbSchema } from '@/utils/structuredData';
+import whatDocumentsToUploadHeader from '@/assets/what-documents-to-upload-header.jpg.asset.json';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -279,7 +280,7 @@ const BlogPost = () => {
       category: 'Guides',
       date: '2025-01-22',
       readTime: '10 min read',
-      image: 'https://images.unsplash.com/photo-1568234928966-359c35dd8327?w=1200&h=600&fit=crop',
+      image: whatDocumentsToUploadHeader.url,
       author: 'Asset Safe Team',
       content: `
         <p>When it comes to protecting your life, your home, and everything you've worked hard for, documentation is everything.</p>
