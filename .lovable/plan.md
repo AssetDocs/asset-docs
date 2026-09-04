@@ -1,57 +1,27 @@
-# Fix Merchant Listings "missing image" on /pricing and /gift
+# Preview panel showing an older version — audit findings and fix
 
-Google flags both Product entities because the shared `productSchema` helper never emits an `image` field. Everything else (name, description, brand, offer price, USD currency, availability) is already present and valid, so the fix is additive.
+## What I checked
 
-## What changes
+- The preview server is running and answering normally.
+- The project files contain all of the recent work: the new homepage hero line ("...ready when it matters"), the updated YouTube link, the Professionals page and its navigation entry, the new blog header image, and the blog spacing styles.
+- The page the preview server hands back is the current one (current title, current social preview details).
+- The most recent saved changes are all in place, newest first: replaced post header image, Professionals page and navigation.
 
-1. `src/utils/structuredData.ts` — extend `productSchema` with two optional arguments: `image` (string or array of URLs) and `offerUrl`. The helper keeps its current output and adds `"image"` to the Product, defaulting the offer URL to `https://getassetsafe.com/pricing` exactly as today when no override is passed.
-2. `src/pages/Pricing.tsx` — pass the existing Asset Safe branded social card (`asset-safe-social-card.png`, already imported as a Lovable asset and served from `https://getassetsafe.com/__l5e/assets-v1/...`, the same absolute URL already used in Organization and Article schema) as `image`. Offer URL stays `https://getassetsafe.com/pricing`.
-3. `src/pages/Gift.tsx` — pass the same branded Asset Safe image as `image`, and correct the Offer `url` to `https://getassetsafe.com/gift` so the offer points at the page that actually sells the gift plan (the helper currently hardcodes `/pricing`, which is an inaccurate offer URL for this entity).
+So the app itself is current. Nothing old is being served. What the preview panel is showing is a stale copy held in the browser.
 
-No new image assets are created; the existing branded card is reused for both entities.
+## Why this happens
 
-## Not changed
+This project used to install a background helper in visitors' browsers (an offline cache). That was removed, and the app now deletes it on load — but a browser that still has the old cached copy will show that old copy first, and only clean itself up afterwards. The result is exactly what you describe: the live site looks right, the preview panel looks behind.
 
-Pricing values ($18.99 / $189), checkout or gift purchase behavior, visible copy, layout, canonicals, and existing meta tags. No reviews, ratings, GTIN/MPN, shipping, inventory, or physical-product fields are added.
+## Plan
 
-## Resulting JSON-LD (for review)
+1. Confirm which page and which specific element looks out of date in your preview panel, so we're fixing the right thing (for example: homepage wording, footer, blog image).
+2. Force the preview panel to drop its stored copy: open the preview in its own browser tab and do a hard reload (Cmd+Shift+R / Ctrl+Shift+R). If it still looks old, clear site data for the preview address once.
+3. Re-check the same page in the preview panel afterwards and compare it against the live site side by side.
+4. If it is still stale after that, add a small one-time freshness check to the app so any browser holding an old copy reloads itself automatically instead of relying on a manual clear. This is the only code change in this plan, and only if step 3 shows the problem persists.
 
-```text
-/pricing
-{
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "Asset Safe Plan",
-  "description": "One simple plan. Everything included. Secure asset documentation, cloud storage, legacy tools, and trusted access.",
-  "image": ["https://getassetsafe.com/__l5e/assets-v1/.../asset-safe-social-card.png"],
-  "brand": { "@type": "Brand", "name": "Asset Safe" },
-  "offers": {
-    "@type": "Offer",
-    "price": "18.99",
-    "priceCurrency": "USD",
-    "availability": "https://schema.org/InStock",
-    "url": "https://getassetsafe.com/pricing"
-  }
-}
+## Technical notes
 
-/gift
-{
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "Asset Safe Gift Plan",
-  "description": "One-year gift subscription — everything included. The perfect gift for homeowners and families.",
-  "image": ["https://getassetsafe.com/__l5e/assets-v1/.../asset-safe-social-card.png"],
-  "brand": { "@type": "Brand", "name": "Asset Safe" },
-  "offers": {
-    "@type": "Offer",
-    "price": "189",
-    "priceCurrency": "USD",
-    "availability": "https://schema.org/InStock",
-    "url": "https://getassetsafe.com/gift"
-  }
-}
-```
-
-## Verification
-
-Build, then load both pages in the preview and read the rendered JSON-LD to confirm each Product has name, image, and a valid Offer with URL, price, USD currency, and availability, and that the prices match the visible page.
+- Files verified as current: `src/components/HeroSection.tsx`, `src/components/Footer.tsx`, `src/pages/Professionals.tsx`, `src/data/audienceNav.ts`, `src/pages/Blog.tsx`, `src/index.css`.
+- `src/main.tsx` already unregisters every service worker and clears all Cache Storage entries on startup, but that cleanup runs after the stale bundle has booted, so one extra reload is required per affected browser.
+- Optional step 4 implementation: after the cleanup block resolves, if any registration or cache key was actually removed, call `location.reload()` once (guarded by a `sessionStorage` flag so it can never loop).
