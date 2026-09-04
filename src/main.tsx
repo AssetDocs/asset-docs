@@ -15,26 +15,49 @@ import './index.css'
 (() => {
   if (typeof window === 'undefined') return;
 
-  try {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations()
-        .then((regs) => Promise.all(regs.map((r) => r.unregister().catch(() => false))))
-        .catch(() => {});
-    }
-  } catch {
-    /* no-op */
-  }
+  const RELOAD_FLAG = 'as:stale-cache-reloaded';
 
-  try {
-    if ('caches' in window) {
-      caches.keys()
-        .then((keys) => Promise.all(keys.map((k) => caches.delete(k).catch(() => false))))
-        .catch(() => {});
+  const reloadOnce = () => {
+    try {
+      if (sessionStorage.getItem(RELOAD_FLAG)) return;
+      sessionStorage.setItem(RELOAD_FLAG, '1');
+    } catch {
+      return;
     }
-  } catch {
-    /* no-op */
-  }
+    location.reload();
+  };
+
+  const cleanup = async () => {
+    let removedSomething = false;
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        const results = await Promise.all(regs.map((r) => r.unregister().catch(() => false)));
+        if (results.some(Boolean)) removedSomething = true;
+      }
+    } catch {
+      /* no-op */
+    }
+
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        const results = await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
+        if (results.some(Boolean)) removedSomething = true;
+      }
+    } catch {
+      /* no-op */
+    }
+
+    // Something stale was actually present: the page that booted may be the old
+    // cached bundle, so reload once (guarded) to pick up the live version.
+    if (removedSomething) reloadOnce();
+  };
+
+  void cleanup();
 })();
+
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
