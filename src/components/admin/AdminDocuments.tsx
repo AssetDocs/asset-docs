@@ -2,37 +2,34 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { FileText, Download, Eye, Upload, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminDoc {
   name: string;
-  file: string;          // static: public URL; uploaded: storage path
-  source: 'static' | 'uploaded';
+  file: string;
 }
-
-const STATIC_DOCUMENTS: AdminDoc[] = [
-  { name: 'Formation Document – Ellidair LLC', file: '/admin-docs/formation-document-ellidair-llc.pdf', source: 'static' },
-  { name: 'Assumed Name Acknowledgment', file: '/admin-docs/assumed-name-acknowledgment.pdf', source: 'static' },
-  { name: 'Assumed Name Certificate', file: '/admin-docs/assumed-name-certificate.pdf', source: 'static' },
-  { name: 'Assumed Name Filing', file: '/admin-docs/assumed-name.pdf', source: 'static' },
-  { name: 'EIN Confirmation', file: '/admin-docs/ein.pdf', source: 'static' },
-  { name: 'Operating Agreement – Ellidair LLC', file: '/admin-docs/operating-agreement-ellidair-llc.pdf', source: 'static' },
-  { name: 'Initial Resolutions – Ellidair LLC', file: '/admin-docs/initial-resolutions-ellidair-llc.pdf', source: 'static' },
-  { name: 'SOS Transactions (1)', file: '/admin-docs/sos-transactions-1.pdf', source: 'static' },
-  { name: 'SOS Transactions (2)', file: '/admin-docs/sos-transactions-2.pdf', source: 'static' },
-  { name: 'SOS Transactions (3)', file: '/admin-docs/sos-transactions-3.pdf', source: 'static' },
-  { name: 'TX – VO Office Lease – Ellidair LLC', file: '/admin-docs/tx-vo-office-lease-ellidair-llc.pdf', source: 'static' },
-];
 
 const BUCKET = 'admin-docs';
 
 const AdminDocuments: React.FC = () => {
   const [viewDoc, setViewDoc] = useState<(AdminDoc & { url?: string }) | null>(null);
+  const [deleteDoc, setDeleteDoc] = useState<AdminDoc | null>(null);
   const [uploaded, setUploaded] = useState<AdminDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [deletingPath, setDeletingPath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -46,7 +43,7 @@ const AdminDocuments: React.FC = () => {
       setUploaded(
         (data || [])
           .filter((f) => f.name && !f.name.startsWith('.'))
-          .map((f) => ({ name: f.name.replace(/^\d+-/, ''), file: f.name, source: 'uploaded' as const }))
+          .map((f) => ({ name: f.name.replace(/^\d+-/, ''), file: f.name }))
       );
     }
     setLoading(false);
@@ -63,36 +60,40 @@ const AdminDocuments: React.FC = () => {
   };
 
   const handleView = async (doc: AdminDoc) => {
-    if (doc.source === 'static') {
-      setViewDoc({ ...doc, url: doc.file });
-    } else {
-      try {
-        const url = await getSignedUrl(doc.file);
-        setViewDoc({ ...doc, url });
-      } catch (e: any) {
-        toast({ title: 'Unable to open', description: e.message, variant: 'destructive' });
-      }
+    try {
+      const url = await getSignedUrl(doc.file);
+      setViewDoc({ ...doc, url });
+    } catch (e: any) {
+      toast({ title: 'Unable to open', description: e.message, variant: 'destructive' });
     }
   };
 
   const handleDownload = async (doc: AdminDoc) => {
-    const url = doc.source === 'static' ? doc.file : await getSignedUrl(doc.file);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = doc.name;
-    a.click();
+    try {
+      const url = await getSignedUrl(doc.file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.name;
+      a.click();
+    } catch (e: any) {
+      toast({ title: 'Unable to download', description: e.message, variant: 'destructive' });
+    }
   };
 
-  const handleDelete = async (doc: AdminDoc) => {
-    if (doc.source !== 'uploaded') return;
-    if (!confirm(`Delete "${doc.name}"? This cannot be undone.`)) return;
-    const { error } = await supabase.storage.from(BUCKET).remove([doc.file]);
+  const handleDelete = async () => {
+    if (!deleteDoc || deletingPath) return;
+    const targetDoc = deleteDoc;
+    setDeletingPath(targetDoc.file);
+    const { error } = await supabase.storage.from(BUCKET).remove([targetDoc.file]);
     if (error) {
       toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Deleted', description: doc.name });
-      loadUploaded();
+      setUploaded((docs) => docs.filter((doc) => doc.file !== targetDoc.file));
+      toast({ title: 'Deleted', description: `${targetDoc.name} was removed from the Admin Workspace.` });
+      setDeleteDoc(null);
+      await loadUploaded();
     }
+    setDeletingPath(null);
   };
 
   const handleUpload = async (files: FileList | null) => {
@@ -111,8 +112,6 @@ const AdminDocuments: React.FC = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
     loadUploaded();
   };
-
-  const allDocs: AdminDoc[] = [...STATIC_DOCUMENTS, ...uploaded];
 
   return (
     <>
@@ -139,8 +138,8 @@ const AdminDocuments: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {allDocs.map((doc) => (
-            <Card key={`${doc.source}-${doc.file}`} className="group hover:shadow-lg transition-shadow">
+          {uploaded.map((doc) => (
+            <Card key={doc.file} className="group hover:shadow-lg transition-shadow">
               <CardContent className="p-4 flex flex-col items-center text-center gap-3">
                 <div className="w-full aspect-[3/4] bg-muted rounded-md flex items-center justify-center overflow-hidden">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -158,11 +157,19 @@ const AdminDocuments: React.FC = () => {
                   <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDownload(doc)}>
                     <Download className="h-3.5 w-3.5 mr-1" /> Get
                   </Button>
-                  {doc.source === 'uploaded' && (
-                    <Button size="sm" variant="outline" onClick={() => handleDelete(doc)} title="Delete">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setDeleteDoc(doc)}
+                    title="Delete"
+                    disabled={deletingPath === doc.file}
+                  >
+                    {deletingPath === doc.file ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-destructive" />
+                    ) : (
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
-                  )}
+                    )}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -186,6 +193,31 @@ const AdminDocuments: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteDoc} onOpenChange={(open) => !open && !deletingPath && setDeleteDoc(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete document?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{deleteDoc?.name}" will be permanently removed from the Admin Workspace. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!deletingPath}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={!!deletingPath}
+              onClick={(event) => {
+                event.preventDefault();
+                handleDelete();
+              }}
+            >
+              {deletingPath ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              Delete Document
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
