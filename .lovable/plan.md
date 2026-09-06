@@ -1,52 +1,43 @@
-# Remediation — Company documents out of the public build
+# Codex Remediation Branch Visibility — Investigation Report
 
-Goal: no Asset Safe corporate PDF exists in the public site, and every company document in the Admin Workspace comes from the private `admin-docs` storage area, with access decided by the database rather than the screen.
+Investigation only. No changes made.
 
-## Investigation summary (already confirmed)
+## A. Is the Codex branch visible from the current Lovable project state?
 
-- `public/admin-docs/` holds 11 PDFs, all tracked in the repository.
-- `src/components/admin/AdminDocuments.tsx` hardcodes those 11 as "static" entries and links them by plain URL; everything else in that tab already uses private storage with short-lived links.
-- The private `admin-docs` storage area already exists and is not public; it is currently empty.
-- Its access rules currently allow owner, admin and dev_lead.
-- Nothing else in the project references these files, and there are no duplicate copies.
-- Right now `getassetsafe.com` returns Not Found for everything (including the homepage and favicon), so no live exposure could be observed today; the exposure would become real on the next publish.
+**No.** Checked both the local repository and the remote:
 
-## One thing needed from you first
+- `git cat-file -t ee09007d...` → commit does not exist in the local object store.
+- `git ls-remote origin` (live query of the remote) lists only: `main`, `_agent-publish`, and seven `lovable-backup-main-*` branches. **No `security/public-admin-docs-remediation` branch exists on the remote.**
+- Local branches are only `main` and three `edit/edt-*` branches.
 
-The 11 PDFs only exist in the repository. Once they are deleted, the Admin Workspace can only show documents that live in the private storage area, and only a signed-in owner/admin can put them there — I cannot upload on your behalf.
+Conclusion: **Lovable cannot inspect the Codex branch.** It was never pushed to the origin remote this project is connected to. Codex likely committed it in a different clone/fork or a local repo and did not push.
 
-So the order is:
+## B. Are the remediation changes already in main?
 
-1. You download the 11 files from the current Admin Workspace Documents tab (or keep your own copies).
-2. You re-upload them in that same tab using the existing Upload button — they land in the private storage area.
-3. I then remove the static list and delete the public copies.
+**No.** Current `main` (= `origin/main` = `9de81376`, identical to the current edit branch) still contains the vulnerable state:
 
-If you prefer, I can do steps 3 first and you upload afterwards; the tab would simply be empty in between. Tell me which order you want.
+| Check | Status in main |
+|---|---|
+| `STATIC_DOCUMENTS` removed from `AdminDocuments.tsx` | NO — still present at line 15 with all 11 hardcoded `/admin-docs/*.pdf` entries |
+| No direct `/admin-docs/...` public handling | NO — static paths still used; `allDocs = [...STATIC_DOCUMENTS, ...uploaded]` at line 115 |
+| View/download via private bucket + signed URLs | Partially (uploaded docs already use signed URLs; static docs do not) |
+| Per-document Delete | Exists for uploaded docs only; static branch still blocks it |
+| 11 PDFs deleted from `public/admin-docs/` | NO — all 11 still present and tracked |
+| Migration `20260905000100_narrow_admin_docs_storage_policies.sql` | NO — no matching file in `supabase/migrations/` |
 
-## What I will change
+## C. Where do the changes exist?
 
-1. **Documents tab** — remove the hardcoded list and the "static" path entirely from `src/components/admin/AdminDocuments.tsx`. Listing, upload, view, download and delete all keep working, all through private storage with short-lived links. An empty state message replaces the previous hardcoded cards when nothing is uploaded yet.
-2. **Access rules** — a database migration that narrows the four `admin-docs` storage rules from owner/admin/dev_lead to owner/admin only, still using the existing server-side role check. dev_lead, developer, QA, subscribers, Authorized Users and visitors are denied by the database, not by the screen.
-3. **Public copies** — delete all 11 PDFs and the `public/admin-docs/` directory. No copies recreated anywhere in the site's static files or bundle.
-4. **No robots.txt trick** — the old URLs will genuinely not exist. No robots entry is added as a substitute protection.
-5. **No history rewrite** — repository history is left untouched, to be evaluated separately.
+Only in the Codex environment where the commit was created. They are neither in `main` nor reachable from Lovable's remote.
 
-## Out of scope for this pass
+## D. Differences between Lovable's plan and the Codex implementation
 
-No metadata table, no audit logging, no new server function, no UI redesign, no new document categories, no unrelated security changes.
+Cannot compare — the Codex commit content is unreachable, so none of its specifics (policy SQL, component changes, file deletions) can be verified against the plan. One naming note: the migration filename `20260905000100_...` matches the plan's intent (narrow admin-docs policies to owner/admin), suggesting Codex followed the plan closely, but this cannot be confirmed.
 
-## Verification I will run
+## E. Next action
 
-- Repository search proving no remaining reference to `/admin-docs/<filename>` and no duplicate copies anywhere in static assets.
-- Confirm `AdminDocuments.tsx` has no static branch and no public-URL usage.
-- Confirm the storage area is still private and the new rules list only owner and admin, read back from the database after the migration.
-- Confirm the build passes.
-- Test the Documents tab in the browser for listing, upload, view, download and delete.
-- Test all 11 former public URLs after deployment. If the production host is still offline, I will report that check as pending deployment rather than passing.
+Not to rerun the plan — the plan still stands. The required first step is:
 
-## Technical notes
+1. Have Codex (or whoever has the branch) run `git push origin security/public-admin-docs-remediation` against this project's origin remote.
+2. Once visible, Lovable reviews it against the checklist above, then it can be merged, deployed, and live URL verification completed.
 
-- File edited: `src/components/admin/AdminDocuments.tsx` (drop `STATIC_DOCUMENTS`, the `source: 'static'` union member and its branches in `handleView`/`handleDownload`; `handleDelete` becomes available for every listed document).
-- Files deleted: the 11 PDFs under `public/admin-docs/`.
-- Migration: drop and recreate the four policies on `storage.objects` for `bucket_id = 'admin-docs'` with `public.get_admin_role(auth.uid()) IN ('owner','admin')`.
-- Signed links stay at the existing 10-minute expiry, created client-side with the anon key under RLS; no service-role credential reaches the browser.
+Alternative if the branch cannot be pushed: Lovable re-implements the already-approved remediation plan directly on this project.
