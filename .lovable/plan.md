@@ -1,43 +1,93 @@
-# Codex Remediation Branch Visibility — Investigation Report (Re-run after app update)
+# Git State Correction — Public Admin Docs Remediation
 
-Investigation only. No changes made. Re-run at 02:45 UTC after the user updated the app.
+Investigation only. No changes, no merge.
 
-## A. Is the Codex branch visible from the current Lovable project state?
+## Why the earlier report was wrong
 
-**No.** Re-checked after the update:
+Lovable's `origin` is **not** GitHub. It points at Lovable's internal git storage
+(`git.private.lovable-gcp.code.storage/6cc71ded-...`), which mirrors only `main`,
+`_agent-publish`, and `lovable-backup-main-*` snapshots. A `git ls-remote origin` there
+returns 10 refs and will never show a GitHub feature branch, no matter how many times it
+is refreshed. Your GitHub verification was correct; my remote was simply the wrong one.
 
-- `git cat-file -t ee09007d...` → commit still does not exist in the object store.
-- Live `git ls-remote origin` still lists only: `main`, `_agent-publish`, and seven `lovable-backup-main-*` branches. **No `security/public-admin-docs-remediation` branch exists on the remote.**
-- Local branches: `main` plus four `edit/edt-*` branches (a new edit branch `edt-156b9435` appeared with the update).
+Correction: the branch is readable via the GitHub API on `AssetDocs/asset-docs`, and all
+findings below come from reading commit `ee09007d` directly from GitHub.
 
-Conclusion: **Lovable still cannot inspect the Codex branch.** It has never been pushed to the origin remote this project is connected to.
+## A. Branch now visible: YES (via GitHub, not via Lovable's git remote)
 
-## B. Are the remediation changes already in main?
+- `GET /repos/AssetDocs/asset-docs/branches/security/public-admin-docs-remediation` → 200,
+  head commit `ee09007d624d76a0650f937ce094550c0decfe41`.
+- Commit message: `security: remove public admin documents and tighten storage access`
+- Parent: `9de81376` — exactly the `main` tip before the newer commits. Confirms "1 ahead, 4 behind".
+- Diff stat: 13 files, +121 / -45.
 
-**No.** Remote main advanced from `9de81376` to `b1109528` (new commits `155b3593 "Changes"` and `b1109528 "Update plan"`), and the working tree is in sync — but those commits did NOT include the remediation. Current state:
+## B. Codex remediation confirmed: YES — all seven items verified
 
-| Check | Status in main |
+| Requirement | Confirmed |
 |---|---|
-| `STATIC_DOCUMENTS` removed from `AdminDocuments.tsx` | NO — still present at line 15 with all 11 hardcoded `/admin-docs/*.pdf` entries |
-| No direct `/admin-docs/...` public handling | NO — `source: 'static'` union still present; static branch still in handleView/handleDownload |
-| View/download via private bucket + signed URLs | Partially (uploaded docs use 10-min signed URLs; static docs do not) |
-| Per-document Delete | Exists for uploaded docs only; static branch blocks it |
-| 11 PDFs deleted from `public/admin-docs/` | NO — all 11 still present and tracked |
-| Migration `20260905000100_narrow_admin_docs_storage_policies.sql` | NO — no matching file in `supabase/migrations/` |
+| All 11 PDFs under `public/admin-docs/` deleted | YES — all 11 show status `removed`; directory has no remaining files |
+| `STATIC_DOCUMENTS` and static `/admin-docs/...` handling removed | YES — array gone; `AdminDoc` is now `{ name, file }` with no `source` field |
+| Private-bucket-only listing | YES — `loadUploaded()` is the sole source; `supabase.storage.from('admin-docs').list('')` |
+| Signed-URL view/download | YES — both `handleView` and `handleDownload` call `getSignedUrl` (600s expiry); no public URL path remains |
+| Delete capability | YES — improved: `AlertDialog` confirmation replaces the old `confirm()`, plus `deletingPath` guard against double-submit and optimistic list update |
+| Migration `20260905000100_narrow_admin_docs_storage_policies.sql` | YES — added, 44 lines |
+| Owner/admin-only storage access | YES — see below |
 
-## C. Where do the changes exist?
+Migration content verified: it drops then recreates all four `storage.objects` policies
+(SELECT / INSERT / UPDATE / DELETE), each scoped `TO authenticated` with
+`bucket_id = 'admin-docs' AND public.get_admin_role(auth.uid()) IN ('owner', 'admin')`.
+UPDATE correctly carries both `USING` and `WITH CHECK`. `dev_lead` is dropped in all four —
+so `dev_lead`, `developer`, `qa`, ordinary subscribers, Authorized Users, and
+unauthenticated visitors are all denied at the database layer, not just the UI.
 
-Only in the Codex environment where the commit was created. Not in `main`, not on the remote, not reachable from Lovable.
+## C. What the 4 newer main commits changed
 
-## D. Differences between Lovable's plan and the Codex implementation
+`main` advanced `9de81376 → 155b3593 → b1109528 → a11c141d → e0dd3445`
+("Changes" / "Update plan" pairs). Full cumulative diff `9de81376..origin/main`:
 
-Cannot compare — the Codex commit content is unreachable. The migration filename in the user's description matches the plan's intent (narrow admin-docs storage policies to owner/admin), but nothing can be verified.
+```text
+ .lovable/plan.md | 63 ++++++++++++++++++++++++--------------------------------
+ 1 file changed, 27 insertions(+), 36 deletions(-)
+```
 
-## E. Next action
+That is the entire change set — my own edits to the plan document during this
+investigation. **None** of the four commits touched `AdminDocuments.tsx`, admin role
+logic, the `admin-docs` bucket, storage policies, or any migration.
 
-The plan still stands. Required first step:
+## D. Does any conflict exist: NO
 
-1. Have Codex (or whoever holds the branch) push it to this project's origin remote: `git push origin security/public-admin-docs-remediation`.
-2. Once visible, Lovable reviews it against the checklist above, then it can be merged, deployed, and live URL verification completed.
+The branch changes `AdminDocuments.tsx`, adds one migration, deletes 11 PDFs. Main's newer
+commits change only `.lovable/plan.md`. Disjoint file sets — a merge or rebase is
+textually conflict-free.
 
-Alternative if the branch cannot be pushed: Lovable re-implements the already-approved remediation plan directly on this project (remove STATIC_DOCUMENTS/static branches, add the owner/admin narrowing migration, delete the 11 public PDFs, verify).
+## E. Should the branch be updated from main before merge
+
+Not required for correctness, but **yes, do it anyway** — your instinct is right for a
+security merge. Rebasing or merging main in costs nothing (plan-file-only delta) and gives
+you a clean build against the exact tree that will ship. The only file that could move is
+`.lovable/plan.md`, which the remediation branch never touched.
+
+## Differences from the original plan (all improvements or neutral)
+
+1. **Delete UX upgraded** — plan said "preserve existing UX"; Codex replaced the native
+   `confirm()` with a shadcn `AlertDialog` and added in-flight protection. Better.
+2. **Download error handling added** — the old `handleDownload` had no try/catch and would
+   throw unhandled on a signing failure. Now it toasts.
+3. **PDFs deleted without first uploading to the bucket.** This is the one operational gap.
+   The plan sequenced "preserve/upload copies to the private bucket, verify, then delete".
+   Codex deleted the repository copies in the same commit. The files are recoverable from
+   git history at `9de81376`, so nothing is lost — but after merge the Documents tab will
+   list zero documents until someone uploads the 11 PDFs into the private bucket.
+4. No metadata table, no audit logging, no new edge function, no UI redesign, no history
+   rewrite — correctly matching the plan's "do not implement in this phase" list.
+
+## Recommended path (unchanged from your proposal, with one added step)
+
+1. Retrieve the 11 PDFs from git history at `9de81376` (or from local copies).
+2. Update the remediation branch from current `main`.
+3. Clean build / typecheck.
+4. Review and merge the PR.
+5. Deploy.
+6. **Upload the 11 PDFs into the private `admin-docs` bucket** via the Admin Workspace
+   Documents tab, then verify list / view / download / delete all work signed.
+7. Live-verify all 11 former `/admin-docs/<filename>.pdf` URLs return 404.
