@@ -1,52 +1,93 @@
-# Remediation — Company documents out of the public build
+# Git State Correction — Public Admin Docs Remediation
 
-Goal: no Asset Safe corporate PDF exists in the public site, and every company document in the Admin Workspace comes from the private `admin-docs` storage area, with access decided by the database rather than the screen.
+Investigation only. No changes, no merge.
 
-## Investigation summary (already confirmed)
+## Why the earlier report was wrong
 
-- `public/admin-docs/` holds 11 PDFs, all tracked in the repository.
-- `src/components/admin/AdminDocuments.tsx` hardcodes those 11 as "static" entries and links them by plain URL; everything else in that tab already uses private storage with short-lived links.
-- The private `admin-docs` storage area already exists and is not public; it is currently empty.
-- Its access rules currently allow owner, admin and dev_lead.
-- Nothing else in the project references these files, and there are no duplicate copies.
-- Right now `getassetsafe.com` returns Not Found for everything (including the homepage and favicon), so no live exposure could be observed today; the exposure would become real on the next publish.
+Lovable's `origin` is **not** GitHub. It points at Lovable's internal git storage
+(`git.private.lovable-gcp.code.storage/6cc71ded-...`), which mirrors only `main`,
+`_agent-publish`, and `lovable-backup-main-*` snapshots. A `git ls-remote origin` there
+returns 10 refs and will never show a GitHub feature branch, no matter how many times it
+is refreshed. Your GitHub verification was correct; my remote was simply the wrong one.
 
-## One thing needed from you first
+Correction: the branch is readable via the GitHub API on `AssetDocs/asset-docs`, and all
+findings below come from reading commit `ee09007d` directly from GitHub.
 
-The 11 PDFs only exist in the repository. Once they are deleted, the Admin Workspace can only show documents that live in the private storage area, and only a signed-in owner/admin can put them there — I cannot upload on your behalf.
+## A. Branch now visible: YES (via GitHub, not via Lovable's git remote)
 
-So the order is:
+- `GET /repos/AssetDocs/asset-docs/branches/security/public-admin-docs-remediation` → 200,
+  head commit `ee09007d624d76a0650f937ce094550c0decfe41`.
+- Commit message: `security: remove public admin documents and tighten storage access`
+- Parent: `9de81376` — exactly the `main` tip before the newer commits. Confirms "1 ahead, 4 behind".
+- Diff stat: 13 files, +121 / -45.
 
-1. You download the 11 files from the current Admin Workspace Documents tab (or keep your own copies).
-2. You re-upload them in that same tab using the existing Upload button — they land in the private storage area.
-3. I then remove the static list and delete the public copies.
+## B. Codex remediation confirmed: YES — all seven items verified
 
-If you prefer, I can do steps 3 first and you upload afterwards; the tab would simply be empty in between. Tell me which order you want.
+| Requirement | Confirmed |
+|---|---|
+| All 11 PDFs under `public/admin-docs/` deleted | YES — all 11 show status `removed`; directory has no remaining files |
+| `STATIC_DOCUMENTS` and static `/admin-docs/...` handling removed | YES — array gone; `AdminDoc` is now `{ name, file }` with no `source` field |
+| Private-bucket-only listing | YES — `loadUploaded()` is the sole source; `supabase.storage.from('admin-docs').list('')` |
+| Signed-URL view/download | YES — both `handleView` and `handleDownload` call `getSignedUrl` (600s expiry); no public URL path remains |
+| Delete capability | YES — improved: `AlertDialog` confirmation replaces the old `confirm()`, plus `deletingPath` guard against double-submit and optimistic list update |
+| Migration `20260905000100_narrow_admin_docs_storage_policies.sql` | YES — added, 44 lines |
+| Owner/admin-only storage access | YES — see below |
 
-## What I will change
+Migration content verified: it drops then recreates all four `storage.objects` policies
+(SELECT / INSERT / UPDATE / DELETE), each scoped `TO authenticated` with
+`bucket_id = 'admin-docs' AND public.get_admin_role(auth.uid()) IN ('owner', 'admin')`.
+UPDATE correctly carries both `USING` and `WITH CHECK`. `dev_lead` is dropped in all four —
+so `dev_lead`, `developer`, `qa`, ordinary subscribers, Authorized Users, and
+unauthenticated visitors are all denied at the database layer, not just the UI.
 
-1. **Documents tab** — remove the hardcoded list and the "static" path entirely from `src/components/admin/AdminDocuments.tsx`. Listing, upload, view, download and delete all keep working, all through private storage with short-lived links. An empty state message replaces the previous hardcoded cards when nothing is uploaded yet.
-2. **Access rules** — a database migration that narrows the four `admin-docs` storage rules from owner/admin/dev_lead to owner/admin only, still using the existing server-side role check. dev_lead, developer, QA, subscribers, Authorized Users and visitors are denied by the database, not by the screen.
-3. **Public copies** — delete all 11 PDFs and the `public/admin-docs/` directory. No copies recreated anywhere in the site's static files or bundle.
-4. **No robots.txt trick** — the old URLs will genuinely not exist. No robots entry is added as a substitute protection.
-5. **No history rewrite** — repository history is left untouched, to be evaluated separately.
+## C. What the 4 newer main commits changed
 
-## Out of scope for this pass
+`main` advanced `9de81376 → 155b3593 → b1109528 → a11c141d → e0dd3445`
+("Changes" / "Update plan" pairs). Full cumulative diff `9de81376..origin/main`:
 
-No metadata table, no audit logging, no new server function, no UI redesign, no new document categories, no unrelated security changes.
+```text
+ .lovable/plan.md | 63 ++++++++++++++++++++++++--------------------------------
+ 1 file changed, 27 insertions(+), 36 deletions(-)
+```
 
-## Verification I will run
+That is the entire change set — my own edits to the plan document during this
+investigation. **None** of the four commits touched `AdminDocuments.tsx`, admin role
+logic, the `admin-docs` bucket, storage policies, or any migration.
 
-- Repository search proving no remaining reference to `/admin-docs/<filename>` and no duplicate copies anywhere in static assets.
-- Confirm `AdminDocuments.tsx` has no static branch and no public-URL usage.
-- Confirm the storage area is still private and the new rules list only owner and admin, read back from the database after the migration.
-- Confirm the build passes.
-- Test the Documents tab in the browser for listing, upload, view, download and delete.
-- Test all 11 former public URLs after deployment. If the production host is still offline, I will report that check as pending deployment rather than passing.
+## D. Does any conflict exist: NO
 
-## Technical notes
+The branch changes `AdminDocuments.tsx`, adds one migration, deletes 11 PDFs. Main's newer
+commits change only `.lovable/plan.md`. Disjoint file sets — a merge or rebase is
+textually conflict-free.
 
-- File edited: `src/components/admin/AdminDocuments.tsx` (drop `STATIC_DOCUMENTS`, the `source: 'static'` union member and its branches in `handleView`/`handleDownload`; `handleDelete` becomes available for every listed document).
-- Files deleted: the 11 PDFs under `public/admin-docs/`.
-- Migration: drop and recreate the four policies on `storage.objects` for `bucket_id = 'admin-docs'` with `public.get_admin_role(auth.uid()) IN ('owner','admin')`.
-- Signed links stay at the existing 10-minute expiry, created client-side with the anon key under RLS; no service-role credential reaches the browser.
+## E. Should the branch be updated from main before merge
+
+Not required for correctness, but **yes, do it anyway** — your instinct is right for a
+security merge. Rebasing or merging main in costs nothing (plan-file-only delta) and gives
+you a clean build against the exact tree that will ship. The only file that could move is
+`.lovable/plan.md`, which the remediation branch never touched.
+
+## Differences from the original plan (all improvements or neutral)
+
+1. **Delete UX upgraded** — plan said "preserve existing UX"; Codex replaced the native
+   `confirm()` with a shadcn `AlertDialog` and added in-flight protection. Better.
+2. **Download error handling added** — the old `handleDownload` had no try/catch and would
+   throw unhandled on a signing failure. Now it toasts.
+3. **PDFs deleted without first uploading to the bucket.** This is the one operational gap.
+   The plan sequenced "preserve/upload copies to the private bucket, verify, then delete".
+   Codex deleted the repository copies in the same commit. The files are recoverable from
+   git history at `9de81376`, so nothing is lost — but after merge the Documents tab will
+   list zero documents until someone uploads the 11 PDFs into the private bucket.
+4. No metadata table, no audit logging, no new edge function, no UI redesign, no history
+   rewrite — correctly matching the plan's "do not implement in this phase" list.
+
+## Recommended path (unchanged from your proposal, with one added step)
+
+1. Retrieve the 11 PDFs from git history at `9de81376` (or from local copies).
+2. Update the remediation branch from current `main`.
+3. Clean build / typecheck.
+4. Review and merge the PR.
+5. Deploy.
+6. **Upload the 11 PDFs into the private `admin-docs` bucket** via the Admin Workspace
+   Documents tab, then verify list / view / download / delete all work signed.
+7. Live-verify all 11 former `/admin-docs/<filename>.pdf` URLs return 404.
