@@ -1,149 +1,167 @@
-# Temporary Asset Safe Landing Page + Private Owner Access
+# Temporary Asset Safe Landing Page + Private Owner Access (amended)
 
-## Environment findings (your A–J questions, answered before implementing)
+## Amendments folded in
 
-**A. Test / Live environments:** Lovable does not provide separate Test and Live
-environments with their own databases. There are two views of the same code:
-the **editor preview** (`id-preview--6cc71ded-…​.lovable.app`), which requires a
-Lovable account with access to this project, and the **published site** (the
-custom domains + `assetsafenet.lovable.app`), which serves the last published
-snapshot. Publishing is a manual snapshot, so unpublished work stays private in
-the preview automatically.
+- The hostname gate **fails closed**: rebuild/landing mode is the default, and only
+  an explicit, narrow allow-list of private preview hostnames renders the full
+  application. No pattern rules (`*.lovable.app`, "contains preview", "not
+  getassetsafe.com").
+- No claim that existing private routes are already appropriately protected.
+- No admin link, no public navigation to sign-in, dashboard, account, admin,
+  preview, or staging.
+- Legal pages stay public; former marketing URLs render the landing experience
+  with `noindex`; root stays `index, follow` and self-canonical.
+- Underlying pages, routes, and components are preserved, not deleted.
 
-**B. Supabase separation:** None. One external Supabase project
-(`leotcbfpqiekgkgumecn`) backs both preview and published. Same database, same
-auth users, same storage.
+## What the public-mode gate is and is not
 
-**C. Safest staging architecture:** Use the existing **editor preview URL** as
-the private full-application environment. It is protected by Lovable account
-authorization (not obscurity), then by the app's own authentication, then by
-RLS. A new `staging.getassetsafe.com` would serve the *same* published build off
-the *same* database and would add a second public hostname to defend — it buys
-nothing and increases exposure. Recommend not creating it.
+It is a **temporary reduction of public attack surface**. It is not a fix for
+route authorization. Our ongoing audit has already identified internal/admin
+routes needing authentication/authorization remediation; this task neither
+changes those guards nor certifies them. Those routes remain open findings and
+will be remediated separately. Nothing here should be read as marking any route
+security-complete.
 
-**D. Owner/admin-only restriction:** Yes, in layers — Lovable project access,
-then existing app sign-in, then the existing admin role check
-(`get_admin_role` / `useAdminRole`), which is independent of merely being an
-authenticated customer. MFA/step-up behaviour is untouched.
+## Preview is private frontend code — it is NOT an isolated environment
 
-**E. Production data in staging:** Yes — unavoidably, because the database is
-shared. This is the one requirement that cannot be met as written. Truly
-isolated test data would require remixing into a separate project with its own
-Supabase, which means re-provisioning Stripe, Resend, domains, and secrets, and
-would not be the environment your real customers live in. Recommendation: keep
-testing against production with care, and treat "no live customer records"
-as out of reach until you decide whether a remix is worth it.
+The editor preview only withholds **unpublished frontend code** from the public.
+It runs against the real production Supabase project. Anything that touches the
+backend takes effect in production immediately, published or not:
 
-**F. Stripe in staging:** Shared live mode. One `STRIPE_SECRET_KEY` secret
-serves all environments; there is no test-mode key. Checkout run from the
-preview would create real charges. Avoid live checkout during the rebuild.
+migrations, schema changes, RLS policies, database functions, triggers, storage
+policies, Edge Function deployments, secrets, authentication configuration,
+destructive data operations, Stripe calls, Resend calls.
 
-**G. Email in staging:** Shared. One `RESEND_API_KEY`, real
-`@assetsafe.net` sender — emails triggered from the preview are real emails to
-real addresses.
+Going forward: frontend/UI work uses Editor Preview → owner QA → Publish. Backend,
+security, authorization, storage, and Edge Function work does **not** get that
+isolation and must be evaluated case by case — apply to the shared project,
+stage as an unexecuted migration for review, or stand up a genuinely separate
+development Supabase project.
 
-**H. Admin footer link:** Advisable to **omit it**. It cannot point anywhere
-useful: the private environment lives on a different hostname, so a link on the
-public page would either point at the public `/auth` (re-advertising the sign-in
-surface we are trying to quiet) or hardcode the preview URL into public HTML.
-Recommendation: bookmark the preview URL instead. No admin link on the landing
-page.
+## lead-capture security review — result: DO NOT reuse as-is
 
-**I. DNS / custom domain changes:** None required. The four existing custom
-domains keep pointing where they do.
+What passes:
 
-**J. Promotion path:** Build and QA in the editor preview, then click Publish
-when approved. Nothing reaches the public domains until you publish.
+- Service-role credentials stay server-side inside the Edge Function only.
+- `contacts` has RLS enabled with a `SELECT USING (false)` deny policy and no
+  client insert policy — the browser cannot read or write CRM contact records
+  directly. All writes go through the service role.
+- No Auth user, profile, membership, password, or subscription is created.
+- No protected customer data is returned — only `{ ok, contact_id }`.
+- Duplicates are idempotent via `onConflict: "email"` (no duplicate rows).
 
-## Scope decisions I'm proposing (these need your nod via this plan)
+What fails, and why it blocks public exposure:
 
-1. **Other public marketing pages** (`/about`, `/features`, `/pricing`, `/gift`,
-   `/blog`, `/resources`, audience pages, `/sample-dashboard`, …): they render
-   the landing page instead, with no redirect. Old links stay HTTP 200, the
-   public surface shrinks to one experience, and reverting is one flag.
-   `/terms`, `/privacy-policy`, `/cookie-policy`, `/legal` stay live because the
-   footer links them and they are legal obligations.
-2. **Sign-in on the public site:** unavailable during the rebuild. You reach the
-   application through the private preview. Nothing on the landing page links to
-   sign-in.
-3. **New purchases:** off. Pricing, checkout, and gift purchase are not reachable
-   publicly, which also removes the live-Stripe risk noted in (F).
+1. **No validation or normalization.** The email is never checked, trimmed, or
+   lowercased. Malformed values and oversized strings get stored, and
+   `Me@X.com` / `me@x.com` become two separate contacts.
+2. **Existing CRM records can be degraded.** The upsert writes `first_name`,
+   `last_name`, `phone`, and `company_id` unconditionally. A landing-page
+   submission sends only an email, so those fields are `undefined` and can blank
+   out real data on an existing contact — including an existing customer.
+   This is the most serious finding.
+3. **Raw database errors are returned to the client** (`e.message`), leaking
+   internal Postgres/schema detail.
+4. **No abuse mitigation.** Publicly callable, `verify_jwt = false`, CORS `*`,
+   no rate limiting — trivially scriptable to flood the CRM.
+5. **`source` is hardcoded `"website"`**, so rebuild signups cannot be tagged.
+6. **Excess write surface** — it accepts and upserts company and personal-name
+   fields the landing page has no need for.
+
+The function is currently not called from anywhere in the frontend, so none of
+this is live today. Fixing it in place would widen its behaviour under an
+existing name.
+
+### Recommendation, and the decision it needs from you
+
+Add one new, dedicated, minimal Edge Function — `rebuild-update-signup` — that
+does only what this page needs:
+
+- validate and normalize the email server-side (trim, lowercase, length cap,
+  format check); reject anything else with a generic 400
+- insert the contact with `source: 'rebuild_update_signup'`, and on an existing
+  email touch **nothing but** the source/timestamp — never overwrite name,
+  phone, or company
+- return a generic error message; log detail server-side only
+- per-IP rate limiting, matching the existing 5-per-15-minutes pattern used on
+  other sensitive endpoints
+- CORS restricted to the Asset Safe public origins rather than `*`
+
+`lead-capture` is left completely untouched and remains an open audit item.
+
+**This is the one item that crosses the boundary described above:** deploying an
+Edge Function affects production immediately. It writes only to the CRM
+`contacts` and `events` tables, requires no migration, no schema change, no RLS
+change, no storage change, no auth change, and no new secret. I need your
+explicit go-ahead on this piece. If you would rather not deploy anything
+backend right now, the alternative is to ship the landing page with the signup
+form disabled ("updates list opening shortly") and add it in a later pass.
 
 ## What gets built
 
-### 1. Public-mode gate (new, small, reversible)
-A single module decides whether the visitor is on a public production hostname
-or the private preview hostname. On public hostnames the router serves only the
-landing page plus the legal pages. On the preview hostname the application
-behaves exactly as it does today — no route, guard, RLS policy, or role check is
-modified anywhere. Turning the rebuild off later means flipping one constant.
+### 1. Public-mode gate (fail closed)
+`src/config/publicMode.ts` holds a `REBUILD_MODE` flag and an explicit
+`PRIVATE_PREVIEW_HOSTS` allow-list containing only the editor-preview hostname
+for this project (`id-preview--6cc71ded-5ae5-4631-b400-4bb41f9ebfd3.lovable.app`)
+and `localhost` / `127.0.0.1` for local development. Everything else — the four
+custom domains, `assetsafenet.lovable.app`, and any hostname not on that list,
+known or unknown — renders rebuild mode. Exact-match comparison only.
 
-This gate is a presentation decision, not a security control. It is safe because
-it only *removes* public surface; every private route keeps the authentication,
-admin-role, and RLS protection it has now.
+In rebuild mode the router serves the landing page for every path, plus the
+legal pages. Existing route definitions stay in the file, unmodified, behind the
+gate. Reverting later means setting `REBUILD_MODE` to false.
 
 ### 2. The landing page
-One new page, built from the strongest existing About-page language, using the
-existing brand system (brand blue / brand orange, existing logo, generous
-whitespace, no locks or shields). Sections:
+`src/pages/RebuildLanding.tsx`, using the existing brand system (brand blue and
+brand orange, existing logo, generous whitespace; no locks, shields, or matrix
+imagery). Header is the logo alone. Sections:
 
-- **Hero** — "Be prepared for what comes next." plus adapted About-page framing:
-  Asset Safe helps homeowners, renters, landlords, families, and businesses
-  document and organize property, possessions, improvements, and important
-  records. Good documentation isn't only about keeping records — it's about
-  being prepared when life doesn't go according to plan.
+- **Hero** — "Be prepared for what comes next." followed by adapted About-page
+  framing: Asset Safe helps homeowners, renters, landlords, families, and
+  businesses document and organize property, possessions, improvements, and
+  important records. Good documentation isn't only about keeping records — it's
+  about being prepared when life doesn't go according to plan.
 - **We're strengthening Asset Safe** — understated: an extensive rebuild with
   greater emphasis on security, privacy, reliability, and long-term protection;
   taking the time to build the foundation right. None of the forbidden phrasing.
 - **Three values** — Document What Matters / Keep It Organized / Be Prepared,
-  reusing the About page's own wording for each.
-- **Stay informed.** — email field only, "Keep Me Updated", with "Occasional
+  each carrying the About page's own wording.
+- **Stay informed.** — email field only, "Keep Me Updated", then "Occasional
   updates only. No spam. Unsubscribe anytime."
 - **Closing** — "Your property. Your information. Your story." then
   "Document it. Organize it. Protect it."
-- **Footer** — © 2026 Asset Safe · Privacy · Terms. Nothing else.
+- **Footer** — © 2026 Asset Safe · Privacy · Terms · Cookie Policy. Nothing else.
 
-Reused/adapted from About: the mission paragraphs, the "Document What Matters /
-Keep Life Organized / Protect What's Private" trio, and the "Everything you
-love. Protected in one place." positioning.
+Reused from About: the mission paragraphs, the "Document What Matters / Keep
+Life Organized / Protect What's Private" trio, and "Everything you love.
+Protected in one place."
 
-### 3. Email signup
-Reuses the existing isolated `lead-capture` function. It records only email,
-source, and lifecycle in the CRM `contacts` table plus a signup event — it
-creates no auth user, no profile, no membership, no password, no subscription,
-and touches no protected account data. A `source` value marks these as
-rebuild-list signups so they're separable later. No new tables, no migration, no
-change to Resend configuration.
+### 3. SEO
+Root: `index, follow`, self-canonical `https://getassetsafe.com/`, title
+`Asset Safe | Document. Organize. Protect.`, and a description presenting Asset
+Safe as active. Former marketing URLs serving the landing content: `noindex` and
+removed from the sitemap. Legal pages keep their own canonicals and stay in the
+sitemap. No redirects, no chains.
 
-### 4. SEO
-Root stays indexable with a self-referencing canonical
-`https://getassetsafe.com/`, title `Asset Safe | Document. Organize. Protect.`,
-and a description that presents Asset Safe as active. Marketing URLs now serving
-the landing page get `noindex` so they don't compete with the root for the same
-content. The sitemap is trimmed to the URLs that still have their own content.
-No redirects, no chains.
-
-### 5. QA
-Verified at 1280px, tablet, and 390px for overflow, spacing, text size, form
-usability, and footer. Verified that `/account`, `/admin`, vault, Legacy Locker,
-Digital Access, settings, and billing routes are unreachable from the public
-hostname and still fully guarded on the preview hostname.
+### 4. QA
+1280px, tablet, and 390px — horizontal overflow, text sizes, section spacing,
+email field and CTA usability, line breaks, overlap, footer. Plus a check that
+`/account`, `/admin`, vault, Legacy Locker, Digital Access, settings, and
+billing paths render only the landing page on a public hostname.
 
 ## Explicitly not doing
 
-- No deletion of existing pages, components, routes, or edge functions.
-- No change to authentication, authorization, admin roles, or RLS.
+- No database migration, schema change, RLS change, storage-policy change, auth
+  configuration change, or new secret.
+- No change to authentication, authorization, admin roles, or route guards.
+- No deletion of existing pages, components, routes, or Edge Functions.
 - No `staging.getassetsafe.com`, no DNS change, no new Supabase project.
-- No admin link on the public page.
-- No migration, and no new database infrastructure for the mailing list.
+- No admin link or any public path into the application.
 
-## Technical notes
+## Files
 
-- New: `src/config/publicMode.ts` (hostname allow-list + `REBUILD_MODE` flag),
-  `src/pages/RebuildLanding.tsx`, `src/components/rebuild/UpdateSignupForm.tsx`.
-- Edited: `src/App.tsx` (a guarded public-mode `<Routes>` branch placed before
-  the existing routes; existing route definitions left intact),
-  `public/sitemap.xml`, `public/robots.txt` if needed, `index.html` head text.
-- Email validation with zod client-side; the edge function keeps its own
-  validation and service-role isolation.
-- Reverting: set `REBUILD_MODE` to false and the full site returns unchanged.
+- New: `src/config/publicMode.ts`, `src/pages/RebuildLanding.tsx`,
+  `src/components/rebuild/UpdateSignupForm.tsx`, and — pending your go-ahead —
+  `supabase/functions/rebuild-update-signup/index.ts`.
+- Edited: `src/App.tsx` (gated branch added ahead of the existing routes),
+  `public/sitemap.xml`, `public/robots.txt`, `index.html` head text.
