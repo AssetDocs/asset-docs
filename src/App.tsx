@@ -131,6 +131,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import LegacyLockerInfo from "./pages/LegacyLockerInfo";
 import InviteLanding from "./pages/InviteLanding";
 import CookiePolicy from "./pages/CookiePolicy";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Install from "./pages/Install";
 import VIPContacts from "./pages/VIPContacts";
 
@@ -387,6 +388,7 @@ const RebuildContent = () => (
       <Route path="/" element={<RebuildLanding />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/cookie-policy" element={<CookiePolicy />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/legal" element={<Legal />} />
       {/* Every other path renders the landing experience, noindex. */}
       <Route path="*" element={<RebuildLanding isSubstitutePath />} />
@@ -415,6 +417,7 @@ const AppContent = () => {
         <Route path="/subscription-agreement" element={<Navigate to="/terms" replace />} />
         
         <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/install" element={<Install />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
