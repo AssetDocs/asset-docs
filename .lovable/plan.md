@@ -1,73 +1,149 @@
-# Supabase Production Migration Capability Check
+# Temporary Asset Safe Landing Page + Private Owner Access
 
-Investigation only. No database changes, no migration application, no edits to SQL files or policies.
+## Environment findings (your A–J questions, answered before implementing)
 
-## A. Production Supabase connection status
+**A. Test / Live environments:** Lovable does not provide separate Test and Live
+environments with their own databases. There are two views of the same code:
+the **editor preview** (`id-preview--6cc71ded-…​.lovable.app`), which requires a
+Lovable account with access to this project, and the **published site** (the
+custom domains + `assetsafenet.lovable.app`), which serves the last published
+snapshot. Publishing is a manual snapshot, so unpublished work stays private in
+the preview automatically.
 
-**Connected.** `supabase/config.toml` links this project to the external Supabase project:
+**B. Supabase separation:** None. One external Supabase project
+(`leotcbfpqiekgkgumecn`) backs both preview and published. Same database, same
+auth users, same storage.
 
-- `project_id = "leotcbfpqiekgkgumecn"`
-- This matches the connected production project referenced in project context.
+**C. Safest staging architecture:** Use the existing **editor preview URL** as
+the private full-application environment. It is protected by Lovable account
+authorization (not obscurity), then by the app's own authentication, then by
+RLS. A new `staging.getassetsafe.com` would serve the *same* published build off
+the *same* database and would add a second public hostname to defend — it buys
+nothing and increases exposure. Recommend not creating it.
 
-## B. Can Lovable apply production migrations?
+**D. Owner/admin-only restriction:** Yes, in layers — Lovable project access,
+then existing app sign-in, then the existing admin role check
+(`get_admin_role` / `useAdminRole`), which is independent of merely being an
+authenticated customer. MFA/step-up behaviour is untouched.
 
-**Yes, via the `supabase--migration` tool.** This is the primary/only migration mechanism exposed to Lovable for this project.
+**E. Production data in staging:** Yes — unavoidably, because the database is
+shared. This is the one requirement that cannot be met as written. Truly
+isolated test data would require remixing into a separate project with its own
+Supabase, which means re-provisioning Stripe, Resend, domains, and secrets, and
+would not be the environment your real customers live in. Recommendation: keep
+testing against production with care, and treat "no live customer records"
+as out of reach until you decide whether a remix is worth it.
 
-What Lovable **cannot** do from this sandbox:
+**F. Stripe in staging:** Shared live mode. One `STRIPE_SECRET_KEY` secret
+serves all environments; there is no test-mode key. Checkout run from the
+preview would create real charges. Avoid live checkout during the rebuild.
 
-- The Supabase CLI (`supabase db push`) is **not installed** in the sandbox (`which supabase` returns nothing).
-- Direct `psql` access is unavailable (`PG*` env vars are not set).
+**G. Email in staging:** Shared. One `RESEND_API_KEY`, real
+`@assetsafe.net` sender — emails triggered from the preview are real emails to
+real addresses.
 
-Therefore, if the `supabase--migration` tool cannot handle external projects, then **no automated migration path exists from this environment** and the migration would need to be applied manually through the Supabase Dashboard SQL Editor or a local Supabase CLI run by someone with the project credentials.
+**H. Admin footer link:** Advisable to **omit it**. It cannot point anywhere
+useful: the private environment lives on a different hostname, so a link on the
+public page would either point at the public `/auth` (re-advertising the sign-in
+surface we are trying to quiet) or hardcode the preview URL into public HTML.
+Recommendation: bookmark the preview URL instead. No admin link on the landing
+page.
 
-## C. How migrations are deployed
+**I. DNS / custom domain changes:** None required. The four existing custom
+domains keep pointing where they do.
 
-Based on the tool description:
+**J. Promotion path:** Build and QA in the editor preview, then click Publish
+when approved. Nothing reaches the public domains until you publish.
 
-- `supabase--migration` creates/applies migrations against the project's database.
-- It creates migration files asynchronously and surfaces them for user approval before execution.
-- It is **not tied to publish/deploy** — it is a separate database-change approval flow.
-- It applies only the migration submitted in the call; it does not automatically scan `supabase/migrations/` and apply all unapplied files like `supabase db push` does.
-- After approval and execution, Supabase types are regenerated automatically.
+## Scope decisions I'm proposing (these need your nod via this plan)
 
-To apply the existing `20260905000100_narrow_admin_docs_storage_policies.sql`, the SQL would need to be passed to `supabase--migration` as a new migration query (Lovable's tool writes the migration file and applies it). It cannot simply "run the file already in the repo" as a deployment step.
+1. **Other public marketing pages** (`/about`, `/features`, `/pricing`, `/gift`,
+   `/blog`, `/resources`, audience pages, `/sample-dashboard`, …): they render
+   the landing page instead, with no redirect. Old links stay HTTP 200, the
+   public surface shrinks to one experience, and reverting is one flag.
+   `/terms`, `/privacy-policy`, `/cookie-policy`, `/legal` stay live because the
+   footer links them and they are legal obligations.
+2. **Sign-in on the public site:** unavailable during the rebuild. You reach the
+   application through the private preview. Nothing on the landing page links to
+   sign-in.
+3. **New purchases:** off. Pricing, checkout, and gift purchase are not reachable
+   publicly, which also removes the live-Stripe risk noted in (F).
 
-## D. Is migration `20260905000100` pending?
+## What gets built
 
-**Yes.** Confirmed by:
+### 1. Public-mode gate (new, small, reversible)
+A single module decides whether the visitor is on a public production hostname
+or the private preview hostname. On public hostnames the router serves only the
+landing page plus the legal pages. On the preview hostname the application
+behaves exactly as it does today — no route, guard, RLS policy, or role check is
+modified anywhere. Turning the rebuild off later means flipping one constant.
 
-- The file exists in `main`: `supabase/migrations/20260905000100_narrow_admin_docs_storage_policies.sql`
-- The user verified in the live Supabase SQL Editor that `version = '20260905000100'` is **not present** in `supabase_migrations.schema_migrations`.
-- The live storage policies for `admin-docs` still allow `dev_lead`, which the migration would remove.
+This gate is a presentation decision, not a security control. It is safe because
+it only *removes* public surface; every private route keeps the authentication,
+admin-role, and RLS protection it has now.
 
-## E. Exact safe next step
+### 2. The landing page
+One new page, built from the strongest existing About-page language, using the
+existing brand system (brand blue / brand orange, existing logo, generous
+whitespace, no locks or shields). Sections:
 
-Two options:
+- **Hero** — "Be prepared for what comes next." plus adapted About-page framing:
+  Asset Safe helps homeowners, renters, landlords, families, and businesses
+  document and organize property, possessions, improvements, and important
+  records. Good documentation isn't only about keeping records — it's about
+  being prepared when life doesn't go according to plan.
+- **We're strengthening Asset Safe** — understated: an extensive rebuild with
+  greater emphasis on security, privacy, reliability, and long-term protection;
+  taking the time to build the foundation right. None of the forbidden phrasing.
+- **Three values** — Document What Matters / Keep It Organized / Be Prepared,
+  reusing the About page's own wording for each.
+- **Stay informed.** — email field only, "Keep Me Updated", with "Occasional
+  updates only. No spam. Unsubscribe anytime."
+- **Closing** — "Your property. Your information. Your story." then
+  "Document it. Organize it. Protect it."
+- **Footer** — © 2026 Asset Safe · Privacy · Terms. Nothing else.
 
-1. **Lovable-managed path (preferred if the tool supports external projects):**
-   - Switch to build mode.
-   - Call `supabase--migration` with the exact SQL from `20260905000100_narrow_admin_docs_storage_policies.sql`.
-   - Approve the migration when prompted.
-   - Verify in Supabase SQL Editor that `schema_migrations` now contains `20260905000100` and the four `admin-docs` policies restrict access to `owner`/`admin` only.
+Reused/adapted from About: the mission paragraphs, the "Document What Matters /
+Keep Life Organized / Protect What's Private" trio, and the "Everything you
+love. Protected in one place." positioning.
 
-2. **Manual path (if Lovable's migration tool is restricted or unavailable for this external project):**
-   - Copy the SQL from `supabase/migrations/20260905000100_narrow_admin_docs_storage_policies.sql`.
-   - Paste it into the production Supabase SQL Editor and run it.
-   - Verify the same way as above.
+### 3. Email signup
+Reuses the existing isolated `lead-capture` function. It records only email,
+source, and lifecycle in the CRM `contacts` table plus a signup event — it
+creates no auth user, no profile, no membership, no password, no subscription,
+and touches no protected account data. A `source` value marks these as
+rebuild-list signups so they're separable later. No new tables, no migration, no
+change to Resend configuration.
 
-Because the Supabase CLI is not present in the sandbox, there is no third "local CLI push" option from here.
+### 4. SEO
+Root stays indexable with a self-referencing canonical
+`https://getassetsafe.com/`, title `Asset Safe | Document. Organize. Protect.`,
+and a description that presents Asset Safe as active. Marketing URLs now serving
+the landing page get `noindex` so they don't compete with the root for the same
+content. The sitemap is trimmed to the URLs that still have their own content.
+No redirects, no chains.
 
-## F. Confirmation that no database changes were made
+### 5. QA
+Verified at 1280px, tablet, and 390px for overflow, spacing, text size, form
+usability, and footer. Verified that `/account`, `/admin`, vault, Legacy Locker,
+Digital Access, settings, and billing routes are unreachable from the public
+hostname and still fully guarded on the preview hostname.
 
-Confirmed. This check only:
-- read `supabase/config.toml`,
-- listed the migration file,
-- checked for the Supabase CLI,
-- checked for `PG*` environment variables,
-- inspected the git history/merge state.
+## Explicitly not doing
 
-No `supabase--migration`, `supabase--run_sql`, `psql`, policy edit, or file modification was performed.
+- No deletion of existing pages, components, routes, or edge functions.
+- No change to authentication, authorization, admin roles, or RLS.
+- No `staging.getassetsafe.com`, no DNS change, no new Supabase project.
+- No admin link on the public page.
+- No migration, and no new database infrastructure for the mailing list.
 
----
+## Technical notes
 
-Capability check complete. No migration was applied.
+- New: `src/config/publicMode.ts` (hostname allow-list + `REBUILD_MODE` flag),
+  `src/pages/RebuildLanding.tsx`, `src/components/rebuild/UpdateSignupForm.tsx`.
+- Edited: `src/App.tsx` (a guarded public-mode `<Routes>` branch placed before
+  the existing routes; existing route definitions left intact),
+  `public/sitemap.xml`, `public/robots.txt` if needed, `index.html` head text.
+- Email validation with zod client-side; the edge function keeps its own
+  validation and service-role isolation.
+- Reverting: set `REBUILD_MODE` to false and the full site returns unchanged.
