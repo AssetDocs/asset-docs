@@ -22,6 +22,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
 import WelcomePage from "@/components/WelcomePage";
+import { isRebuildModeActive } from "@/config/publicMode";
+import RebuildLanding from "./pages/RebuildLanding";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
