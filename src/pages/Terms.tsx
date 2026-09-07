@@ -16,7 +16,7 @@ const Terms: React.FC = () => {
       <div className="container mx-auto px-4 py-12 flex-grow max-w-4xl">
         <h1 className="text-3xl font-bold text-brand-blue mb-2">Asset Safe Terms and Conditions</h1>
         <p className="text-sm text-gray-500 mb-8">
-          Effective Date: [Month Day, 2026] &nbsp;·&nbsp; Last Updated: [Month Day, 2026]
+          Effective Date: September 7, 2026 &nbsp;·&nbsp; Last Updated: September 7, 2026
         </p>
 
         <div className="prose prose-lg max-w-none
@@ -318,7 +318,7 @@ const Terms: React.FC = () => {
                 <tr className="border-b"><th className="text-left p-2 bg-gray-50 w-1/3">Designated DMCA Agent</th><td className="p-2">[Registered person or position]</td></tr>
                 <tr className="border-b"><th className="text-left p-2 bg-gray-50">Company</th><td className="p-2">Ellidair LLC d/b/a Asset Safe</td></tr>
                 <tr className="border-b"><th className="text-left p-2 bg-gray-50">Address</th><td className="p-2">5900 Balcones Drive, Suite 30142, Austin, Texas 78731, United States</td></tr>
-                <tr className="border-b"><th className="text-left p-2 bg-gray-50">Email</th><td className="p-2">[Registered DMCA email]</td></tr>
+                <tr className="border-b"><th className="text-left p-2 bg-gray-50">Email</th><td className="p-2"><a href="mailto:legal@assetsafe.net">legal@assetsafe.net</a></td></tr>
                 <tr><th className="text-left p-2 bg-gray-50">Telephone</th><td className="p-2">[Registered telephone number]</td></tr>
               </tbody>
             </table>
@@ -557,7 +557,7 @@ const Terms: React.FC = () => {
                 <tr className="border-b"><th className="text-left p-2 bg-gray-50">General support</th><td className="p-2"><a href="mailto:support@assetsafe.net">support@assetsafe.net</a></td></tr>
                 <tr className="border-b"><th className="text-left p-2 bg-gray-50">Legal inquiries</th><td className="p-2"><a href="mailto:legal@assetsafe.net">legal@assetsafe.net</a></td></tr>
                 <tr className="border-b"><th className="text-left p-2 bg-gray-50">Privacy inquiries</th><td className="p-2"><a href="mailto:privacy@assetsafe.net">privacy@assetsafe.net</a></td></tr>
-                <tr><th className="text-left p-2 bg-gray-50">Copyright and DMCA</th><td className="p-2">[Registered DMCA email]</td></tr>
+                <tr><th className="text-left p-2 bg-gray-50">Copyright and DMCA</th><td className="p-2"><a href="mailto:legal@assetsafe.net">legal@assetsafe.net</a></td></tr>
               </tbody>
             </table>
           </div>
