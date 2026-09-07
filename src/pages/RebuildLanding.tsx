@@ -60,13 +60,7 @@ const RebuildLanding: React.FC<RebuildLandingProps> = ({
       {/* Header — logo only. No navigation, no sign-in, no admin links. */}
       <header className="border-b border-gray-100">
         <div className="mx-auto max-w-5xl px-6 py-6">
-          <img
-            src={assetSafeLogo}
-            alt="Asset Safe"
-            className="h-10 w-auto"
-            width={160}
-            height={40}
-          />
+          <img src={assetSafeLogo} alt="Asset Safe" className="h-10 w-auto" />
         </div>
       </header>
 
