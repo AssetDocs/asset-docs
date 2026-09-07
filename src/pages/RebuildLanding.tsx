@@ -131,6 +131,13 @@ const RebuildLanding: React.FC<RebuildLandingProps> = ({
             <div className="mt-8">
               <UpdateSignupForm />
             </div>
+            <p className="mt-4 text-sm text-gray-500">
+              See our{' '}
+              <Link to="/privacy-policy" className="underline hover:text-brand-blue">
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </div>
         </section>
 
@@ -149,6 +156,9 @@ const RebuildLanding: React.FC<RebuildLandingProps> = ({
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-8 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 Asset Safe</p>
           <nav className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link to="/privacy-policy" className="hover:text-brand-blue">
+              Privacy
+            </Link>
             <Link to="/terms" className="hover:text-brand-blue">
               Terms
             </Link>

@@ -11,5 +11,6 @@
   <!-- Legal -->
   <url><loc>https://getassetsafe.com/terms</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://getassetsafe.com/legal</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://getassetsafe.com/privacy-policy</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://getassetsafe.com/cookie-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>
