@@ -22,6 +22,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
 import WelcomePage from "@/components/WelcomePage";
+import { isRebuildModeActive } from "@/config/publicMode";
+import RebuildLanding from "./pages/RebuildLanding";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
@@ -371,7 +373,34 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   return <>{children}</>;
 };
 
+/**
+ * Temporary rebuild-mode router.
+ *
+ * Serves ONLY the landing page plus the public legal pages. This shrinks the
+ * public surface while architectural/security work proceeds; it is not a
+ * substitute for route-level authorization remediation.
+ */
+const RebuildContent = () => (
+  <BrowserRouter>
+    <ScrollToTopWrapper />
+    <Routes>
+      <Route path="/" element={<RebuildLanding />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/cookie-policy" element={<CookiePolicy />} />
+      <Route path="/legal" element={<Legal />} />
+      {/* Every other path renders the landing experience, noindex. */}
+      <Route path="*" element={<RebuildLanding isSubstitutePath />} />
+    </Routes>
+  </BrowserRouter>
+);
+
 const AppContent = () => {
+  // Fail closed: anything other than an explicitly allow-listed private host
+  // gets the temporary landing experience.
+  if (isRebuildModeActive()) {
+    return <RebuildContent />;
+  }
+
   return (
     <BrowserRouter>
       <ScrollToTopWrapper />

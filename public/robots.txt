@@ -1,8 +1,14 @@
 # Asset Safe - Robots.txt
-# Updated: 2026-08-18
+# Updated: 2026-09-07
+# Rebuild mode: the public site serves the temporary Asset Safe landing page.
+# Robots directives are not security controls; application routes remain
+# protected by authentication and authorization.
 
 User-agent: *
 Allow: /
+Allow: /terms
+Allow: /legal
+Allow: /cookie-policy
 
 # Authentication and account workflows
 Disallow: /auth
@@ -60,36 +66,5 @@ Disallow: /delegate-vault
 Disallow: /contributor-welcome
 Disallow: /dev-invite
 Disallow: /install
-
-# Public marketing, help, and legal pages
-Allow: /
-Allow: /features
-Allow: /features-list
-Allow: /pricing
-Allow: /about
-Allow: /blog
-Allow: /blog/*
-Allow: /contact
-Allow: /resources
-Allow: /qa
-Allow: /gift
-Allow: /legacy-locker-info
-Allow: /scenarios
-Allow: /claims
-Allow: /testimonials
-Allow: /social-impact
-Allow: /glossary
-Allow: /awareness-guide
-Allow: /industry-requirements
-Allow: /state-requirements
-Allow: /sample-dashboard
-Allow: /video-help
-Allow: /photography-guide
-Allow: /asset-documentation
-Allow: /digital-documentation-guide
-Allow: /partnership
-Allow: /terms
-Allow: /legal
-Allow: /cookie-policy
 
 Sitemap: https://getassetsafe.com/sitemap.xml
