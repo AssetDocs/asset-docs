@@ -418,6 +418,8 @@ const AppContent = () => {
         
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        {/* Private-host only: review the public landing page inside the editor preview. Noindex. */}
+        <Route path="/landing-preview" element={<RebuildLanding isSubstitutePath />} />
         <Route path="/install" element={<Install />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
