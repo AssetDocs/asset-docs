@@ -6,7 +6,7 @@ import type { Answers } from '@/lib/preparednessScoring';
  * Off until the preparedness-assessment Edge Function and table are approved
  * and deployed. While false, nothing is sent to the backend.
  */
-export const ASSESSMENT_BACKEND_ENABLED = false;
+export const ASSESSMENT_BACKEND_ENABLED = true;
 
 const FN = 'preparedness-assessment';
 

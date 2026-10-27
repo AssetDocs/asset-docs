@@ -62,9 +62,14 @@ const PreparednessAssessment: React.FC = () => {
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [serverResult, setServerResult] = useState<
+    { fitScore: number; band: keyof typeof BAND_COPY; topGaps: CategoryKey[] } | null
+  >(null);
   const topRef = useRef<HTMLDivElement>(null);
 
-  const result = useMemo(() => scoreAssessment(answers), [answers]);
+  const localResult = useMemo(() => scoreAssessment(answers), [answers]);
+  const result = serverResult ?? localResult;
 
   const scrollTop = () =>
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -76,28 +81,40 @@ const PreparednessAssessment: React.FC = () => {
     }, 180);
   };
 
-  const finish = async () => {
-    if (!result || !wtp || submitting) return;
+  const save = async () => {
+    if (!localResult || !wtp || submitting) return;
     setSubmitting(true);
     setNotice(null);
     try {
-      if (ASSESSMENT_BACKEND_ENABLED) {
-        const res = await submitAssessment({ answers, willingness_to_pay: wtp });
-        if (res?.assessment_id) setAssessmentId(res.assessment_id);
-      }
+      if (!ASSESSMENT_BACKEND_ENABLED) throw new Error('disabled');
+      const res = await submitAssessment({ answers, willingness_to_pay: wtp });
+      if (!res?.assessment_id) throw new Error('no id');
+      setAssessmentId(res.assessment_id);
+      setServerResult({
+        fitScore: res.fit_score,
+        band: res.band as keyof typeof BAND_COPY,
+        topGaps: res.top_gaps as CategoryKey[],
+      });
+      setSaveFailed(false);
     } catch {
-      // Result still shown; saving failure is non-blocking for the visitor.
+      setSaveFailed(true);
     } finally {
       setSubmitting(false);
-      setStage('result');
-      scrollTop();
     }
+  };
+
+  const finish = async () => {
+    await save();
+    setStage('result');
+    scrollTop();
   };
 
   const restart = () => {
     setAnswers({});
     setWtp(null);
     setAssessmentId(null);
+    setServerResult(null);
+    setSaveFailed(false);
     setStep(0);
     setStage('questions');
     scrollTop();
@@ -199,6 +216,9 @@ const PreparednessAssessment: React.FC = () => {
           band={result.band}
           topGaps={result.topGaps}
           assessmentId={assessmentId}
+          saveFailed={saveFailed}
+          retrying={submitting}
+          onRetry={save}
           onRestart={restart}
         />
       )}
@@ -211,10 +231,15 @@ interface ResultViewProps {
   band: keyof typeof BAND_COPY;
   topGaps: CategoryKey[];
   assessmentId: string | null;
+  saveFailed: boolean;
+  retrying: boolean;
+  onRetry: () => void;
   onRestart: () => void;
 }
 
-const ResultView: React.FC<ResultViewProps> = ({ fitScore, band, topGaps, assessmentId, onRestart }) => {
+const ResultView: React.FC<ResultViewProps> = ({
+  fitScore, band, topGaps, assessmentId, saveFailed, retrying, onRetry, onRestart,
+}) => {
   const copy = BAND_COPY[band];
   return (
     <div>
@@ -252,7 +277,27 @@ const ResultView: React.FC<ResultViewProps> = ({ fitScore, band, topGaps, assess
         </div>
       )}
 
-      <EarlyAccess assessmentId={assessmentId} />
+      {assessmentId ? (
+        <EarlyAccess assessmentId={assessmentId} />
+      ) : (
+        <div role="alert" className="mt-10 rounded-xl border border-brand-orange/40 bg-brand-orange/5 p-5 sm:p-8">
+          <p className="text-base text-gray-800">
+            {saveFailed
+              ? "We calculated your result, but couldn't save your assessment. Please try again before joining Early Access."
+              : 'Saving your assessment…'}
+          </p>
+          {saveFailed && (
+            <Button
+              type="button"
+              onClick={onRetry}
+              disabled={retrying}
+              className="mt-4 h-11 bg-brand-darkBlue text-white hover:bg-brand-darkBlue/90"
+            >
+              {retrying ? 'Trying again…' : 'Try Again'}
+            </Button>
+          )}
+        </div>
+      )}
 
       <button type="button" onClick={onRestart} className="mt-6 min-h-[44px] text-sm text-gray-500 underline hover:text-brand-darkBlue">
         Retake the assessment
@@ -261,7 +306,7 @@ const ResultView: React.FC<ResultViewProps> = ({ fitScore, band, topGaps, assess
   );
 };
 
-const EarlyAccess: React.FC<{ assessmentId: string | null }> = ({ assessmentId }) => {
+const EarlyAccess: React.FC<{ assessmentId: string }> = ({ assessmentId }) => {
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done'>('idle');
@@ -274,21 +319,18 @@ const EarlyAccess: React.FC<{ assessmentId: string | null }> = ({ assessmentId }
     const parsed = emailSchema.safeParse(email);
     if (!parsed.success) return setError('Please enter a valid email address.');
     if (!consent) return setError('Please confirm you would like to receive Early Access updates.');
-    if (!ASSESSMENT_BACKEND_ENABLED || !assessmentId) {
-      return setError('Early Access signup is not enabled in this preview yet.');
-    }
     setStatus('submitting');
     try {
       const ok = await joinEarlyAccess({ assessment_id: assessmentId, email: parsed.data });
       if (!ok) throw new Error();
       setStatus('done');
     } catch {
-      setError("We couldn't save your request. Please try again.");
+      setError("We couldn't add you to Early Access. Please try again.");
       setStatus('idle');
     }
   };
 
-  if (status === 'done') return <PostSignupResearch assessmentId={assessmentId!} />;
+  if (status === 'done') return <PostSignupResearch assessmentId={assessmentId} />;
 
   return (
     <form onSubmit={submit} noValidate className="mt-10 rounded-xl bg-brand-darkBlue/5 p-5 sm:p-8">
