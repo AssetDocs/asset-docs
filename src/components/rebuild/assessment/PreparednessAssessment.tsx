@@ -396,8 +396,9 @@ const PostSignupResearch: React.FC<{ assessmentId: string }> = ({ assessmentId }
 
   return (
     <div className="mt-10 rounded-xl border border-brand-blue/25 bg-brand-blue/5 p-5 sm:p-8" role="status">
-      <p className="text-lg font-semibold text-brand-darkBlue">You're on the Early Access list.</p>
-      <p className="mt-1 text-base text-gray-600">We'll keep you informed as Asset Safe moves forward.</p>
+      <p className="text-lg font-semibold text-brand-darkBlue">
+        You're on the list. We'll keep you informed as Asset Safe moves forward.
+      </p>
       {saved ? (
         <p className="mt-6 text-base text-gray-700">Thank you — that helps us build the right thing.</p>
       ) : (
