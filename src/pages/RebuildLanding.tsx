@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import assetSafeLogo from '@/assets/asset-safe-logo.png';
-import UpdateSignupForm from '@/components/rebuild/UpdateSignupForm';
+import PreparednessAssessment from '@/components/rebuild/assessment/PreparednessAssessment';
 
 interface RebuildLandingProps {
   /**
@@ -66,45 +66,47 @@ const RebuildLanding: React.FC<RebuildLandingProps> = ({
 
       <main className="flex-grow">
         {/* Hero */}
-        <section className="mx-auto max-w-3xl px-6 pt-20 pb-16 sm:pt-28 sm:pb-20">
-          <h1 className="text-3xl font-bold leading-tight tracking-tight text-brand-darkBlue sm:text-4xl md:text-5xl">
-            Be prepared for what comes next.
+        <section className="mx-auto max-w-3xl px-6 pt-16 pb-10 sm:pt-24 sm:pb-14">
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-brand-darkBlue sm:text-5xl">
+            How prepared are you?
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-gray-600 sm:text-xl">
+            Five quick questions can reveal how easy — or difficult — it would
+            be to find, document, and share the information that matters when
+            you really need it.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+            <a
+              href="#assessment"
+              className="inline-flex h-12 items-center justify-center rounded-md bg-brand-orange px-8 text-base font-semibold text-white hover:bg-brand-orange/90"
+            >
+              Check My Preparedness
+            </a>
+            <p className="text-sm text-gray-500">
+              5 questions · About 60 seconds · No account required
+            </p>
+          </div>
+        </section>
+
+        {/* Assessment */}
+        <section id="assessment" className="scroll-mt-4 bg-gray-50 border-y border-gray-100">
+          <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+            <PreparednessAssessment />
+          </div>
+        </section>
+
+        {/* Mission */}
+        <section className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+          <p className="text-lg leading-relaxed text-gray-600 sm:text-xl">
             Asset Safe helps homeowners, renters, landlords, families, and
             businesses document and organize their property, possessions,
             improvements, and important records — the information that may
             someday matter.
           </p>
-          <p className="mt-5 text-lg leading-relaxed text-gray-600 sm:text-xl">
-            Good documentation isn't only about keeping records. It's about
-            being prepared when life doesn't go according to plan.
-          </p>
-          <p className="mt-8 text-lg font-medium text-brand-blue sm:text-xl">
+          <p className="mt-6 text-lg font-medium text-brand-blue sm:text-xl">
             Everything you love. Protected in one place.
           </p>
-        </section>
-
-        {/* Rebuild message */}
-        <section className="border-y border-gray-100 bg-gray-50">
-          <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-blue">
-              We're strengthening Asset Safe.
-            </p>
-            <p className="mt-6 text-lg leading-relaxed text-gray-700">
-              Asset Safe is currently undergoing an extensive rebuild with an
-              even greater emphasis on security, privacy, reliability, and
-              long-term protection.
-            </p>
-            <p className="mt-5 text-lg leading-relaxed text-gray-700">
-              We're taking the time to build the foundation right.
-            </p>
-          </div>
-        </section>
-
-        {/* Values */}
-        <section className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
-          <div className="grid gap-10 sm:gap-8 md:grid-cols-3">
+          <div className="mt-12 grid gap-10 sm:gap-8 md:grid-cols-3">
             {values.map((value) => (
               <div key={value.title}>
                 <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-darkBlue">
@@ -118,25 +120,14 @@ const RebuildLanding: React.FC<RebuildLandingProps> = ({
           </div>
         </section>
 
-        {/* Email updates */}
-        <section className="border-y border-gray-100 bg-gray-50">
-          <div className="mx-auto max-w-xl px-6 py-16 sm:py-20">
-            <h2 className="text-2xl font-bold text-brand-darkBlue sm:text-3xl">
-              Stay informed.
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-gray-600 sm:text-lg">
-              Be among the first to receive Asset Safe updates, early-access
-              announcements, and information about our return.
-            </p>
-            <div className="mt-8">
-              <UpdateSignupForm />
-            </div>
-            <p className="mt-4 text-sm text-gray-500">
-              See our{' '}
-              <Link to="/privacy-policy" className="underline hover:text-brand-blue">
-                Privacy Policy
-              </Link>
-              .
+        {/* Understated rebuild note */}
+        <section className="border-t border-gray-100">
+          <div className="mx-auto max-w-3xl px-6 py-10">
+            <p className="text-sm leading-relaxed text-gray-500">
+              <span className="font-semibold text-gray-700">We're strengthening Asset Safe.</span>{' '}
+              Asset Safe is currently undergoing an extensive rebuild with an
+              even greater emphasis on security, privacy, reliability, and
+              long-term protection.
             </p>
           </div>
         </section>
