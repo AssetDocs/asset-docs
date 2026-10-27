@@ -1,0 +1,1 @@
+REVOKE ALL ON public.preparedness_assessments FROM anon, authenticated, public;
