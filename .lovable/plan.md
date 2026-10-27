@@ -25,6 +25,12 @@ Target: the original/public Asset Safe app's private preview only. Nothing is pu
    - Replace the join error with "We couldn't add you to Early Access. Please try again."
    - If the save failed so there's no ID, show the same generic message.
    - Change the success heading to the exact copy: "You're on the list. We'll keep you informed as Asset Safe moves forward." The two optional questions follow it.
+   - After a successful submit, the server's score, band and top gaps always replace the browser's calculation.
+   - If the save fails and no ID comes back:
+     - show the local score with the message "We calculated your result, but couldn't save your assessment. Please try again before joining Early Access."
+     - add a "Try Again" button that resends the same answers without retaking the quiz
+     - keep the Early Access form disabled; no join request is sent and no contact is created
+     - never show technical details
 
 ## QA (Step 4)
 Each check is run through the preview UI and the function, using rows marked `is_qa=true`:
@@ -42,6 +48,12 @@ Each check is run through the preview UI and the function, using rows marked `is
   - snapshot a QA contact before and after the join
   - every field must be unchanged; only the link and the event are added
 - **K. Optional questions:** only `audience_segment` and `primary_interest` are updated.
+- **Rate limits and CORS:** confirm the limits trigger, and that a request from an origin not on the list is refused.
+- **Simulated save failure:**
+  - the local score still shows, along with the save message
+  - Try Again works without retaking the quiz
+  - Early Access stays unavailable until an ID is returned
+- **Mobile and desktop:** check at 390px and 1280px.
 - **L. Cleanup:**
   - delete QA assessment rows, QA contacts and their events, and test rate-limit rows
   - confirm zero rows remain
