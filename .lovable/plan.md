@@ -1,89 +1,101 @@
-# ENV-02E — Edge Functions + Cron Inheritance Map (read-only audit)
+# Preparedness Assessment and Early Access: Architecture Report
 
-Scope: current source only. 124 functions plus `_shared` in `supabase/functions/`. No builds, runtime calls, sends, checkouts, or secret reads. Production backend refs appear in config and several functions/migrations generically (project ref hardcoded); values not reproduced here beyond what config already contains.
+## Change control
+- Project: Asset Safe original/public app (Lovable ID 6cc71ded-...), primary URL getassetsafe.com. This is not the development app.
+- Backend: external Supabase project `leotcbfpqiekgkgumecn`, shared by the preview and production. Any migration or function deploy goes live immediately.
+- Identity confirmed: RebuildLanding, the publicMode hostname gate, the "Be prepared for what comes next." hero, the "Stay informed" signup, `rebuild-update-signup`, and the public legal pages are all present.
+- Nothing in this plan changes the hostname gate, route protection, sign-in, existing RLS, admin access or the preview setup.
 
-## Verified facts behind this map
+Note: about 11k characters from the middle of the brief came through truncated in chat, including the exact question set, answer options and weightings. Before building, I will ask for that section, or confirm the drafts below.
 
-- 124 function directories exist in source (+ `_shared`).
-- `supabase/config.toml` marks a large set as `verify_jwt = false`, several explicitly documented as cron-invoked sweepers authenticating via an `x-internal-secret` header.
-- Only one `cron.schedule('...')` literal exists in migrations: `check-gift-deliveries-every-15-min`. One `cron.unschedule` literal: `expire-subscription-grace-periods-hourly`.
-- Function URLs referenced from migrations: `check-gift-deliveries`, `check-gift-reminders`, `send-welcome-email`, `check-payment-failures`, `check-trial-reminders`.
-- `check-trial-reminders` is referenced by a migration but has **no directory in source** — a scheduled callback with no repo code.
-- Callers were resolved via `functions.invoke(...)` and `/functions/v1/...` scans; `AuthorizedUsersTab.tsx` invokes a dynamic slug variable, so AU-related functions are called even where a literal is absent.
+## A. Current relevant schema
+- `contacts`: id, user_id, email, first_name, last_name, phone, company_id, source, lifecycle, owner_id, created_at. CRM identity only, with no research fields.
+- `events`: id (bigint), user_id, anon_id, event, props jsonb, path, referrer, utm jsonb, ip, ua, occurred_at. Generic analytics; `rebuild-update-signup` writes deduplicated events here.
+- `rate_limits`: identifier, action, attempts, window_start, created_at, updated_at. This is the durable per-IP limiter already used by `rebuild-update-signup`.
+- `leads`: name, email, city, state, how_heard, ip_address, user_agent. A legacy lead-capture table; it should not be reused.
 
-## Classification by workstream
+## B. Existing assessment table
+None. No public table matches survey, assessment, questionnaire or waitlist.
 
-### 1. Contributor-era — DELETE/RETIRE
-`accept-contributor-invitation`, `invite-contributor`, `send-contributor-invitation`, `complete-contributor-signup`
-Contributor system is retired; Authorized Users are `account_memberships`. These paths create membership-like state outside the new model and must not exist in DEV.
+## C. Proposed table: `public.preparedness_assessments`
+- id uuid pk, created_at, updated_at
+- contact_id uuid null (references `contacts.id`, set null on delete). Filled only when an email is given.
+- session_id text (an anonymous client id that groups retakes)
+- assessment_version text (for example `v1`)
+- answers jsonb (an allow-listed map of question key to option key, validated server-side)
+- fit_score smallint (0-100), score_band text, top_gaps text[]
+- audience_segment text, interest_benefits text[], willingness_to_pay text: research fields, all enum-validated in the function
+- early_access_opt_in boolean, consent_at timestamptz
+- utm jsonb, referrer text, ip_hash text (a salted SHA-256, never the raw IP), user_agent text truncated
+- Access: grant ALL to service_role only. RLS is enabled with no anon or authenticated policies, so only the function can write and only the dashboard or service tools can read. A later admin read-only policy can use `has_app_role`.
+- Indexes on (contact_id), (created_at), (audience_segment), (fit_score).
 
-### 2. Authorized Users / invites — KEEP CONCEPT, REWRITE BEFORE DEV
-`invite-accept` family: `accept-invite`, `send-invite`, `resend-invite`, `cancel-invite`, `confirm-invite-email`, `revoke-authorized-user`, `update-authorized-user-role`, `get-account-impact`
-Reason: these mint or change cross-account access. Each must be re-derived from `account_memberships` only, with owner-only authorization, single-use tokens, and no contributor fallbacks. Rewrite (not port) so no retired role can grant access.
+## D. Migration required
+Yes, one narrowly scoped migration: the new table, grants, RLS, indexes and an updated_at trigger (reusing the existing helper). It does not alter or drop any existing table, policy or function.
 
-### 3. Dev/internal team invites — DEFER/OPTIONAL
-`invite-dev-team-member`, `accept-dev-invite`, `verify-dev-invite`, `verify-construction-password`, `verify-admin-password`
-Reason: staff-access surface; only rebuild if Support Staff Access is part of DEV scope. `verify-*-password` gates must be rewritten if kept (password-style gates are weak trust anchors).
+## E. Function architecture
+A new function, `preparedness-assessment`, kept separate from `rebuild-update-signup` (which stays unchanged and in place as a fallback). It has two actions on one endpoint:
+1. `submit`: answers only, no email. It stores a row, computes the score server-side and returns the result.
+2. `join`: an email plus the assessment id. It links or creates a minimal contact, sets the opt-in and writes a deduplicated `events` row with source `preparedness_early_access`.
 
-### 4. Legacy Admin / recovery / continuity-era — REWRITE BEFORE DEV (against Legacy Contact model)
-`submit-recovery-request`, `respond-recovery-request`, `send-recovery-request-email`, `send-recovery-approved-email`, `send-recovery-rejected-email`, `acknowledge-delegate-access`, `send-delegate-access-email`, `send-legacy-admin-notification`, `dispatch-continuity-event`, `notify-continuity-request`, `send-continuity-notification`, `notify-visitor-access`
-Reason: this is the highest-trust surface in the product — it can release vault material to a non-owner. Product term is being redesigned into Legacy Contact/legacy-release, so the approval flow, mirror integrity checks, and key-material handling must be rebuilt on the new model rather than inherited. Delegate-era naming and any implicit access must not survive.
+The function uses the service role internally and does no Auth user, profile, Stripe or Resend work.
 
-### 5. Secure Vault (Digital Access + Legacy Locker) support — KEEP CONCEPT, REWRITE
-`secure-delete-file`, `secure-delete-contact`, `secure-delete-property`, `download-account-export-bundle`
-Reason: service-role functions that act on bucket/path values sourced from database rows and, in at least one case, permissive CORS. Rewrite with a validated storage gateway, strict origin allow-list, and server-side ownership re-check.
+## F. Request and response
+```text
+POST {action:"submit", session_id, version:"v1", answers:{q1..q5: optionKey}, research?:{segment, benefits[], wtp}, utm?, referrer?}
+ -> 200 {ok:true, assessment_id, fit_score, band, top_gaps:[key,...]}
+POST {action:"join", assessment_id, email, consent:true}
+ -> 200 {ok:true}   (identical whether the email is new or existing)
+Errors -> {ok:false, error:"<generic message>"} with status 400/429/500
+```
+Unknown keys are rejected, enums are strict and payloads are capped at about 4KB.
 
-### 6. Storage / deletion / retention sweepers — KEEP CONCEPT, REWRITE (DEV DISABLED initially)
-`process-storage-deletion-jobs`, `process-storage-orphans`, `process-storage-usage-drift`, `process-retention-expirations`, `process-expired-exports`, `process-account-closures`, `request-account-closure`, `reverse-account-closure`, `submit-deletion-request`, `respond-deletion-request`, `send-deletion-confirmation`, `delete-account`, `list-pending-file-deletions`, `list-pending-property-deletions`, `list-storage-deletion-jobs`, `send-storage-warning`, `add-storage`, `add-storage-25gb`
-Reason: destructive service-role operations authenticated by a shared internal header. In DEV they must be disabled or dry-run only; `delete-account` still contains contributor cleanup that must be removed.
+## G. Scoring
+- A pure, versioned module under `supabase/functions/preparedness-assessment/scoring.ts`, mirrored in `src/lib/preparednessScoring.ts`. Only the server-side value is stored.
+- Each answer option carries 0-4 points per dimension: documentation, organization, accessibility, sharing and recovery. The total is normalised to 0-100.
+- Bands: Getting Started, Partly Prepared, Well Prepared.
+- The top gaps are the two lowest-scoring dimensions.
+- Unit tests assert exact scores for fixed answer sets.
 
-### 7. Stripe / billing — DEFER/OPTIONAL, DEV DISABLED
-`create-checkout`, `finalize-checkout`, `stripe-webhook`, `customer-portal`, `change-plan`, `cancel-subscription`, `check-subscription`, `sync-subscription`, `check-payment-failures`, `check-grace-period-expiry`, `payment-history`, `send-payment-receipt`, `send-payment-receipt-internal`, `send-payment-reminder`, `send-cancellation-emails`, `send-cancellation-notice`, `admin-stripe-subscriptions`, `admin-link-stripe-customer`, `admin-stripe-webhook-health`, `admin-request-stripe-event-replay`, `admin-approve-fulfillment`, `validate-lifetime-code`
-Reason: no live money movement in DEV; keep concepts, wire only to test credentials later.
+## H. Existing contacts
+These follow the `rebuild-update-signup` rule: an existing contact row is never modified. The function only links `contact_id` on the assessment row and writes an event. New emails get a minimal contact (email, source `preparedness_assessment`, lifecycle `lead`).
 
-### 8. Gifts — DEFER/OPTIONAL
-`create-gift-checkout`, `get-gift-status`, `redeem-gift`, `resend-gift-email`, `send-gift-email`, `check-gift-deliveries`, `check-gift-reminders`, `expire-gift-entitlements`, `backfill-gift-session`, `list-purchased-gifts`, `start-gift-email-verification`, `verify-gift-email-code`, `validate-gift-signup-email`, `track-gift-login`
-Reason: revenue-adjacent, not core to V2 rebuild; defer until billing returns.
+## I. Duplicates and retakes
+Every completed attempt is its own row, so research history is kept. Rows are grouped by session_id; analysis uses the latest row per session or contact. Join events are deduplicated per contact within 24h. Repeat joins return the same success message.
 
-### 9. Auth / MFA / session — KEEP CONCEPT, REWRITE
-`send-auth-email`, `mint-magic-link`, `resend-magic-link`, `mfa-step-up`, `mfa-unenroll`, `manage-backup-codes`, `check-verification`, `send-verification-email`, `request-email-change`, `confirm-email-change`, `force-signout`
-Reason: all are `verify_jwt = false` or privileged; rewrite with explicit signature/token verification, durable rate limiting, and no user-supplied identity.
+## J. Rate limiting
+The shared `rate_limits` table, keyed per IP and action:
+- `submit`: 10 per 15 min
+- `join`: 5 per 15 min (matching the existing signup)
 
-### 10. Email delivery — KEEP CONCEPT, DEV DISABLED
-`send-welcome-email`, `send-subscription-welcome-email`, `send-security-alert`, `send-property-update`, `send-reminder-email`, `send-feedback-email`, `send-contact-email`, `send-test-email`, `resend-webhook`
-Reason: outbound sending must be off or sandboxed in DEV to avoid mailing real users.
+Over the limit, the function returns a generic 429.
 
-### 11. Public intake — SPLIT
-- KEEP: `rebuild-update-signup` (already minimal, origin-scoped, rate-limited).
-- REWRITE BEFORE DEV: `lead-capture`, `submit-lead`, `submit-account-assistance`, `log-consent`, `track`, `rate-limit-check` — unauthenticated write surfaces; need input allow-lists, durable per-IP limiting, generic responses.
-- DELETE: ActiveCampaign is out of scope → `sync-activecampaign` retires.
+## K. CORS
+The same exact-origin allow-list as `rebuild-update-signup`:
+- the four public domains
+- the published lovable.app domain
+- the private editor preview
+- localhost:8080
 
-### 12. Admin / internal ops — DEFER/OPTIONAL
-`admin-get-user-emails`, `list-cron-job-health`, `notify-manual-review-backlog`, `scrub-old-support-pii`, `quarterly-restore-drill-reminder`, `security-headers`
-Reason: operational tooling; `admin-get-user-emails` needs rewrite if kept (PII egress).
+No wildcards. Unknown origins get no allow-origin header.
 
-### 13. AI / lookup utilities — KEEP CONCEPT
-`ai-support-chat`, `mls-property-lookup`, `property-tax-lookup`
-Reason: no privileged data writes; keep with cost caps and auth.
+## L. Files and components
+- `src/components/rebuild/assessment/`: PreparednessHero, AssessmentFlow (questions, progress bar, Back button, one question per screen with large tap cards), AssessmentResult (score ring, band, gaps), EarlyAccessForm (button disabled while sending, consent line linked to the Privacy Policy).
+- `src/data/preparednessAssessment.ts`: question and option content (versioned).
+- `src/pages/RebuildLanding.tsx`: page order becomes hero, then CTA ("Check My Preparedness" / "5 questions · About 60 seconds · No account required"), then the assessment, the result, Early Access, a short rebuild/security note, the closing taglines and the legal footer. "Stay informed" is no longer the primary call to action.
+- Styling uses brand blue and orange through existing tokens, keeping the page calm and premium (no quiz or game look).
+- Mobile checks at 390px, tablet and 1280px+ with Playwright screenshots: no horizontal overflow, the score doesn't overflow, the email form stacks.
+- Privacy Policy: add one short paragraph on assessment answers. Terms are not touched.
 
-## Caller gaps
+## M. Security notes
+- Raw IPs are not stored on the new table; only the salted hash. This needs a new secret, `ASSESSMENT_IP_SALT`, which I would ask you to add.
+- No assessment data can be read by anon or signed-in users.
+- Existing finding outside this scope: `rate_limits` reads and inserts are not atomic, so a burst can slightly exceed the limit. This is acceptable for a public waitlist; I'm noting it, not fixing it here.
+- The preview shares production, so test submissions will land in the real table; they can be tagged `utm.source=qa`.
 
-- **Referenced but missing from source:** `check-trial-reminders` (migration-scheduled only).
-- **In source with no literal caller found:** `backfill-gift-session`, `check-grace-period-expiry`, `notify-manual-review-backlog`, `quarterly-restore-drill-reminder`, `scrub-old-support-pii`, `resend-webhook`, `security-headers`, `send-verification-email`, `send-reminder-email`, `send-cancellation-notice`, `send-continuity-notification`, `send-legacy-admin-notification`, `send-recovery-approved-email`, `send-recovery-rejected-email`, `send-payment-receipt`, `stripe-webhook`, plus the `list-*`/`process-*` sweepers and `download-account-export-bundle`. Most are provider-webhook, cron, or server-to-server targets, so absence of a literal caller is expected — but each needs an owner-confirmed trigger before DEV. Contributor-era functions have no live caller at all.
-
-## Cron classification under V2
-
-Only one schedule is defined in repo migrations; the remaining sweepers are documented in config as cron-invoked but their schedules are not in source (dashboard-created — unverified).
-
-- `check-gift-deliveries-every-15-min` — DEV DISABLED (gifts deferred).
-- `expire-subscription-grace-periods-hourly` — already unscheduled in a migration; DELETE.
-- Callback targets referenced from migrations: `check-gift-reminders`, `send-welcome-email`, `check-payment-failures` → DEV DISABLED; `check-trial-reminders` → DELETE (no code).
-- Storage/retention/closure sweepers → REWRITE, DEV DISABLED at first.
-- Continuity/legacy dispatch (`dispatch-continuity-event`) → REWRITE under Legacy Contact, never enabled in DEV.
-- `scrub-old-support-pii`, `quarterly-restore-drill-reminder`, `process-storage-usage-drift` → KEEP LATER (production hygiene only).
-
-## Recommended next step
-
-Confirm the full production cron inventory from the Supabase dashboard (out-of-repo schedules), then take the DELETE groups first — contributor-era and ActiveCampaign — before any DEV provisioning.
-
-No files, migrations, settings, secrets, or backend state were changed or invoked during this audit.
+## Sequence
+1. You approve this report and confirm or supply the question content.
+2. I build the screens with scoring locally in the preview. The email step stays disabled until step 3.
+3. With your go-ahead, I run the migration and deploy `preparedness-assessment`.
+4. End-to-end test in the private preview.
+5. Publish only after you review it.
