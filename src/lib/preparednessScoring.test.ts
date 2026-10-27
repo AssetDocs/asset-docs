@@ -1,3 +1,4 @@
+// @ts-nocheck — run with `bun test`; bun:test types are not in the app tsconfig.
 import { describe, expect, test } from 'bun:test';
 import { scoreAssessment, bandFor } from './preparednessScoring';
 

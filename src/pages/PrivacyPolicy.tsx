@@ -23,7 +23,7 @@ const PrivacyPolicy: React.FC = () => {
 
       <div className="container mx-auto px-4 py-12 flex-grow max-w-4xl">
         <h1 className="text-3xl font-bold text-brand-blue mb-2">Asset Safe Privacy Policy</h1>
-        <p className="text-sm text-gray-500 mb-8">Last Updated: September 7, 2026</p>
+        <p className="text-sm text-gray-500 mb-8">Last Updated: October 27, 2026</p>
 
         <div className="prose prose-lg max-w-none
           [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-primary [&_h2]:mt-10 [&_h2]:mb-4
@@ -51,6 +51,14 @@ const PrivacyPolicy: React.FC = () => {
               <strong>Email address for updates.</strong> If you ask to receive Asset Safe updates — including through the
               email signup form on our website — we collect the email address you submit so we can send you the updates you
               requested.
+            </li>
+            <li>
+              <strong>Preparedness assessment responses.</strong> If you complete the preparedness assessment on our website,
+              we collect the answer choices you select (for example, how organized your records are and what price would
+              feel reasonable), the resulting score, and optional details such as how you would describe yourself. The
+              assessment asks about preparedness only — it never asks for passwords, account numbers, policy numbers, or
+              document contents. We use these responses to show your result and to understand and improve Asset Safe. If
+              you join Early Access, we link your responses to the email address you provide.
             </li>
             <li>
               <strong>Account information.</strong> When you create an account, we collect information such as your name,
