@@ -86,6 +86,10 @@ serve(async (req) => {
   const json = (b: unknown, s = 200) =>
     new Response(JSON.stringify(b), { status: s, headers: { ...cors, "content-type": "application/json" } });
 
+  // Browser requests from unapproved origins are rejected before any reads/writes.
+  // Requests without an Origin header (server/CLI) fall through to validation + rate limits.
+  if (origin !== null && !ALLOWED_ORIGINS.has(origin)) return json({ ok: false, error: GENERIC }, 403);
+
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ ok: false, error: GENERIC }, 405);
 
