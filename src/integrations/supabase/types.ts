@@ -5931,6 +5931,77 @@ export type Database = {
         }
         Relationships: []
       }
+      preparedness_assessments: {
+        Row: {
+          answers: Json
+          assessment_version: string
+          audience_segment: string | null
+          band: string
+          consent_at: string | null
+          contact_id: string | null
+          created_at: string
+          early_access_opt_in: boolean
+          fit_score: number
+          id: string
+          is_qa: boolean
+          primary_interest: string | null
+          referrer: string | null
+          session_id: string
+          top_gaps: string[]
+          updated_at: string
+          utm: Json | null
+          willingness_to_pay: string | null
+        }
+        Insert: {
+          answers: Json
+          assessment_version: string
+          audience_segment?: string | null
+          band: string
+          consent_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          early_access_opt_in?: boolean
+          fit_score: number
+          id?: string
+          is_qa?: boolean
+          primary_interest?: string | null
+          referrer?: string | null
+          session_id: string
+          top_gaps?: string[]
+          updated_at?: string
+          utm?: Json | null
+          willingness_to_pay?: string | null
+        }
+        Update: {
+          answers?: Json
+          assessment_version?: string
+          audience_segment?: string | null
+          band?: string
+          consent_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          early_access_opt_in?: boolean
+          fit_score?: number
+          id?: string
+          is_qa?: boolean
+          primary_interest?: string | null
+          referrer?: string | null
+          session_id?: string
+          top_gaps?: string[]
+          updated_at?: string
+          utm?: Json | null
+          willingness_to_pay?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preparedness_assessments_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       preservation_states: {
         Row: {
           account_id: string
